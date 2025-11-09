@@ -1,0 +1,24 @@
+{
+    "name": "@flowsplit/webhook-processor",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "build": "nest build",
+        "start:dev": "dotenv -e ../../../.env -- nest start --watch"
+    },
+    "dependencies": {
+        "@nestjs/common": "^10.0.0",
+        "@nestjs/core": "^10.0.0",
+        "@nestjs/platform-express": "^10.0.0",
+        "@prisma/client": "^5.12.1"
+    },
+    "devDependencies": {
+        "@nestjs/cli": "^10.0.0",
+        "@nestjs/schematics": "^10.0.0",
+        "@nestjs/testing": "^11.1.8",
+        "@types/jest": "^30.0.0",
+        "jest": "^30.2.0",
+        "ts-jest": "^29.4.5",
+        "typescript": "^5"
+    }
+}

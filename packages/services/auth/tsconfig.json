@@ -1,0 +1,23 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true 
+  },
+  "include": ["src/**/*", "../../libs/auth/src/jwt-auth.guard.ts"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"],
+  "references": [
+    { "path": "../../prisma" },
+    { "path": "../../shared" }
+  ]
+}

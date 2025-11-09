@@ -1,0 +1,41 @@
+{
+    "name": "@flowsplit/auth-service",
+    "version": "1.0.0",
+    "private": true,
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "nest build",
+        "start:dev": "dotenv -e ../../../.env -- nest start --watch",
+        "dev": "dotenv -e ../../../.env -- nest start --watch"
+    },
+    "dependencies": {
+        "@flowsplit/auth": "workspace:*",
+        "@flowsplit/shared": "workspace:*",
+        "@flowsplit/prisma": "workspace:*",
+        "@nestjs/common": "^10.0.0",
+        "@nestjs/config": "^4.0.2",
+        "@nestjs/core": "^10.0.0",
+        "@nestjs/jwt": "^11.0.1",
+        "@nestjs/passport": "^11.0.5",
+        "@nestjs/platform-express": "^10.0.0",
+        "@prisma/client": "^5.12.1",
+        "bcryptjs": "^3.0.3",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.2",
+        "passport": "^0.7.0",
+        "passport-jwt": "^4.0.1",
+        "reflect-metadata": "^0.2.2"
+    },
+    "devDependencies": {
+        "@nestjs/cli": "^10.0.0",
+        "@nestjs/schematics": "^10.0.0",
+        "@nestjs/testing": "^11.1.8",
+        "@types/bcryptjs": "^3.0.0",
+        "@types/jest": "^30.0.0",
+        "@types/passport-jwt": "^4.0.1",
+        "jest": "^30.2.0",
+        "ts-jest": "^29.4.5",
+        "typescript": "^5"
+    }
+}

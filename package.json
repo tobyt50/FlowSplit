@@ -1,0 +1,27 @@
+{
+    "name": "flowsplit",
+    "version": "1.0.0",
+    "private": true,
+    "description": "FlowSplit - Automated Smart Money Routing",
+    "author": "Your Name",
+    "license": "ISC",
+    "scripts": {
+        "build": "turbo build",
+        "dev": "turbo dev",
+        "lint": "turbo lint",
+        "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+        "generate": "pnpm --filter @flowsplit/prisma run db:generate",
+        "migrate": "pnpm --filter @flowsplit/prisma run db:migrate",
+        "studio": "pnpm --filter @flowsplit/prisma run db:studio",
+        "clean": "turbo run clean"
+    },
+    "devDependencies": {
+        "dotenv-cli": "^11.0.0",
+        "eslint": "^8.57.0",
+        "eslint-config-prettier": "^9.1.0",
+        "prettier": "^3.2.5",
+        "turbo": "^1.13.3",
+        "typescript": "^5.4.5"
+    },
+    "packageManager": "pnpm@8.6.0"
+}

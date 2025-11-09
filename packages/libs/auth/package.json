@@ -1,0 +1,24 @@
+{
+    "name": "@flowsplit/auth",
+    "version": "1.0.0",
+    "private": true,
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -p tsconfig.build.json",
+        "dev": "tsc -p tsconfig.build.json --watch"
+    },
+    "dependencies": {
+        "@nestjs/common": "^10.0.0",
+        "@nestjs/passport": "^10.0.3",
+        "@nestjs/jwt": "^10.2.0",
+        "@nestjs/config": "^3.2.2",
+        "passport": "^0.7.0",
+        "passport-jwt": "^4.0.1",
+        "@flowsplit/prisma": "workspace:*"
+    },
+    "devDependencies": {
+        "@types/passport-jwt": "^4.0.1",
+        "typescript": "^5.1.3"
+    }
+}
