@@ -52,7 +52,7 @@ export default function RegisterPage() {
       <div className="text-center mb-8">
         <h1 className="text-3xl font-semibold tracking-tight">Create an Account</h1>
         <p className="text-sm text-muted-foreground mt-2">
-          Enter your details to start splitting your finances.
+          Split your income, save effortlessly, and stay on top of bills.
         </p>
       </div>
 
