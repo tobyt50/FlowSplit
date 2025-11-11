@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { AuthService } from '../modules/auth.service';
+import { AuthController } from '../modules/auth.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from '@flowsplit/auth';
 import { SharedAuthModule } from '@flowsplit/auth'; 
-import { UsersService } from '../../users/users.service';
+import { UsersService } from '../users/users.service';
 
 @Module({
   imports: [
