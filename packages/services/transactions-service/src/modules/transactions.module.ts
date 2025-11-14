@@ -1,31 +1,29 @@
 import { Module } from '@nestjs/common';
 import { TransactionsController } from './transactions.controller';
 import { TransactionsService } from './transactions.service';
+import { AuthModule } from '../auth/auth.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { PaystackGuard } from '../common/guards/paystack.guard';
 
 @Module({
   imports: [
-    ConfigModule,
+    AuthModule,
     ClientsModule.registerAsync([
       {
         name: 'RULE_ENGINE_SERVICE',
+        imports: [ConfigModule],
         useFactory: (configService: ConfigService) => {
-          const rabbitmqUrl = configService.get<string>('RABBITMQ_URL');
-          if (!rabbitmqUrl) {
+          const rmqUrl = configService.get<string>('RABBITMQ_URL');
+          if (!rmqUrl) {
             throw new Error(
-              'RABBITMQ_URL is not defined in the environment variables.',
+              'RABBITMQ_URL is not defined in the environment variables.'
             );
           }
           return {
             transport: Transport.RMQ,
             options: {
-              urls: [rabbitmqUrl],
+              urls: [rmqUrl],
               queue: 'rule_engine_queue',
-              queueOptions: {
-                durable: true,
-              },
             },
           };
         },
@@ -34,6 +32,6 @@ import { PaystackGuard } from '../common/guards/paystack.guard';
     ]),
   ],
   controllers: [TransactionsController],
-  providers: [TransactionsService, PaystackGuard],
+  providers: [TransactionsService],
 })
 export class TransactionsModule {}

@@ -5,6 +5,7 @@ const nextConfig = {
         '@flowsplit/shared',
         '@flowsplit/prisma',
     ],
+    output: 'standalone',
 };
 
 export default nextConfig;

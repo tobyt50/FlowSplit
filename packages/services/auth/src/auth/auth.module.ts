@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from '../modules/auth.service';
 import { AuthController } from '../modules/auth.controller';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtStrategy } from '@flowsplit/auth';
-import { SharedAuthModule } from '@flowsplit/auth'; 
+import { ConfigModule } from '@nestjs/config';
+import { JwtStrategy, SharedAuthModule, USERS_SERVICE_TOKEN } from '@flowsplit/auth';
 import { UsersService } from '../users/users.service';
 
 @Module({
@@ -15,9 +14,10 @@ import { UsersService } from '../users/users.service';
   providers: [
     AuthService,
     JwtStrategy,
+    UsersService,
     {
-        provide: UsersService,
-        useClass: UsersService
+      provide: USERS_SERVICE_TOKEN,
+      useExisting: UsersService,
     },
   ],
 })

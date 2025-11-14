@@ -14,7 +14,7 @@
     "incremental": true,
     "skipLibCheck": true 
   },
-  "include": ["src/**/*", "../../libs/auth/src/jwt-auth.guard.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.spec.ts"],
   "references": [
     { "path": "../../prisma" },

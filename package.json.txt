@@ -1,0 +1,446 @@
+version: '3.8'
+
+services:
+  # --- INFRASTRUCTURE ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: flowsplit_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: flowsplit_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+    restart: unless-stopped
+
+  # --- BACKEND SERVICES ---
+  auth-service:
+    build:
+      context: .
+      dockerfile: packages/services/auth/Dockerfile
+    container_name: flowsplit_auth_service
+    ports:
+      - "3100:3100"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - AUTH_SERVICE_PORT=3100
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: .
+      dockerfile: packages/services/user-service/Dockerfile
+    container_name: flowsplit_user_service
+    ports:
+      - "3101:3101"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - USER_SERVICE_PORT=3101
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  rule-service:
+    build:
+      context: .
+      dockerfile: packages/services/rule-service/Dockerfile
+    container_name: flowsplit_rule_service
+    ports:
+      - "3104:3104"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - RULE_SERVICE_PORT=3104
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  transactions-service:
+    build:
+      context: .
+      dockerfile: packages/services/transactions-service/Dockerfile
+    container_name: flowsplit_transactions_service
+    ports:
+      - "3103:3103"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - TRANSACTIONS_SERVICE_PORT=3103
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  wallet-service:
+    build:
+      context: .
+      dockerfile: packages/services/wallet-service/Dockerfile
+    container_name: flowsplit_wallet_service
+    ports:
+      - "3102:3102"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - WALLET_SERVICE_PORT=3102
+    depends_on:
+      - postgres
+    restart: unless-stopped
+  rule-engine:
+    build:
+      context: .
+      dockerfile: packages/services/rule-engine/Dockerfile
+    container_name: flowsplit_rule_engine
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    depends_on:
+      - postgres
+      - rabbitmq
+    restart: unless-stopped
+
+  # --- FRONTEND ---
+  web:
+    build:
+      context: .
+      dockerfile: packages/apps/web/Dockerfile
+    container_name: flowsplit_web
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service # and other backend services
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+{
+    "name": "flowsplit",
+    "version": "1.0.0",
+    "private": true,
+    "description": "FlowSplit - Automated Smart Money Routing",
+    "author": "Your Name",
+    "license": "ISC",
+    "scripts": {
+        "build": "turbo build",
+        "lint": "turbo lint",
+        "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+        "clean": "turbo run clean",
+        "nuke": "rimraf ./packages/services/*/node_modules ./packages/services/*/dist",
+
+        "//--- DEVELOPMENT ---//": "",
+        "dev": "turbo dev --parallel",
+        "dev:web": "turbo dev --filter=web",
+        "dev:services": "turbo dev --filter=\"...{./packages/services/*}\" --parallel",
+
+        "//--- DATABASE ---//": "",
+        "db:generate": "pnpm --filter @flowsplit/prisma run db:generate",
+        "db:migrate": "pnpm --filter @flowsplit/prisma run db:migrate",
+        "db:studio": "pnpm --filter @flowsplit/prisma run db:studio",
+
+        "//--- DEVOPS ---//": "",
+        "docker": "docker-compose up -d"
+    },
+    "devDependencies": {
+        "dotenv-cli": "^11.0.0",
+        "eslint": "^8.57.0",
+        "eslint-config-prettier": "^9.1.0",
+        "prettier": "^3.2.5",
+        "turbo": "^1.13.3",
+        "typescript": "^5.4.5"
+    },
+    "packageManager": "pnpm@8.6.0"
+}
+
+{
+    "name": "@flowsplit/prisma",
+    "version": "1.0.0",
+    "private": true,
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -p tsconfig.build.json",
+        "db:generate": "dotenv -e ../../.env -- prisma generate",
+        "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
+        "db:studio": "dotenv -e ../../.env -- prisma studio",
+        "clean": "turbo run clean"
+    },
+    "dependencies": {
+        "@nestjs/common": "^10.0.0",
+        "@paralleldrive/cuid2": "^3.0.4",
+        "@prisma/client": "^5.12.1",
+        "class-validator": "^0.14.1"
+    },
+    "devDependencies": {
+        "prisma": "^5.12.1"
+    }
+}
+
+{
+    "name": "web",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@flowsplit/prisma": "workspace:*",
+        "@hookform/resolvers": "^5.2.2",
+        "@radix-ui/react-dialog": "^1.1.15",
+        "@radix-ui/react-dropdown-menu": "^2.1.16",
+        "@radix-ui/react-separator": "^1.1.8",
+        "@radix-ui/react-slot": "^1.2.4",
+        "axios": "^1.13.2",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "js-cookie": "^3.0.5",
+        "lucide-react": "^0.553.0",
+        "next": "14.2.3",
+        "next-themes": "^0.4.6",
+        "react": "^18",
+        "react-dom": "^18",
+        "react-hook-form": "^7.66.0",
+        "recharts": "^2.12.6",
+        "sonner": "^2.0.7",
+        "tailwind-merge": "^3.4.0",
+        "tailwindcss-animate": "^1.0.7",
+        "zod": "^4.1.12",
+        "zustand": "^4.5.2"
+    },
+    "devDependencies": {
+        "@types/js-cookie": "^3.0.6",
+        "@types/node": "^20",
+        "@types/react": "^18",
+        "@types/react-dom": "^18",
+        "autoprefixer": "^10.4.21",
+        "eslint": "^8",
+        "eslint-config-next": "14.2.3",
+        "postcss": "^8",
+        "tailwindcss": "^3.4.1",
+        "typescript": "^5"
+    }
+}
+
+{
+    "name": "@flowsplit/auth-service",
+    "version": "1.0.0",
+    "private": true,
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "nest build",
+        "start:dev": "dotenv -e ../../../.env -- nest start --watch",
+        "dev": "dotenv -e ../../../.env -- nest start --watch"
+    },
+    "dependencies": {
+        "@flowsplit/auth": "workspace:*",
+        "@flowsplit/prisma": "workspace:*",
+        "@flowsplit/shared": "workspace:*",
+        "@nestjs/common": "^10.0.0",
+        "@nestjs/config": "^3.2.2",
+        "@nestjs/core": "^10.0.0",
+        "@nestjs/jwt": "^10.2.0",
+        "@nestjs/passport": "^10.0.3",
+        "@nestjs/platform-express": "^10.0.0",
+        "@types/cors": "^2.8.19",
+        "bcryptjs": "^3.0.3",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.1",
+        "cors": "^2.8.5",
+        "passport": "^0.7.0",
+        "passport-jwt": "^4.0.1",
+        "reflect-metadata": "^0.2.0"
+    },
+    "devDependencies": {
+        "@nestjs/cli": "^10.0.0",
+        "@nestjs/schematics": "^10.0.0",
+        "@nestjs/testing": "^11.1.8",
+        "@types/bcryptjs": "^3.0.0",
+        "@types/express": "^4.17.17",
+        "@types/jest": "^30.0.0",
+        "@types/passport-jwt": "^4.0.1",
+        "jest": "^30.2.0",
+        "ts-jest": "^29.4.5",
+        "typescript": "^5"
+    }
+}
+
+{
+    "name": "@flowsplit/rule-engine",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "build": "nest build",
+        "start:dev": "dotenv -e ../../../.env -- nest start --watch",
+        "dev": "dotenv -e ../../../.env -- nest start --watch"
+    },
+    "dependencies": {
+        "@flowsplit/prisma": "workspace:*",
+        "@nestjs/common": "^10.0.0",
+        "@nestjs/config": "^3.2.2",
+        "@nestjs/core": "^10.0.0",
+        "@nestjs/microservices": "^10.0.0",
+        "amqp-connection-manager": "^4.1.14",
+        "amqplib": "^0.10.3",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.1",
+        "reflect-metadata": "^0.2.0"
+    },
+    "devDependencies": {
+        "@nestjs/cli": "^10.0.0",
+        "@nestjs/schematics": "^10.0.0",
+        "@types/node": "^20.3.1",
+        "typescript": "^5.1.3"
+    }
+}
+
+{
+    "name": "@flowsplit/rule-service",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "build": "nest build",
+        "start:dev": "dotenv -e ../../../.env -- nest start --watch",
+        "dev": "dotenv -e ../../../.env -- nest start --watch"
+    },
+    "dependencies": {
+        "@flowsplit/auth": "workspace:*",
+        "@flowsplit/prisma": "workspace:*",
+        "@nestjs/common": "^10.0.0",
+        "@nestjs/config": "^3.2.2",
+        "@nestjs/core": "^10.0.0",
+        "@nestjs/passport": "^10.0.3",
+        "@nestjs/platform-express": "^10.0.0",
+        "@paralleldrive/cuid2": "^3.0.4",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.1",
+        "passport": "^0.7.0",
+        "reflect-metadata": "^0.2.0"
+    },
+    "devDependencies": {
+        "@nestjs/cli": "^10.0.0",
+        "@nestjs/schematics": "^10.0.0",
+        "@types/express": "^4.17.17",
+        "@types/node": "^20.3.1",
+        "typescript": "^5.1.3"
+    }
+}{
+    "name": "@flowsplit/transactions-service",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "build": "nest build",
+        "start:dev": "dotenv -e ../../../.env -- nest start --watch",
+        "dev": "dotenv -e ../../../.env -- nest start --watch"
+    },
+    "dependencies": {
+        "@flowsplit/auth": "workspace:^",
+        "@flowsplit/prisma": "workspace:*",
+        "@nestjs/common": "^10.0.0",
+        "@nestjs/config": "^3.2.2",
+        "@nestjs/core": "^10.0.0",
+        "@nestjs/microservices": "^10.0.0",
+        "@nestjs/passport": "^11.0.5",
+        "@nestjs/platform-express": "^10.0.0",
+        "@prisma/client": "^5.12.1",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.1",
+        "express-json": "^1.0.0",
+        "passport": "^0.7.0",
+        "reflect-metadata": "^0.2.0"
+    },
+    "devDependencies": {
+        "@nestjs/cli": "^10.0.0",
+        "@nestjs/schematics": "^10.0.0",
+        "@types/express": "^4.17.17",
+        "@types/node": "^20.3.1",
+        "typescript": "^5.1.3"
+    }
+}
+
+{
+    "name": "@flowsplit/user-service",
+    "version": "1.0.0",
+    "private": true,
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "nest build",
+        "start:dev": "dotenv -e ../../../.env -- nest start --watch",
+        "dev": "dotenv -e ../../../.env -- nest start --watch"
+    },
+    "dependencies": {
+        "@flowsplit/auth": "workspace:*",
+        "@flowsplit/prisma": "workspace:*",
+        "@nestjs/common": "^10.0.0",
+        "@nestjs/config": "^3.2.2",
+        "@nestjs/core": "^10.0.0",
+        "@nestjs/passport": "^11.0.5",
+        "@nestjs/platform-express": "^10.0.0",
+        "@prisma/client": "^5.12.1",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.1",
+        "passport": "^0.7.0",
+        "reflect-metadata": "^0.2.0"
+    },
+    "devDependencies": {
+        "@nestjs/cli": "^10.0.0",
+        "@nestjs/schematics": "^10.0.0",
+        "@types/express": "^4.17.17",
+        "@types/node": "^20.3.1",
+        "typescript": "^5.1.3"
+    }
+}
+
+{
+    "name": "@flowsplit/wallet-service",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "build": "nest build",
+        "start:dev": "dotenv -e ../../../.env -- nest start --watch",
+        "dev": "dotenv -e ../../../.env -- nest start --watch"
+    },
+    "dependencies": {
+        "@flowsplit/auth": "workspace:^",
+        "@flowsplit/prisma": "workspace:*",
+        "@nestjs/common": "^10.0.0",
+        "@nestjs/config": "^3.2.2",
+        "@nestjs/core": "^10.0.0",
+        "@nestjs/passport": "^11.0.5",
+        "@nestjs/platform-express": "^10.0.0",
+        "@prisma/client": "^5.12.1",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.1",
+        "passport": "^0.7.0",
+        "reflect-metadata": "^0.2.0"
+    },
+    "devDependencies": {
+        "@nestjs/cli": "^10.0.0",
+        "@nestjs/schematics": "^10.0.0",
+        "@types/express": "^4.17.17",
+        "@types/node": "^20.3.1",
+        "typescript": "^5.1.3"
+    }
+}

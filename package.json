@@ -7,13 +7,23 @@
     "license": "ISC",
     "scripts": {
         "build": "turbo build",
-        "dev": "turbo dev",
         "lint": "turbo lint",
         "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-        "generate": "pnpm --filter @flowsplit/prisma run db:generate",
-        "migrate": "pnpm --filter @flowsplit/prisma run db:migrate",
-        "studio": "pnpm --filter @flowsplit/prisma run db:studio",
-        "clean": "turbo run clean"
+        "clean": "turbo run clean",
+        "nuke": "rimraf ./packages/services/*/node_modules ./packages/services/*/dist",
+
+        "//--- DEVELOPMENT ---//": "",
+        "dev": "turbo dev --parallel",
+        "dev:web": "turbo dev --filter=web",
+        "dev:services": "turbo dev --filter=\"...{./packages/services/*}\" --parallel",
+
+        "//--- DATABASE ---//": "",
+        "db:generate": "pnpm --filter @flowsplit/prisma run db:generate",
+        "db:migrate": "pnpm --filter @flowsplit/prisma run db:migrate",
+        "db:studio": "pnpm --filter @flowsplit/prisma run db:studio",
+
+        "//--- DEVOPS ---//": "",
+        "docker": "docker-compose up -d"
     },
     "devDependencies": {
         "dotenv-cli": "^11.0.0",

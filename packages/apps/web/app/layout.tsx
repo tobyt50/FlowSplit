@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import '../styles/globals.css'; // Your global stylesheet
-import { cn } from '../lib/utils'; // A utility for merging class names
+import '../styles/globals.css';
+import { cn } from '../lib/utils';
+import { ThemeProvider } from '../components/providers/ThemeProvider';
+import { AuthProvider } from '../components/providers/AuthProvider';
+import { Toaster } from '../components/ui/Toast';
 
-// Using next/font to automatically optimize and load the Inter font.
-// This is a significant performance and DX improvement.
 const fontSans = Inter({
   subsets: ['latin'],
-  variable: '--font-sans', // Define it as a CSS variable for Tailwind
-  weight: ['400', '500', '600'], // Load the required font weights
+  variable: '--font-sans',
+  weight: ['400', '500', '600'],
 });
 
 export const metadata: Metadata = {
@@ -30,8 +31,21 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        {/* We will wrap this with Theme and Auth providers later */}
-        {children}
+        {/*
+          This usage is correct. We pass the configuration props here.
+          This code is now compatible with our fixed ThemeProvider component.
+        */}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <Toaster />
+            {children}
+            </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

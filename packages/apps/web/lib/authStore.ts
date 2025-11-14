@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { User } from '@flowsplit/prisma';
+import Cookies from 'js-cookie';
 
 // Define the shape of the store's state
 interface AuthState {
@@ -15,6 +16,33 @@ interface AuthActions {
   setUser: (user: Omit<User, 'password'>) => void;
   logout: () => void;
 }
+
+const customStorage = {
+  getItem: (name: string) => {
+    // Try to get from localStorage first
+    const str = localStorage.getItem(name);
+    // Also ensure the cookie is set if the item exists
+    if (str) Cookies.set('flowsplit_token', JSON.parse(str).state.token, { expires: 1 });
+    return str;
+  },
+  setItem: (name: string, value: string) => {
+    // Set both localStorage and the cookie
+    localStorage.setItem(name, value);
+    try {
+        const token = JSON.parse(value).state.token;
+        if (token) {
+            Cookies.set('flowsplit_token', token, { expires: 1 }); // expires in 1 day
+        } else {
+            Cookies.remove('flowsplit_token');
+        }
+    } catch (e) {}
+  },
+  removeItem: (name: string) => {
+    // Remove from both
+    localStorage.removeItem(name);
+    Cookies.remove('flowsplit_token');
+  },
+};
 
 // Create the store using Zustand
 export const useAuthStore = create<AuthState & AuthActions>()(
@@ -40,11 +68,12 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       // Action to clear all authentication data, effectively logging the user out
       logout: () => {
         set({ token: null, user: null, isAuthenticated: false });
+        Cookies.remove('flowsplit_token');
       },
     }),
     {
-      name: 'flowsplit-auth-storage', // The key to use in localStorage
-      storage: createJSONStorage(() => localStorage), // Use localStorage for persistence
+      name: 'flowsplit-auth-storage',
+      storage: createJSONStorage(() => customStorage),
     }
   )
 );

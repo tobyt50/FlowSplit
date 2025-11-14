@@ -9,6 +9,7 @@ import * as z from 'zod';
 import { registerUser } from '../../../lib/authService';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
+import { toast } from 'sonner';
 
 // Define the validation schema using Zod for type-safe form validation
 const formSchema = z.object({
@@ -38,13 +39,19 @@ export default function RegisterPage() {
     setError(null);
     try {
       await registerUser(data);
-      // On successful registration, redirect to the login page with a success message
       router.push('/login?registered=true');
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+      
+    toast.success('Account created!', {
+          description: `Your account has been successfully created.`,
+        });
+      } catch (err: any) {
+        toast.error('Creation Failed', {
+          description: err.message,
+        });
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
   };
 
   return (

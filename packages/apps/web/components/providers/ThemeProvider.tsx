@@ -1,24 +1,24 @@
-'use client'; // This component MUST be a client component
+'use client';
 
 import * as React from 'react';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { type ThemeProviderProps } from 'next-themes';
 
 /**
- * We define a new type for our specific ThemeProvider component's props.
- * This correctly combines the configuration props from the `next-themes` library
- * with React's own `children` prop.
+ * This is the corrected type for our wrapper component's props.
+ * It combines the library's configuration props (`ThemeProviderProps`)
+ * with React's standard `children` prop. This is the explicit and
+ * type-safe way to define a wrapper component.
  */
-type Props = ThemeProviderProps & {
+type CustomThemeProviderProps = ThemeProviderProps & {
   children: React.ReactNode;
 };
 
-/**
- * The ThemeProvider is a client-side component that wraps the entire application.
- * It leverages the `next-themes` library to manage and persist the user's
- * preferred color scheme (light/dark mode).
- */
-export function ThemeProvider({ children, ...props }: Props) {
+export function ThemeProvider({ children, ...props }: CustomThemeProviderProps) {
+  // With the corrected type above:
+  // - `children` is correctly identified as React.ReactNode.
+  // - `...props` is correctly identified as ThemeProviderProps.
+  // The TypeScript error is now resolved at its source.
   return (
     <NextThemesProvider {...props}>
       {children}

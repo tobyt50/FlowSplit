@@ -1,0 +1,46 @@
+# This file tells Docker which files and folders to ignore when creating a build context.
+# It is crucial for security, speed, and creating reproducible builds.
+
+# 1. Ignore version control history
+.git
+
+# 2. Ignore all dependency folders. These MUST be installed inside the container
+#    to ensure they are compiled for the correct architecture (Linux Alpine).
+node_modules
+**/node_modules
+
+# 3. Ignore all build output and cache folders. These are generated inside
+#    the container during the build process.
+dist
+**/dist
+.next
+**/.next
+.turbo
+
+# 4. Ignore local environment variables. These are highly sensitive and should
+#    be injected into the container at runtime, not built into the image.
+.env
+.env.*
+!/.env.example
+
+# 5. Ignore log files.
+*.log
+pnpm-debug.log*
+npm-debug.log*
+yarn-error.log*
+
+# 6. Ignore IDE and editor configuration folders.
+.vscode
+.idea
+
+# 7. Ignore operating system specific files.
+.DS_Store
+Thumbs.db
+
+# 8. Ignore test files, which are not needed in a production image.
+tests
+**/tests
+
+# 9. Ignore other development-related files and documentation.
+README.md
+LICENSE

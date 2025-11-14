@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  # --- INFRASTRUCTURE ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: flowsplit_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: flowsplit_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+    restart: unless-stopped
+
+  # --- BACKEND SERVICES ---
+  auth-service:
+    build:
+      context: .
+      dockerfile: packages/services/auth/Dockerfile
+    container_name: flowsplit_auth_service
+    ports:
+      - "3100:3100"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - AUTH_SERVICE_PORT=3100
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: .
+      dockerfile: packages/services/user-service/Dockerfile
+    container_name: flowsplit_user_service
+    ports:
+      - "3101:3101"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - USER_SERVICE_PORT=3101
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  rule-service:
+    build:
+      context: .
+      dockerfile: packages/services/rule-service/Dockerfile
+    container_name: flowsplit_rule_service
+    ports:
+      - "3104:3104"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - RULE_SERVICE_PORT=3104
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  transactions-service:
+    build:
+      context: .
+      dockerfile: packages/services/transactions-service/Dockerfile
+    container_name: flowsplit_transactions_service
+    ports:
+      - "3103:3103"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - TRANSACTIONS_SERVICE_PORT=3103
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  wallet-service:
+    build:
+      context: .
+      dockerfile: packages/services/wallet-service/Dockerfile
+    container_name: flowsplit_wallet_service
+    ports:
+      - "3102:3102"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - WALLET_SERVICE_PORT=3102
+    depends_on:
+      - postgres
+    restart: unless-stopped
+  rule-engine:
+    build:
+      context: .
+      dockerfile: packages/services/rule-engine/Dockerfile
+    container_name: flowsplit_rule_engine
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    depends_on:
+      - postgres
+      - rabbitmq
+    restart: unless-stopped
+
+  # --- FRONTEND ---
+  web:
+    build:
+      context: .
+      dockerfile: packages/apps/web/Dockerfile
+    container_name: flowsplit_web
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service # and other backend services
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
