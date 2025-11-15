@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { Prisma, PrismaService, WalletType } from '@flowsplit/prisma';
+import { LedgerService } from '../ledger/ledger.service';
+import { createId } from '@paralleldrive/cuid2';
 
 type PrismaTransactionClient = Prisma.TransactionClient;
 
@@ -13,12 +15,11 @@ type PrismaTransactionClient = Prisma.TransactionClient;
 export class WalletsService {
   private readonly logger = new Logger(WalletsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly ledgerService: LedgerService,
+  ) {}
 
-  /**
-   * Atomically creates a new wallet for a user.
-   * It also ensures a primary 'PERSONAL' wallet exists before creating another wallet.
-   */
   async create(userId: string, createWalletDto: CreateWalletDto) {
     this.logger.log(`Attempting to create wallet '${createWalletDto.name}' for user ${userId}`);
 
@@ -31,13 +32,21 @@ export class WalletsService {
       if (existingWallet) {
         throw new ConflictException(`Wallet with name '${createWalletDto.name}' already exists.`);
       }
-
+      
+      const newWalletId = createId();
       const newWallet = await tx.wallet.create({
         data: {
+          id: newWalletId,
           ...createWalletDto,
           userId: userId,
         },
       });
+
+      await this.ledgerService.createWalletCreationTransaction(
+        tx,
+        newWallet.id,
+        `Initial creation of wallet: ${newWallet.name}`
+      );
 
       this.logger.log(`Successfully created wallet ${newWallet.id} for user ${userId}`);
       return newWallet;
@@ -79,14 +88,23 @@ export class WalletsService {
 
     if (!primaryWallet) {
       this.logger.log(`Primary wallet not found for user ${userId}. Creating one.`);
+      const newWalletId = createId();
       await tx.wallet.create({
         data: {
+          id: newWalletId,
           name: 'Primary',
           type: WalletType.PERSONAL,
           currency: 'NGN',
           userId: userId,
         },
       });
+      
+      // Also record the creation of the primary wallet in the ledger
+      await this.ledgerService.createWalletCreationTransaction(
+        tx,
+        newWalletId,
+        'Initial creation of wallet: Primary'
+      );
     }
   }
 }

@@ -7,15 +7,15 @@ const PAYSTACK_SECRET_KEY = 'sk_test_b6fcd2fbc7dfb3712c2728e46356b5daca0d284d';
 const payloadObject = {
     event: "charge.success",
     data: {
-        id: 3029618147,
+        id: 3029618148,
         domain: "test",
         status: "success",
-        reference: "T636329692994323", // Remember to change this for new tests
-        amount: 50000,
+        reference: "T636843692994323", // Remember to change this for new tests
+        amount: 250000,
         message: null,
         gateway_response: "Successful",
-        paid_at: "2023-10-26T10:03:19.000Z",
-        created_at: "2023-10-26T10:02:54.000Z",
+        paid_at: "2023-15-26T10:03:19.000Z",
+        created_at: "2023-15-26T10:02:54.000Z",
         channel: "card",
         currency: "NGN",
         ip_address: "197.210.65.200",
@@ -26,10 +26,10 @@ const payloadObject = {
         authorization: {},
         customer: {
             id: 123456,
-            first_name: "Test",
-            last_name: "User",
-            email: "test@example.com", // <-- Ensure this matches your test user
-            customer_code: "CUS_123456789",
+            first_name: "Matthew",
+            last_name: "Tedunjaiye",
+            email: "tedunjaiyem@gmail.com", // <-- Ensure this matches your test user
+            customer_code: "CUS_123456783",
             phone: null,
             metadata: null,
             risk_action: "default",

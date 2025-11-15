@@ -1,47 +1,51 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
+import { PrismaService } from '@flowsplit/prisma';
 
-// BigInt JSON serialization patch (for Prisma or similar)
+// CRITICAL: This patch allows BigInt values to be serialized to JSON.
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
 };
 
 async function bootstrap() {
-  // Create app early with rawBody support
-  const app = await NestFactory.create(AppModule, { rawBody: true });
-
-  // Use NestJS ConfigService for consistent env management
-  const configService = app.get(ConfigService);
-  const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
-
-  if (!frontendUrl) {
-    throw new Error('FRONTEND_ORIGIN_URL is not defined in environment variables.');
-  }
-
-  // Enable CORS explicitly and early
-  app.enableCors({
-    origin: frontendUrl,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
   });
 
-  // Global validation and request transformation
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  // --- Observability & Logging ---
+  const pinoLogger = app.get(Logger);
+  app.useLogger(pinoLogger);
 
-  // Global prefix for API routes
+  // --- Security & CORS ---
+  const configService = app.get(ConfigService);
+  const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
+  if (!frontendUrl) {
+    pinoLogger.warn('FRONTEND_ORIGIN_URL is not defined; CORS will not be configured.');
+  } else {
+    app.enableCors({
+      origin: frontendUrl,
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      credentials: true,
+    });
+    pinoLogger.log(`CORS enabled for origin: ${frontendUrl}`);
+  }
+
+  // --- Global Configuration ---
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.setGlobalPrefix('api');
 
-  // Listen on the configured port
-  const port = process.env.USER_SERVICE_PORT || 3101;
+  // --- Graceful Shutdown ---
+  const prismaService = app.get(PrismaService);
+  await prismaService.enableShutdownHooks(app);
+
+  // --- Start Application ---
+  const port = configService.get<string>('USER_SERVICE_PORT') || 3101;
   await app.listen(port);
 
-  Logger.log(
-    `🚀 User Service running on: http://localhost:${port}`,
-    'Bootstrap',
-  );
+  pinoLogger.log(`🚀 User Service running on: http://localhost:${port}`);
 }
-
 bootstrap();

@@ -1,46 +1,51 @@
+import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
+import { PrismaService } from '@flowsplit/prisma';
 
-// BigInt JSON serialization patch (for Prisma or similar)
+// CRITICAL: This patch allows BigInt values to be serialized to JSON.
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
 };
 
 async function bootstrap() {
-  // Create app early with rawBody support for webhooks or payments
-  const app = await NestFactory.create(AppModule, { rawBody: true });
-
-  // Use ConfigService for consistent environment configuration
-  const configService = app.get(ConfigService);
-  const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
-
-  if (!frontendUrl) {
-    throw new Error('FRONTEND_ORIGIN_URL is not defined in environment variables.');
-  }
-
-  // Enable CORS explicitly and early
-  app.enableCors({
-    origin: frontendUrl,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
   });
 
-  // Global validation and DTO transformation
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  // --- Observability & Logging ---
+  const pinoLogger = app.get(Logger);
+  app.useLogger(pinoLogger);
 
-  // Global API prefix
+  // --- Security & CORS ---
+  const configService = app.get(ConfigService);
+  const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
+  if (!frontendUrl) {
+    pinoLogger.warn('FRONTEND_ORIGIN_URL is not defined; CORS will not be configured.');
+  } else {
+    app.enableCors({
+      origin: frontendUrl,
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      credentials: true,
+    });
+    pinoLogger.log(`CORS enabled for origin: ${frontendUrl}`);
+  }
+
+  // --- Global Configuration ---
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.setGlobalPrefix('api');
 
-  // Listen on configured port
-  const port = process.env.WALLET_SERVICE_PORT || 3102;
+  // --- Graceful Shutdown ---
+  const prismaService = app.get(PrismaService);
+  await prismaService.enableShutdownHooks(app);
+
+  // --- Start Application ---
+  const port = configService.get<string>('WALLET_SERVICE_PORT') || 3102;
   await app.listen(port);
 
-  Logger.log(
-    `🚀 Wallet Service running on: http://localhost:${port}`,
-    'Bootstrap',
-  );
+  pinoLogger.log(`🚀 Wallet Service running on: http://localhost:${port}`);
 }
-
 bootstrap();

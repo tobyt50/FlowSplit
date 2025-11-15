@@ -4,9 +4,11 @@ import { TransactionsService } from './transactions.service';
 import { AuthModule } from '../auth/auth.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { LedgerModule } from '../ledger/ledger.module';
 
 @Module({
   imports: [
+    LedgerModule,
     AuthModule,
     ClientsModule.registerAsync([
       {

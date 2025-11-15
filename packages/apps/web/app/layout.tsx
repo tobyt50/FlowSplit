@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import * as Sentry from '@sentry/nextjs';
 import { Inter } from 'next/font/google';
 import '../styles/globals.css';
 import { cn } from '../lib/utils';
@@ -12,11 +13,16 @@ const fontSans = Inter({
   weight: ['400', '500', '600'],
 });
 
-export const metadata: Metadata = {
-  title: 'FlowSplit - Smart Money Routing',
-  description:
-    'Automate your finances. Split your income into smart wallets effortlessly.',
-};
+export function generateMetadata(): Metadata {
+  return {
+    title: 'FlowSplit - Smart Money Routing',
+    description:
+      'Automate your finances. Split your income into smart wallets effortlessly.',
+    other: {
+      ...Sentry.getTraceData(),
+    },
+  };
+}
 
 export default function RootLayout({
   children,
