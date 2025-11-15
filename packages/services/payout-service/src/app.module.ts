@@ -1,3 +1,4 @@
+// app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
@@ -15,6 +16,7 @@ import { LedgerModule } from './ledger/ledger.module';
     LoggerModule.forRoot({
       pinoHttp: {
         transport: process.env.NODE_ENV !== 'production' ? { target: 'pino-pretty' } : undefined,
+        level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
       },
     }),
     PrismaModule,

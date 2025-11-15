@@ -1,19 +1,7 @@
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('!!! UNHANDLED REJECTION !!!');
-  console.error('Reason:', reason);
-  console.error('Promise:', promise);
-  // You can add process.exit(1) here if you want it to crash with a clear error
-});
-
-process.on('uncaughtException', (error) => {
-  console.error('!!! UNCAUGHT EXCEPTION !!!');
-  console.error('Error:', error);
-  process.exit(1); // Force exit with a failure code
-});
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
+import { Logger as PinoLogger } from 'nestjs-pino';
 import { PrismaService } from '@flowsplit/prisma';
 
 // BigInt JSON serialization patch
@@ -28,7 +16,7 @@ async function bootstrap() {
   });
 
   // Logging, validation, and prefix setup
-  app.useLogger(app.get(Logger));
+  app.useLogger(app.get(PinoLogger));
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }));
   app.setGlobalPrefix('api');
 
@@ -39,7 +27,7 @@ async function bootstrap() {
   const port = process.env.PAYOUT_SERVICE_PORT || 3105;
   await app.listen(port);
   
-  const logger = app.get(Logger);
+  const logger = app.get(PinoLogger);
   logger.log(`🚀 Payout Service is running on: http://localhost:${port}`);
 }
 bootstrap();

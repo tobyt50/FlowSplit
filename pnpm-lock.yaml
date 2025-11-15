@@ -535,9 +535,18 @@ importers:
       class-validator:
         specifier: ^0.14.1
         version: 0.14.1
+      nestjs-pino:
+        specifier: ^4.4.1
+        version: 4.4.1(@nestjs/common@10.0.0)(pino-http@11.0.0)(pino@9.14.0)(rxjs@7.8.2)
       passport:
         specifier: ^0.7.0
         version: 0.7.0
+      pino-http:
+        specifier: ^11.0.0
+        version: 11.0.0
+      pino-pretty:
+        specifier: ^13.1.2
+        version: 13.1.2
       reflect-metadata:
         specifier: ^0.2.0
         version: 0.2.0
