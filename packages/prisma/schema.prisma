@@ -180,7 +180,7 @@ model Payout {
   amount            BigInt       // Amount in kobo
   currency          Currency
   reference         String       @unique
-  providerReference String?      
+  providerReference String?      @unique
   status            PayoutStatus @default(PENDING)
   failureReason     String?
   initiatedAt       DateTime     @default(now())

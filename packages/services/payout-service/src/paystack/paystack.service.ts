@@ -92,7 +92,6 @@ export class PaystackService {
       }
       throw new Error('Failed to create transfer recipient on Paystack.');
     } catch (error) {
-      // --- TYPE-SAFE ERROR HANDLING ---
       if (isAxiosError(error)) {
         this.logger.error('Paystack createTransferRecipient failed:', error.response?.data);
       } else {
@@ -106,27 +105,37 @@ export class PaystackService {
     amount: number,
     reference: string,
     recipientCode: string,
-  ): Promise<InitiateTransferResponse['data']> {
+  ): Promise<any> {
     try {
-      const response = await this.http.post<InitiateTransferResponse>('/transfer', {
-        source: 'balance',
-        amount: amount,
-        reference: reference,
-        recipient: recipientCode,
-        reason: 'FlowSplit Payout',
-      });
-      if (response.data.status) {
+      const response = await this.http.post(
+        '/transfer',
+        {
+          source: 'balance',
+          amount: amount,
+          reference: reference,
+          recipient: recipientCode,
+          reason: 'FlowSplit Payout',
+        },
+      );
+
+      if (response.data && response.data.status) {
         return response.data.data;
-      }
-      throw new Error('Failed to initiate transfer on Paystack.');
-    } catch (error) {
-      // --- TYPE-SAFE ERROR HANDLING ---
-      if (isAxiosError(error)) {
-        this.logger.error('Paystack initiateTransfer failed:', error.response?.data);
       } else {
-        this.logger.error('An unexpected error occurred in initiateTransfer:', error);
+        throw new Error(`Paystack returned an unexpected success format: ${JSON.stringify(response.data)}`);
       }
-      throw new Error('Could not initiate transfer.');
+    } catch (error) {
+
+      if (isAxiosError(error)) {
+        this.logger.error(
+          `Paystack API error during initiateTransfer: ${JSON.stringify(error.response?.data)}`,
+          error.stack
+        );
+        const paystackMessage = error.response?.data?.message || 'Unknown Paystack API error.';
+        throw new Error(`Paystack Error: ${paystackMessage}`);
+      } else {
+        this.logger.error('An unexpected non-API error occurred during initiateTransfer:', error);
+        throw new Error('A non-API error occurred while initiating the transfer.');
+      }
     }
   }
 }

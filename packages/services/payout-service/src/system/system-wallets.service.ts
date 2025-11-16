@@ -5,6 +5,7 @@ import { createId } from '@paralleldrive/cuid2';
 // Define and export all required system wallet IDs for consistency
 export const WALLET_CREATION_SOURCE_ID = 'sys_wallet_creation';
 export const FUNDS_IN_TRANSIT_WALLET_ID = 'sys_funds_in_transit';
+export const PAYSTACK_EGRESS_WALLET_ID = 'sys_paystack_egress';
 
 @Injectable()
 export class SystemWalletsService implements OnModuleInit {
@@ -25,6 +26,11 @@ export class SystemWalletsService implements OnModuleInit {
     await this.findOrCreateSystemWallet(
       FUNDS_IN_TRANSIT_WALLET_ID,
       'Funds in Transit',
+    );
+    this.logger.log('System wallets verified and ready.');
+    await this.findOrCreateSystemWallet(
+      PAYSTACK_EGRESS_WALLET_ID,
+      'Paystack Egress', // Represents money successfully paid out
     );
     this.logger.log('System wallets verified and ready.');
   }
