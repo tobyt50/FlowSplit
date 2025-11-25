@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Wallet } from '@flowsplit/prisma';
 import { getWallets } from '../../../lib/walletService';
 import { Button } from '../../../components/ui/Button';
-import { PlusCircle, Wallet as WalletIcon } from 'lucide-react'; // Renamed to avoid conflict
+import { PlusCircle, Wallet as WalletIcon } from 'lucide-react';
 import { WalletCard } from './_components/WalletCard';
 import {
   Dialog,
@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from '../../../components/ui/Dialog';
 import { CreateWalletForm } from './_components/CreateWalletForm';
-import { EmptyState } from '../_components/EmptyState'; // 1. Import the new EmptyState component
+import { EmptyState } from '../_components/EmptyState';
 
 export default function WalletsPage() {
   const [wallets, setWallets] = useState<Wallet[]>([]);
@@ -25,7 +25,6 @@ export default function WalletsPage() {
 
   const fetchWallets = useCallback(async () => {
     try {
-      // Set loading to true only if there are no wallets yet, to avoid layout shift on refresh
       if (wallets.length === 0) setIsLoading(true);
       const userWallets = await getWallets();
       setWallets(userWallets);

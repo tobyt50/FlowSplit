@@ -1,35 +1,29 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService, Prisma, WalletType } from '@flowsplit/prisma';
+import { PrismaService, SplitType, WalletType } from '@flowsplit/prisma';
 import { LedgerService, LedgerMovement } from './ledger/ledger.service';
 import { createId } from '@paralleldrive/cuid2';
-
-interface DepositPayload {
-  userId: string;
-  transactionId: string;
-}
 
 @Injectable()
 export class RuleEngineService {
   private readonly logger = new Logger(RuleEngineService.name);
 
-  // 2. Inject both PrismaService and LedgerService
   constructor(
     private readonly prisma: PrismaService,
     private readonly ledgerService: LedgerService,
   ) {}
 
-  async processSplit(payload: DepositPayload): Promise<void> {
+  async processSplit(payload: { userId: string; transactionId: string }): Promise<void> {
     const { userId, transactionId } = payload;
-    this.logger.log(`Starting LEDGER split process for transaction: ${transactionId}`);
+    this.logger.log(`Starting HARDENED split process for transaction: ${transactionId}`);
 
-    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // --- This section remains unchanged ---
-      const splitRules = await tx.splitRule.findMany({
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Fetch ALL active rules, strictly ordered by priority.
+      const allRules = await tx.splitRule.findMany({
         where: { userId, isActive: true },
         orderBy: { priority: 'asc' },
       });
 
-      if (splitRules.length === 0) {
+      if (allRules.length === 0) {
         this.logger.warn(`User ${userId} has no active split rules. Skipping.`);
         await tx.transaction.update({
           where: { id: transactionId },
@@ -39,91 +33,141 @@ export class RuleEngineService {
       }
 
       const depositTransaction = await tx.transaction.findUnique({ where: { id: transactionId } });
-      if (!depositTransaction) throw new Error(`Transaction ${transactionId} not found.`);
+      if (!depositTransaction) {
+        throw new Error(`Transaction ${transactionId} not found.`);
+      }
+
       if (depositTransaction.splitApplied) {
         this.logger.warn(`Transaction ${transactionId} has already been split. Skipping.`);
         return;
       }
 
-      // --- This section also remains unchanged, including your BigInt math ---
       const totalAmount = depositTransaction.amount;
-      let remainingAmount = totalAmount;
+      let remainingForPercentageSplit = totalAmount;
       const allocations: { amount: bigint; destinationWalletId: string }[] = [];
 
-      for (const rule of splitRules) {
-        if (remainingAmount <= 0n) break;
+      // --- STAGE 1: Process FIXED amount rules first ---
+      this.logger.log('Processing FIXED rules...');
+      const fixedRules = allRules.filter(r => r.type === SplitType.FIXED);
+
+      for (const rule of fixedRules) {
+        if (remainingForPercentageSplit <= 0n) break; // Stop if no money is left
+
+        // Convert the float value from DB to a BigInt (kobo)
+        const fixedAmount = BigInt(Math.round(rule.value));
+
+        // Only allocate what is available
+        const amountToAllocate = remainingForPercentageSplit < fixedAmount ? remainingForPercentageSplit : fixedAmount;
+        
+        if (amountToAllocate > 0n && rule.destinationWalletId) {
+          allocations.push({ amount: amountToAllocate, destinationWalletId: rule.destinationWalletId });
+          remainingForPercentageSplit -= amountToAllocate;
+          this.logger.log(`Allocated ${amountToAllocate} (FIXED) to rule "${rule.name}"`);
+        }
+      }
+
+      // --- STAGE 2: Process PERCENTAGE rules on the remainder ---
+      this.logger.log(`Processing PERCENTAGE rules on remaining ${remainingForPercentageSplit}...`);
+      const percentageRules = allRules.filter(r => r.type === SplitType.PERCENTAGE);
+      let remainderForDefault = remainingForPercentageSplit;
+
+      for (const rule of percentageRules) {
+        if (remainingForPercentageSplit <= 0n) break;
+        
         const percentageAsInteger = BigInt(Math.round(rule.value * 100));
-        const allocationAmount = (totalAmount * percentageAsInteger) / 10000n;
+        // IMPORTANT: Percentage is now based on the amount REMAINING after fixed splits.
+        const allocationAmount = (remainingForPercentageSplit * percentageAsInteger) / 10000n;
 
         if (allocationAmount > 0n && rule.destinationWalletId) {
           allocations.push({ amount: allocationAmount, destinationWalletId: rule.destinationWalletId });
-          remainingAmount -= allocationAmount;
+          remainderForDefault -= allocationAmount;
+          this.logger.log(`Allocated ${allocationAmount} (PERCENTAGE) to rule "${rule.name}"`);
         }
       }
-
-      if (remainingAmount > 0n) {
+      
+      // --- STAGE 3: Handle the final remainder ---
+      if (remainderForDefault > 0n) {
         const primaryWallet = await tx.wallet.findFirst({ where: { userId, type: 'PERSONAL' } });
-        if (!primaryWallet) throw new Error(`User ${userId} has no primary wallet for remainder allocation.`);
-        
-        const existingAllocation = allocations.find(a => a.destinationWalletId === primaryWallet.id);
-        if (existingAllocation) {
-          existingAllocation.amount += remainingAmount;
-        } else {
-          allocations.push({ amount: remainingAmount, destinationWalletId: primaryWallet.id });
-        }
+        if (!primaryWallet) throw new Error(`User ${userId} has no primary wallet for remainder.`);
+
+        allocations.push({ amount: remainderForDefault, destinationWalletId: primaryWallet.id });
+        this.logger.log(`Allocated final remainder of ${remainderForDefault} to Primary Wallet.`);
       }
 
-      // --- THIS IS THE REFACTORED SECTION ---
-
-      // 3. Find-or-Create the user's virtual SOURCE wallet
       let sourceWallet = await tx.wallet.findFirst({
         where: { userId, type: WalletType.SOURCE },
       });
       if (!sourceWallet) {
+        // This logic should ideally be more robust, potentially handled in the transactions-service
+        // but is placed here as a fallback.
+        const newWalletId = createId();
         sourceWallet = await tx.wallet.create({
-          data: {
-            id: createId(), // Assuming createId is available
-            name: 'Unallocated Funds',
-            type: WalletType.SOURCE,
-            userId: userId,
-          },
+            data: {
+                id: newWalletId,
+                name: 'Unallocated Funds',
+                type: WalletType.SOURCE,
+                userId: userId,
+            }
         });
+        // We do not create a ledger entry here, as the ingress transaction already credited this wallet.
       }
-      
-      // 4. Prepare the debit and credit movements for the ledger
+
+      // Consolidate multiple allocations that might go to the same wallet
+      // into a single movement for cleaner ledger entries.
+      const consolidatedCreditMovements = this.consolidateAllocations(allocations);
+
+      // The total amount debited must equal the original deposit amount.
       const debitMovement: LedgerMovement = {
         walletId: sourceWallet.id,
         amount: totalAmount,
       };
 
-      const creditMovements: LedgerMovement[] = allocations.map(alloc => ({
-        walletId: alloc.destinationWalletId,
-        amount: alloc.amount,
-      }));
-
-      // 5. Call the LedgerService to create the balanced, atomic transaction
+      // Call the LedgerService to create the single, balanced, atomic transaction.
       await this.ledgerService.createTransaction(
         tx,
         debitMovement,
-        creditMovements,
+        consolidatedCreditMovements,
         `Split for deposit ref: ${depositTransaction.reference}`
       );
 
-      // 6. Update the cached balances on the wallet records. This replaces your old loop.
-      for (const allocation of allocations) {
+      // After successfully creating the ledger entries (the source of truth),
+      // update the cached balances on the wallet records for performance.
+      for (const movement of consolidatedCreditMovements) {
         await tx.wallet.update({
-          where: { id: allocation.destinationWalletId },
-          data: { balance: { increment: allocation.amount } },
+          where: { id: movement.walletId },
+          data: { balance: { increment: movement.amount } },
         });
       }
 
-      // 7. Mark the original transaction as applied
+      // Mark the original external transaction as successfully split.
       await tx.transaction.update({
         where: { id: transactionId },
-        data: { splitApplied: true, description: `Split into ${allocations.length} wallets via ledger.` },
+        data: {
+          splitApplied: true,
+          description: `Split into ${consolidatedCreditMovements.length} wallets via hardened engine.`,
+        },
       });
 
       this.logger.log(`Successfully created ledger entries for transaction ${transactionId}`);
     });
+  }
+  
+  /**
+   * A private helper method to consolidate multiple allocations for the same wallet
+   * into a single LedgerMovement. This prevents creating redundant ledger entries
+   * and simplifies balance updates.
+   * e.g., [{ walletA, 100 }, { walletA, 50 }] => [{ walletA, 150 }]
+   */
+  private consolidateAllocations(
+    allocations: { amount: bigint; destinationWalletId: string }[]
+  ): LedgerMovement[] {
+    const map = new Map<string, bigint>();
+    for (const alloc of allocations) {
+      map.set(
+        alloc.destinationWalletId,
+        (map.get(alloc.destinationWalletId) || 0n) + alloc.amount
+      );
+    }
+    return Array.from(map, ([walletId, amount]) => ({ walletId, amount }));
   }
 }

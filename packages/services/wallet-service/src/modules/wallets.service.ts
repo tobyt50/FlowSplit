@@ -3,6 +3,7 @@ import {
   Logger,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { Prisma, PrismaService, WalletType } from '@flowsplit/prisma';
@@ -106,5 +107,62 @@ export class WalletsService {
         'Initial creation of wallet: Primary'
       );
     }
+  }
+
+  /**
+   * Performs a "Sweep and Close" operation.
+   * 1. Checks balance.
+   * 2. If balance > 0, transfers ALL funds to a target wallet via Ledger.
+   * 3. Disables all split rules pointing to this wallet.
+   * 4. Deletes the wallet.
+   */
+  async deleteWallet(userId: string, walletId: string, targetWalletId?: string) {
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Validate Ownership
+      const walletToDelete = await tx.wallet.findFirst({ where: { id: walletId, userId } });
+      if (!walletToDelete) throw new NotFoundException('Wallet to delete not found.');
+
+      if (walletToDelete.type === 'PERSONAL') {
+        throw new BadRequestException('Cannot delete your Primary Personal wallet.');
+      }
+
+      // 2. Handle Funds Transfer (Sweep)
+      if (walletToDelete.balance > 0n) {
+        if (!targetWalletId) {
+          throw new BadRequestException('This wallet has funds. You must specify a target wallet to transfer them to.');
+        }
+        
+        const targetWallet = await tx.wallet.findFirst({ where: { id: targetWalletId, userId } });
+        if (!targetWallet) throw new NotFoundException('Target wallet not found.');
+        if (targetWallet.id === walletToDelete.id) throw new BadRequestException('Target wallet cannot be the same as the deleted wallet.');
+
+        // Create Ledger Transaction for the Sweep
+        await this.ledgerService.createTransaction(
+          tx,
+          { walletId: walletToDelete.id, amount: walletToDelete.balance },
+          [{ walletId: targetWallet.id, amount: walletToDelete.balance }],
+          `Wallet Closure: Sweep funds from ${walletToDelete.name} to ${targetWallet.name}`
+        );
+
+        // Update Target Balance
+        await tx.wallet.update({
+          where: { id: targetWallet.id },
+          data: { balance: { increment: walletToDelete.balance } },
+        });
+      }
+
+      // 3. Disable associated Split Rules
+      // We do not delete them, we disable them so the user sees their total % drop and can reallocate manually.
+      // Deleting/Recalculating automatically is dangerous assumptions.
+      await tx.splitRule.updateMany({
+        where: { destinationWalletId: walletId },
+        data: { isActive: false, destinationWalletId: null }, // Detach the rule
+      });
+
+      // 4. Delete the Wallet
+      await tx.wallet.delete({ where: { id: walletId } });
+
+      this.logger.log(`Wallet ${walletId} deleted by user ${userId}. Funds swept to ${targetWalletId || 'N/A'}.`);
+    });
   }
 }

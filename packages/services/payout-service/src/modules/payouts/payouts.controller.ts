@@ -9,7 +9,7 @@ import {
   PaystackTransferFailedDto,
   PaystackEventType,
 } from './dto/paystack-webhook.dto';
-import { PaystackGuard } from 'src/common/guards/paystack.guard';
+import { PaystackGuard } from '../../common/guards/paystack.guard';
 
 @Controller('payouts')
 @UseGuards(JwtAuthGuard)

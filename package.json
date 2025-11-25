@@ -12,14 +12,18 @@
         "format": "prettier --write \"**/*.{ts,tsx,md}\"",
         "clean": "turbo run clean",
         "nuke": "rimraf ./packages/services/*/node_modules ./packages/services/*/dist",
+
         "//--- DEVELOPMENT ---//": "",
         "dev": "turbo dev --parallel",
         "dev:web": "turbo dev --filter=web",
         "dev:services": "turbo dev --filter=\"...{./packages/services/*}\" --parallel",
+        "dev:monolith": "turbo dev --filter=@flowsplit/monolith --filter=@flowsplit/ai-service --parallel",
+
         "//--- DATABASE ---//": "",
         "db:generate": "pnpm --filter @flowsplit/prisma run db:generate",
         "db:migrate": "pnpm --filter @flowsplit/prisma run db:migrate",
         "db:studio": "pnpm --filter @flowsplit/prisma run db:studio",
+
         "//--- DEVOPS ---//": "",
         "docker": "docker-compose up -d"
     },

@@ -69,6 +69,7 @@ model User {
   id        String   @id @default(cuid())
   fullName  String
   email     String   @unique
+  phone           String?         @unique
   password  String?
   avatarUrl String?
   role      Role     @default(USER)
@@ -82,9 +83,9 @@ model User {
   transactions  Transaction[]
   notifications Notification[]
   analytics     Analytics?
-
   provider   Provider?
   providerId String?   @unique
+  virtualAccount VirtualAccount?
 
   bankAccounts BankAccount[]
   payouts      Payout[]
@@ -192,16 +193,36 @@ model Payout {
 model SplitRule {
   id                  String    @id @default(cuid())
   name                String
-  type                SplitType @default(PERCENTAGE)
+  type                SplitType 
   value               Float
   destinationWalletId String?
   destinationWallet   Wallet?   @relation(fields: [destinationWalletId], references: [id])
   priority            Int       @default(1)
   isActive            Boolean   @default(true)
+  isBill              Boolean    @default(false)
+  dueDate             Int?
   createdAt           DateTime  @default(now())
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
+}
+
+// Represents a dedicated NUBAN assigned to a user for receiving deposits.
+model VirtualAccount {
+  id            String   @id
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  
+  bankName      String
+  accountNumber String
+  accountName   String
+  currency      Currency @default(NGN)
+  
+  provider      Provider @default(PAYSTACK)
+  providerRef   String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Transaction {

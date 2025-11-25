@@ -1,12 +1,11 @@
-import api from './api'; // Our configured axios instance
+import api from './api';
 import { useAuthStore } from './authStore';
 import { User } from '@flowsplit/prisma';
 
-// Define the expected shapes of our API requests
-// In a larger app, these might live in a shared types package
 type RegisterData = {
   fullName: string;
   email: string;
+  phone: string;
   password: string;
 };
 
@@ -30,7 +29,7 @@ type LoginResponse = {
 export const registerUser = async (data: RegisterData): Promise<Omit<User, 'password'>> => {
   try {
     const response = await api.post<Omit<User, 'password'>>(
-      'http://localhost:3100/api/auth/register', // URL to the auth-service
+      'http://localhost:4000/api/auth/register', // URL to the auth-service
       data
     );
     return response.data;
@@ -49,7 +48,7 @@ export const loginUser = async (data: LoginData): Promise<void> => {
   try {
     // 1. Call the login endpoint to get a token
     const response = await api.post<LoginResponse>(
-      'http://localhost:3100/api/auth/login',
+      'http://localhost:4000/api/auth/login', //actual service http://localhost:3100
       data
     );
     const { accessToken } = response.data;
@@ -59,7 +58,7 @@ export const loginUser = async (data: LoginData): Promise<void> => {
 
     // 3. Immediately call the profile endpoint to get the user's data
     const profileResponse = await api.get<Omit<User, 'password'>>(
-      'http://localhost:3100/api/auth/profile'
+      'http://localhost:4000/api/auth/profile'
       // The token is now automatically added by our axios interceptor
     );
 

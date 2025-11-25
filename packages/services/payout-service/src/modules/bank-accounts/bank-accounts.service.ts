@@ -1,5 +1,5 @@
-import { Injectable, Logger, ConflictException, BadRequestException } from '@nestjs/common';
-import { PrismaService, Provider } from '@flowsplit/prisma';
+import { Injectable, Logger, ConflictException, BadRequestException, NotFoundException } from '@nestjs/common';
+import { PayoutStatus, PrismaService, Provider } from '@flowsplit/prisma';
 import { PaystackService } from '../../paystack/paystack.service';
 import { AddBankAccountDto } from './dto/add-bank-account.dto';
 import { createId } from '@paralleldrive/cuid2';
@@ -28,13 +28,9 @@ export class BankAccountsService {
       const result = await this.paystackService.resolveBankAccount(accountNumber, bankCode);
       verifiedAccountName = result.accountName;
     } catch (error) {
-      // --- TYPE-SAFE ERROR HANDLING ---
-      // 1. Check if the error is an instance of the standard Error class.
       if (error instanceof Error) {
-        // Now TypeScript knows `error` has a `message` property.
         this.logger.error(`Account verification failed for user ${userId}: ${error.message}`);
       } else {
-        // If it's not a standard Error, log the entire object to inspect it.
         this.logger.error(`An unexpected, non-Error type was thrown during account verification for user ${userId}:`, error);
       }
       
@@ -43,7 +39,6 @@ export class BankAccountsService {
 
     this.logger.log(`Successfully verified account for user ${userId}. Saving to database.`);
     
-    // This second try-catch is also important for the createTransferRecipient call
     let recipientCode: string;
     try {
         const result = await this.paystackService.createTransferRecipient(
@@ -77,7 +72,6 @@ export class BankAccountsService {
       },
     });
 
-    // Return a sanitized version of the bank account, hiding the providerRef
     const { providerRef, ...sanitizedResult } = newBankAccount;
     return sanitizedResult;
   }
@@ -93,6 +87,68 @@ export class BankAccountsService {
         accountName: true,
         isPrimary: true,
       }
+    });
+  }
+
+  /**
+   * Sets a specific bank account as the primary account for the user.
+   * Atomically unsets any existing primary account.
+   */
+  async setPrimary(userId: string, accountId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const account = await tx.bankAccount.findFirst({
+        where: { id: accountId, userId },
+      });
+
+      if (!account) {
+        throw new NotFoundException('Bank account not found.');
+      }
+
+      // 1. Unset 'isPrimary' for all user's accounts
+      await tx.bankAccount.updateMany({
+        where: { userId, isPrimary: true },
+        data: { isPrimary: false },
+      });
+
+      // 2. Set 'isPrimary' for the target account
+      return tx.bankAccount.update({
+        where: { id: accountId },
+        data: { isPrimary: true },
+      });
+    });
+  }
+
+  /**
+   * Safely removes a bank account.
+   * BLOCKS deletion if there are pending payouts to this account.
+   */
+  async remove(userId: string, accountId: string) {
+    // 1. Verify ownership
+    const account = await this.prisma.bankAccount.findFirst({
+      where: { id: accountId, userId },
+    });
+
+    if (!account) {
+      throw new NotFoundException('Bank account not found.');
+    }
+
+    // 2. SAFETY CHECK: Check for in-flight payouts
+    const activePayouts = await this.prisma.payout.findFirst({
+      where: {
+        destinationBankId: accountId,
+        status: { in: [PayoutStatus.PENDING, PayoutStatus.PROCESSING] },
+      },
+    });
+
+    if (activePayouts) {
+      throw new BadRequestException(
+        'Cannot delete this account because a payout to it is currently in progress. Please wait for the payout to complete.'
+      );
+    }
+
+    // 3. Delete
+    await this.prisma.bankAccount.delete({
+      where: { id: accountId },
     });
   }
 }

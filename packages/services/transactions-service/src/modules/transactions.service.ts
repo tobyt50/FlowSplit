@@ -14,6 +14,7 @@ import {
   Currency,
   PrismaService,
   WalletType,
+  Prisma,
 } from '@flowsplit/prisma';
 import { ClientProxy } from '@nestjs/microservices';
 import { LedgerService } from '../ledger/ledger.service'; // Import the new LedgerService
@@ -152,9 +153,16 @@ export class TransactionsService {
   /**
    * Retrieves all transactions for a specific, authenticated user.
    */
-  async findAllForUser(userId: string): Promise<Transaction[]> {
+  async findAllForUser(userId: string, walletId?: string): Promise<Transaction[]> {
+    const whereClause: Prisma.TransactionWhereInput = {
+    };
+
+    if (walletId) {
+      whereClause.walletId = walletId;
+    }
+
     return this.prisma.transaction.findMany({
-      where: { userId },
+      where: whereClause,
       orderBy: { initiatedAt: 'desc' },
     });
   }

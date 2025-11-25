@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { PaystackChargeSuccessDto } from './dto/paystack-charge-success.dto';
 import { PaystackGuard } from '../common/guards/paystack.guard';
@@ -10,25 +10,26 @@ export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   /**
-   * This is the dedicated, secure endpoint for receiving Paystack webhooks.
-   * The PaystackGuard verifies the request's authenticity before it even hits this method.
+   * Dedicated, secure endpoint for receiving Paystack webhooks.
    */
   @Post('webhooks/paystack')
   @UseGuards(PaystackGuard)
   async handlePaystackWebhook(@Body() payload: PaystackChargeSuccessDto) {
-    // We immediately return a 200 OK to Paystack to acknowledge receipt.
-    // The actual processing happens asynchronously in the service.
-    this.transactionsService.processPaystackDeposit(payload);
+    await this.transactionsService.processPaystackDeposit(payload);
     return { status: 'acknowledged' };
   }
 
   /**
-   * This endpoint is for users to get their own transaction history.
-   * It is protected by our JWT authentication.
+   * Endpoint for users to get their transaction history.
+   * Supports optional filtering by walletId.
+   * GET /api/transactions?walletId=...
    */
   @Get()
   @UseGuards(JwtAuthGuard)
-  findAll(@CurrentUser() user: User) {
-    return this.transactionsService.findAllForUser(user.id);
+  findAll(
+    @CurrentUser() user: User,
+    @Query('walletId') walletId?: string // Capture the optional query param
+  ) {
+    return this.transactionsService.findAllForUser(user.id, walletId);
   }
 }

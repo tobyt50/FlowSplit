@@ -1,11 +1,11 @@
-import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Patch, Delete, Param, HttpCode, HttpStatus } from '@nestjs/common';
 import { JwtAuthGuard, CurrentUser } from '@flowsplit/auth';
 import { User } from '@flowsplit/prisma';
 import { BankAccountsService } from './bank-accounts.service';
 import { AddBankAccountDto } from './dto/add-bank-account.dto';
 
 @Controller('bank-accounts')
-@UseGuards(JwtAuthGuard) // Protect all routes in this controller
+@UseGuards(JwtAuthGuard)
 export class BankAccountsController {
   constructor(private readonly bankAccountsService: BankAccountsService) {}
 
@@ -27,5 +27,16 @@ export class BankAccountsController {
   @Get()
   getBankAccounts(@CurrentUser() user: User) {
     return this.bankAccountsService.getAccountsForUser(user.id);
+  }
+
+  @Patch(':id/primary')
+  setPrimary(@CurrentUser() user: User, @Param('id') id: string) {
+    return this.bankAccountsService.setPrimary(user.id, id);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(@CurrentUser() user: User, @Param('id') id: string) {
+    return this.bankAccountsService.remove(user.id, id);
   }
 }

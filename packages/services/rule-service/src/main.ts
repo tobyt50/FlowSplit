@@ -24,7 +24,7 @@ async function bootstrap() {
 
   // --- Security & CORS ---
   const configService = app.get(ConfigService);
-  const frontendUrl = configService.get<string>('FRONTEND_ORIG-IN_URL');
+  const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
   if (!frontendUrl) {
     pinoLogger.warn('FRONTEND_ORIGIN_URL is not defined; CORS will not be configured.');
   } else {

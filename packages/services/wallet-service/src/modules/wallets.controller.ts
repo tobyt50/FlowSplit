@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Delete, Query } from '@nestjs/common';
 import { WalletsService } from './wallets.service';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { JwtAuthGuard, CurrentUser } from '@flowsplit/auth';
@@ -25,5 +25,14 @@ export class WalletsController {
   @Get(':id')
   findOne(@Param('id') id: string, @CurrentUser() user: User) {
     return this.walletsService.findUserWalletById(user.id, id);
+  }
+
+  @Delete(':id')
+  delete(
+    @Param('id') id: string, 
+    @CurrentUser() user: User, 
+    @Query('targetWalletId') targetWalletId?: string // Optional query param
+  ) {
+    return this.walletsService.deleteWallet(user.id, id, targetWalletId);
   }
 }

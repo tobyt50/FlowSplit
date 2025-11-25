@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image'; // Import Next.js Image component
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,6 @@ import { logoutUser } from '../../../lib/authService';
 import { ThemeToggle } from './ThemeToggle';
 
 export function Header() {
-  // Access the user data and logout function from our global store and service
   const { user } = useAuthStore();
   const handleLogout = () => {
     logoutUser();
@@ -24,30 +24,51 @@ export function Header() {
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-      {/* A placeholder for the mobile sidebar toggle */}
-      {/* We will implement this later */}
       <div className="md:hidden">
-          {/* Mobile Nav Toggle Icon */}
+          {/* Mobile Nav Toggle Icon would go here */}
+      </div>
+
+      {/* 
+        Updated Logo Section 
+        - Replaced text <span> with <Image>
+      */}
+      <div className="flex items-center gap-2 md:hidden"> 
+        {/* On mobile, we might want to show the logo in the header if sidebar is hidden */}
+        <Image 
+          src="/images/logo.jpg" 
+          alt="FlowSplit" 
+          width={32} 
+          height={32} 
+          className="h-8 w-auto"
+        />
       </div>
 
       <div className="w-full flex-1">
-        {/* Optional: Add a search bar or other header content here */}
+        {/* Search bar placeholder */}
       </div>
 
-      {/* Theme Toggle Button */}
       <ThemeToggle />
 
-      {/* User Dropdown Menu */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
-            <CircleUser className="h-5 w-5" />
+            {user?.avatarUrl ? (
+               // If user has a custom avatar (future feature), show it
+               <Image 
+                 src={user.avatarUrl} 
+                 alt={user.fullName} 
+                 width={32} 
+                 height={32} 
+                 className="rounded-full"
+               />
+            ) : (
+               <CircleUser className="h-5 w-5" />
+            )}
             <span className="sr-only">Toggle user menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>
-            {/* Display user's full name if available */}
             {user?.fullName || 'My Account'}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />

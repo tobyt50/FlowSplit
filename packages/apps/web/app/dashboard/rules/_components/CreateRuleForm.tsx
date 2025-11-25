@@ -1,23 +1,48 @@
 'use client';
+
 import { useState, useEffect } from 'react';
-import { useForm, SubmitHandler, Resolver } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form'; // Import Controller
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Wallet, SplitType } from '@flowsplit/prisma';
-import { getWallets } from '../../../../lib/walletService'; // To fetch wallets for the dropdown
+import { ChevronDown } from 'lucide-react';
+import { getWallets } from '../../../../lib/walletService';
 import { createRule } from '../../../../lib/ruleService';
 import { Button } from '../../../../components/ui/Button';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../../../../components/ui/DropdownMenu';
 import { Input } from '../../../../components/ui/Input';
 import { DialogFooter } from '../../../../components/ui/Dialog';
+import { Switch } from '../../../../components/ui/Switch';
+import { Separator } from '../../../../components/ui/Separator';
 import { toast } from 'sonner';
 
-// Define the form validation schema with Zod
+// Your schema logic is preserved, with the addition of the new bill-related fields and validation.
 const formSchema = z.object({
   name: z.string().min(2, 'Name is required').max(50),
-  type: z.literal(SplitType.PERCENTAGE), // Hardcoded for now
-  value: z.coerce.number().min(0.01, 'Percentage must be positive').max(100),
+  type: z.nativeEnum(SplitType),
+  value: z.number().min(0.01, 'Value must be a positive number'),
   destinationWalletId: z.string().min(1, 'Please select a destination wallet'),
+  priority: z.number().int().min(1, 'Priority must be at least 1'),
+  isBill: z.boolean(),
+  dueDate: z.number().int().min(1).max(31).optional(),
+}).refine(data => {
+  if (data.type === SplitType.PERCENTAGE) {
+    return data.value <= 100;
+  }
+  return true;
+}, {
+  message: 'Percentage value cannot exceed 100',
+  path: ['value'],
+}).refine(data => {
+  if (data.isBill && (data.dueDate === undefined || data.dueDate === null)) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Due date is required for bills.',
+  path: ['dueDate'],
 });
+
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -30,7 +55,6 @@ export function CreateRuleForm({ onSuccess }: CreateRuleFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [wallets, setWallets] = useState<Wallet[]>([]);
 
-  // Fetch the user's wallets when the component mounts to populate the dropdown
   useEffect(() => {
     const fetchWallets = async () => {
       try {
@@ -46,21 +70,33 @@ export function CreateRuleForm({ onSuccess }: CreateRuleFormProps) {
   const {
     register,
     handleSubmit,
+    setValue,
+    control, // Get control for the Controller component
+    watch,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(formSchema) as Resolver<FormData>,
+    resolver: zodResolver(formSchema),
     defaultValues: {
       type: SplitType.PERCENTAGE,
+      priority: 10,
+      isBill: false,
     },
   });
+
+  const ruleType = watch('type');
+  const destinationWalletId = watch('destinationWalletId');
+  const isBill = watch('isBill');
+  const selectedWallet = wallets.find(w => w.id === destinationWalletId);
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsLoading(true);
     setError(null);
     try {
-      await createRule(data);
+      const valueToSubmit = data.type === SplitType.FIXED ? Math.round(data.value * 100) : data.value;
+
+      await createRule({ ...data, value: valueToSubmit });
       toast.success('Rule created!', {
-        description: `Your new rule has been successfully created.`,
+        description: `Your new rule "${data.name}" has been successfully created.`,
       });
       onSuccess();
     } catch (err: any) {
@@ -75,36 +111,100 @@ export function CreateRuleForm({ onSuccess }: CreateRuleFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {/* Rule Name */}
-      <div>
-        <label htmlFor="name" className="text-sm font-medium">Rule Name</label>
-        <Input id="name" placeholder="e.g., Rent" {...register('name')} disabled={isLoading} className="mt-1" />
-        {errors.name && <p className="text-destructive text-xs mt-1">{errors.name.message}</p>}
+      {/* Rule Name and Priority */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+            <label htmlFor="name" className="text-sm font-medium">Rule Name</label>
+            <Input id="name" placeholder="e.g., Rent" {...register('name')} disabled={isLoading} className="mt-1" />
+            {errors.name && <p className="text-destructive text-xs mt-1">{errors.name.message}</p>}
+        </div>
+        <div>
+            <label htmlFor="priority" className="text-sm font-medium">Priority</label>
+            <Input id="priority" type="number" placeholder="1" {...register('priority', { valueAsNumber: true })} disabled={isLoading} className="mt-1" />
+            <p className="text-xs text-muted-foreground mt-1">Lower numbers run first.</p>
+            {errors.priority && <p className="text-destructive text-xs mt-1">{errors.priority.message}</p>}
+        </div>
       </div>
-      {/* Percentage Value */}
-      <div>
-        <label htmlFor="value" className="text-sm font-medium">Percentage (%)</label>
-        <Input id="value" type="number" step="0.01" placeholder="30" {...register('value')} disabled={isLoading} className="mt-1" />
-        {errors.value && <p className="text-destructive text-xs mt-1">{errors.value.message}</p>}
+
+      {/* Type and Value */}
+      <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="type" className="text-sm font-medium">Rule Type</label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild disabled={isLoading}>
+                <Button variant="outline" className="mt-1 w-full justify-start text-left font-normal">
+                  <span>{ruleType || 'Select type'}</span>
+                  <ChevronDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[200px]">
+                {Object.values(SplitType).map((t) => (
+                  <DropdownMenuItem key={t} onSelect={() => setValue('type', t, { shouldValidate: true })} className="cursor-pointer">{t}</DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {errors.type && <p className="text-destructive text-xs mt-1">{errors.type.message}</p>}
+          </div>
+          <div>
+            <label htmlFor="value" className="text-sm font-medium">
+              {ruleType === SplitType.FIXED ? 'Fixed Amount (NGN)' : 'Percentage (%)'}
+            </label>
+            <Input id="value" type="number" step="0.01" placeholder={ruleType === SplitType.FIXED ? '50000' : '30'} {...register('value', { valueAsNumber: true })} disabled={isLoading} className="mt-1" />
+            {errors.value && <p className="text-destructive text-xs mt-1">{errors.value.message}</p>}
+          </div>
       </div>
+
       {/* Destination Wallet */}
       <div>
         <label htmlFor="destinationWalletId" className="text-sm font-medium">Destination Wallet</label>
-        <select
-          id="destinationWalletId"
-          {...register('destinationWalletId')}
-          disabled={isLoading || wallets.length === 0}
-          className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
-        >
-          <option value="">Select a wallet...</option>
-          {wallets.map((wallet) => (
-            <option key={wallet.id} value={wallet.id}>{wallet.name}</option>
-          ))}
-        </select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild disabled={isLoading || wallets.length === 0}>
+            <Button variant="outline" className="mt-1 w-full justify-start text-left font-normal">
+              <span>{selectedWallet ? selectedWallet.name : 'Select a wallet...'}</span>
+              <ChevronDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-[200px]">
+            {wallets.map((wallet) => (
+              <DropdownMenuItem key={wallet.id} onSelect={() => setValue('destinationWalletId', wallet.id, { shouldValidate: true })} className="cursor-pointer">{wallet.name}</DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         {errors.destinationWalletId && <p className="text-destructive text-xs mt-1">{errors.destinationWalletId.message}</p>}
       </div>
       
+      <Separator />
+      
+      {/* Bill Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+          <div className="space-y-0.5">
+            <label htmlFor="isBill" className="text-sm font-medium cursor-pointer">Recurring Bill</label>
+            <p className="text-xs text-muted-foreground">Track this as a recurring monthly bill on your overview.</p>
+          </div>
+          <Controller
+            control={control}
+            name="isBill"
+            render={({ field }) => (
+              <Switch
+                id="isBill"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+        {isBill && (
+          <div>
+            <label htmlFor="dueDate" className="text-sm font-medium">Due Day of Month</label>
+            <Input id="dueDate" type="number" min="1" max="31" placeholder="e.g., 25" {...register('dueDate', { valueAsNumber: true })} className="mt-1" />
+            {errors.dueDate && <p className="text-destructive text-xs mt-1">{errors.dueDate.message}</p>}
+          </div>
+        )}
+      </div>
+
       {error && <p className="text-destructive text-sm text-center">{error}</p>}
+
       <DialogFooter>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? 'Creating...' : 'Create Rule'}

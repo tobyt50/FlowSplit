@@ -1,10 +1,9 @@
-import api from './api'; // Our configured, authenticated axios instance
+import api from './api';
 import { User } from '@flowsplit/prisma';
 
-// Define the shape of the data needed to update a user's profile.
-// We make all fields optional to allow for partial updates.
 interface UpdateUserData {
   fullName?: string;
+  phone?: string;
   // We could add other fields like avatarUrl here in the future.
 }
 
@@ -17,7 +16,7 @@ interface UpdateUserData {
 export const updateUserProfile = async (data: UpdateUserData): Promise<Omit<User, 'password'>> => {
   try {
     const response = await api.patch<Omit<User, 'password'>>(
-      'http://localhost:3101/api/users/me', // URL to the user-service PATCH endpoint
+      'http://localhost:4000/api/users/me', //actual service http://localhost:3101
       data
     );
     return response.data;

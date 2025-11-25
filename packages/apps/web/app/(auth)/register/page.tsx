@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 const formSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   email: z.email('Please enter a valid email address'),
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Enter a valid phone number (e.g. +234...)'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 

@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import { PrismaService } from '@flowsplit/prisma';
+import { ConfigService } from '@nestjs/config';
 
 // BigInt JSON serialization patch
 (BigInt.prototype as any).toJSON = function () {
@@ -16,9 +17,24 @@ async function bootstrap() {
   });
 
   // Logging, validation, and prefix setup
-  app.useLogger(app.get(PinoLogger));
+  const logger = app.get(PinoLogger);
+  app.useLogger(logger);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }));
   app.setGlobalPrefix('api');
+
+  // --- CORS Setup ---
+  const configService = app.get(ConfigService);
+  const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
+  if (!frontendUrl) {
+    logger.warn('FRONTEND_ORIGIN_URL is not defined; CORS will not be configured.');
+  } else {
+    app.enableCors({
+      origin: frontendUrl,
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      credentials: true,
+    });
+    logger.log(`CORS enabled for origin: ${frontendUrl}`);
+  }
 
   // Graceful shutdown hooks
   const prismaService = app.get(PrismaService);
@@ -26,8 +42,7 @@ async function bootstrap() {
 
   const port = process.env.PAYOUT_SERVICE_PORT || 3105;
   await app.listen(port);
-  
-  const logger = app.get(PinoLogger);
+
   logger.log(`🚀 Payout Service is running on: http://localhost:${port}`);
 }
 bootstrap();

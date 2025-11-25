@@ -1,0 +1,34 @@
+{
+    "name": "@flowsplit/monolith",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "nest start --watch",
+        "build": "nest build"
+    },
+    "dependencies": {
+        "@flowsplit/auth": "workspace:*",
+        "@flowsplit/auth-service": "workspace:*",
+        "@flowsplit/dashboard-service": "workspace:*",
+        "@flowsplit/payout-service": "workspace:*",
+        "@flowsplit/prisma": "workspace:*",
+        "@flowsplit/rule-engine": "workspace:*",
+        "@flowsplit/rule-service": "workspace:*",
+        "@flowsplit/transactions-service": "workspace:*",
+        "@flowsplit/user-service": "workspace:*",
+        "@flowsplit/wallet-service": "workspace:*",
+        "@nestjs/common": "^10.0.0",
+        "@nestjs/config": "^3.2.0",
+        "@nestjs/core": "^10.0.0",
+        "@nestjs/platform-express": "^10.0.0",
+        "nestjs-pino": "^3.0.0",
+        "pino-http": "^8.0.0",
+        "pino-pretty": "^10.0.0"
+    },
+    "devDependencies": {
+        "@nestjs/cli": "^10.0.0",
+        "@types/node": "^20.0.0",
+        "ts-loader": "^9.5.4",
+        "typescript": "^5.0.0"
+    }
+}

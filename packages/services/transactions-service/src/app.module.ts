@@ -5,6 +5,7 @@ import { TransactionsModule } from './modules/transactions.module';
 import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from 'nestjs-pino';
 import { SystemWalletsService } from './system/system-wallets.service';
+import { VirtualAccountsModule } from './modules/virtual-accounts/virtual-accounts.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -26,6 +27,7 @@ import { SystemWalletsService } from './system/system-wallets.service';
     PrismaModule,
     TransactionsModule,
     AuthModule,
+    VirtualAccountsModule,
   ],
   providers: [SystemWalletsService],
 })

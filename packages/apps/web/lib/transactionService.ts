@@ -6,11 +6,13 @@ import { Transaction } from '@flowsplit/prisma';
  * The JWT is automatically attached by the axios interceptor.
  * @returns A promise that resolves to an array of the user's transactions, sorted by date.
  */
-export const getTransactions = async (): Promise<Transaction[]> => {
+export const getTransactions = async (walletId?: string): Promise<Transaction[]> => {
   try {
-    const response = await api.get<Transaction[]>(
-      'http://localhost:3103/api/transactions' // URL to the transactions-service
-    );
+    const url = walletId 
+      ? `http://localhost:4000/api/transactions?walletId=${walletId}` //actual service http://localhost:3103
+      : 'http://localhost:4000/api/transactions';
+      
+    const response = await api.get<Transaction[]>(url);
     return response.data;
   } catch (error: any) {
     console.error('Failed to fetch transactions:', error);
