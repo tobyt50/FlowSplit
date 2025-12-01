@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # --- INFRASTRUCTURE ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: flowsplit_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: flowsplit_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # --- BACKEND SERVICES ---
+  monolith:
+    build:
+      context: .
+      dockerfile: packages/services/monolith/Dockerfile
+    container_name: flowsplit_monolith
+    ports:
+      - "4000:4000"
+    environment:
+      # Use container networking names
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
+      - JWT_SECRET=${JWT_SECRET}
+      - PAYSTACK_SECRET_KEY=${PAYSTACK_SECRET_KEY}
+      - FRONTEND_ORIGIN_URL=${FRONTEND_ORIGIN_URL}
+      - PORT=4000
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    restart: unless-stopped
+
+  # --- ADD THE AI SERVICE ---
+  ai-service:
+    build:
+      context: packages/services/ai-service # The context is the service directory itself
+      dockerfile: Dockerfile
+    container_name: flowsplit_ai_service
+    ports:
+      - "3107:3107"
+    environment:
+      # Use container networking name for the database
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: unless-stopped
+
+  # --- FRONTEND ---
+  web:
+    build:
+      context: .
+      dockerfile: packages/apps/web/Dockerfile
+    container_name: flowsplit_web
+    ports:
+      - "3000:3000"
+    environment:
+      # The frontend needs to know where its APIs are.
+      # These MUST point to localhost because the browser runs on the host machine, not inside Docker.
+      - NEXT_PUBLIC_API_URL=http://localhost:4000/api
+      - NEXT_PUBLIC_AI_API_URL=http://localhost:3107/api
+    depends_on:
+      - monolith
+      - ai-service
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:

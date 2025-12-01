@@ -9,37 +9,32 @@ import {
   IsEnum,
 } from 'class-validator';
 
-// This mirrors the nested 'customer' object in the Paystack payload
-class PaystackCustomerDto {
+export class PaystackCustomerDto {
   @IsEmail()
   email!: string;
 }
-
-// This mirrors the nested 'data' object
-class PaystackDataDto {
+export class PaystackDataDto {
   @IsString()
   @IsNotEmpty()
   reference!: string;
 
   @IsNumber()
-  amount!: number; // Amount is in the smallest currency unit (kobo)
+  amount!: number;
 
   @IsString()
   currency!: string;
 
-  @IsEnum(['success'])
-  status!: 'success';
+  @IsString()
+  status!: string;
 
   @IsObject()
   @ValidateNested()
   @Type(() => PaystackCustomerDto)
   customer!: PaystackCustomerDto;
 }
-
-// This is the top-level DTO for the entire webhook payload
 export class PaystackChargeSuccessDto {
-  @IsEnum(['charge.success'])
-  event!: 'charge.success';
+  @IsString()
+  event!: string;
 
   @IsObject()
   @ValidateNested()

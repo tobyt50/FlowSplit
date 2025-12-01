@@ -12,8 +12,9 @@ datasource db {
 
 enum Role {
   USER
-  ADMIN
   BUSINESS
+  ADMIN
+  SUPER_ADMIN
 }
 
 enum TransactionType {
@@ -63,6 +64,27 @@ enum Currency {
   NGN
 }
 
+enum AdminActionType {
+  VIEW_USER_DETAILS
+  VIEW_USER_LIST
+  VIEW_TRANSACTION_LOGS
+  FLAG_TRANSACTION
+  SUSPEND_USER
+  UNSUSPEND_USER
+}
+
+enum AuditLogLevel {
+  INFO     // For routine, read-only actions (e.g., viewing a list)
+  WARN     // For sensitive data access (e.g., viewing a specific user's full details)
+  CRITICAL // For state-changing, destructive actions (e.g., suspending a user)
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
 // --------------------- MODELS ---------------------------
 
 model User {
@@ -75,6 +97,7 @@ model User {
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  status          UserStatus      @default(ACTIVE)
 
   // Relations
   accounts      Account[]
@@ -91,13 +114,25 @@ model User {
   payouts      Payout[]
 }
 
+model AdminAuditLog {
+  id              String          @id
+  timestamp       DateTime        @default(now())
+  adminUserId     String          
+  adminUserEmail  String          
+  action          AdminActionType
+  level           AuditLogLevel 
+  targetUserId    String?         
+  targetEntityId  String?         
+  details         Json            
+}
+
 model LedgerTransaction {
   id          String        @id
   description String
   createdAt   DateTime      @default(now())
 
-  // Relation: A transaction consists of multiple debit/credit entries.
   entries     LedgerEntry[]
+  externalTransaction Transaction?
 }
 
 // Represents a single debit or credit to a specific wallet.
@@ -237,6 +272,8 @@ model Transaction {
   initiatedAt  DateTime        @default(now())
   completedAt  DateTime?
   splitApplied Boolean         @default(false)
+  ledgerTransaction   LedgerTransaction? @relation(fields: [ledgerTransactionId], references: [id])
+  ledgerTransactionId String?            @unique
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
@@ -264,6 +301,7 @@ model Notification {
   title     String
   message   String
   type      String
+  actionUrl String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 

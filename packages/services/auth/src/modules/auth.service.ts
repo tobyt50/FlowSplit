@@ -1,11 +1,12 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '@flowsplit/prisma';
+import { PrismaService, UserStatus } from '@flowsplit/prisma';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcryptjs';
@@ -61,6 +62,13 @@ export class AuthService {
 
     if (!user || !user.password) {
       throw new UnauthorizedException('Invalid credentials.');
+    }
+
+    if (user.status === UserStatus.SUSPENDED) {
+      throw new ForbiddenException('Your account has been suspended. Please contact support.');
+    }
+    if (user.status === UserStatus.DEACTIVATED) {
+      throw new ForbiddenException('This account has been deactivated.');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);

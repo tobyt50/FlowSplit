@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Logger } from 'nestjs-pino'; //
+import { Logger } from 'nestjs-pino';
 import { PrismaService } from '@flowsplit/prisma';
 
 // CRITICAL: This patch allows BigInt values to be serialized to JSON.
@@ -24,15 +24,29 @@ async function bootstrap() {
   // --- Security & CORS ---
   const configService = app.get(ConfigService);
   const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
-  if (!frontendUrl) {
-    pinoLogger.warn('FRONTEND_ORIGIN_URL is not defined; CORS will not be configured.');
+  const adminFrontendUrl = configService.get<string>('ADMIN_FRONTEND_ORIGIN_URL');
+
+  const allowedOrigins = [frontendUrl, adminFrontendUrl].filter(Boolean);
+
+  if (allowedOrigins.length === 0) {
+    pinoLogger.warn('No frontend URLs defined; CORS will not be configured.');
   } else {
     app.enableCors({
-      origin: frontendUrl,
+      origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps, curl, Postman)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
       credentials: true,
     });
-    pinoLogger.log(`CORS enabled for origin: ${frontendUrl}`);
+
+    pinoLogger.log(`CORS enabled for origins: ${allowedOrigins.join(', ')}`);
   }
 
   // --- Global Configuration ---
@@ -40,7 +54,6 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // --- Graceful Shutdown ---
-  // Enable shutdown hooks to ensure Prisma disconnects cleanly on app termination.
   const prismaService = app.get(PrismaService);
   await prismaService.enableShutdownHooks(app);
 
@@ -50,4 +63,5 @@ async function bootstrap() {
 
   pinoLogger.log(`🚀 Auth Service running on http://localhost:${port}`);
 }
+
 bootstrap();

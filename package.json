@@ -16,6 +16,7 @@
         "//--- DEVELOPMENT ---//": "",
         "dev": "turbo dev --parallel",
         "dev:web": "turbo dev --filter=web",
+        "dev:admin": "turbo dev --filter=admin",
         "dev:services": "turbo dev --filter=\"...{./packages/services/*}\" --parallel",
         "dev:monolith": "turbo dev --filter=@flowsplit/monolith --filter=@flowsplit/ai-service --parallel",
 

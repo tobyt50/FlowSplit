@@ -17,15 +17,31 @@ import { LedgerModule } from '../ledger/ledger.module';
         useFactory: (configService: ConfigService) => {
           const rmqUrl = configService.get<string>('RABBITMQ_URL');
           if (!rmqUrl) {
-            throw new Error(
-              'RABBITMQ_URL is not defined in the environment variables.'
-            );
+            throw new Error('RABBITMQ_URL is not defined in the environment variables.');
           }
           return {
             transport: Transport.RMQ,
             options: {
               urls: [rmqUrl],
               queue: 'rule_engine_queue',
+            },
+          };
+        },
+        inject: [ConfigService],
+      },
+      {
+        name: 'NOTIFICATION_SERVICE',
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => {
+          const rmqUrl = configService.get<string>('RABBITMQ_URL');
+          if (!rmqUrl) {
+            throw new Error('RABBITMQ_URL is not defined in the environment variables.');
+          }
+          return {
+            transport: Transport.RMQ,
+            options: {
+              urls: [rmqUrl],
+              queue: 'notification_queue',
             },
           };
         },

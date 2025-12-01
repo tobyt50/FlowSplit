@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image'; // Import Next.js Image component
+import Image from 'next/image';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,7 @@ import { CircleUser } from 'lucide-react';
 import { useAuthStore } from '../../../lib/authStore';
 import { logoutUser } from '../../../lib/authService';
 import { ThemeToggle } from './ThemeToggle';
+import { NotificationsBell } from './NotificationsBell';
 
 export function Header() {
   const { user } = useAuthStore();
@@ -28,12 +29,7 @@ export function Header() {
           {/* Mobile Nav Toggle Icon would go here */}
       </div>
 
-      {/* 
-        Updated Logo Section 
-        - Replaced text <span> with <Image>
-      */}
-      <div className="flex items-center gap-2 md:hidden"> 
-        {/* On mobile, we might want to show the logo in the header if sidebar is hidden */}
+      <div className="flex items-center gap-2 md:hidden">
         <Image 
           src="/images/logo.jpg" 
           alt="FlowSplit" 
@@ -46,7 +42,8 @@ export function Header() {
       <div className="w-full flex-1">
         {/* Search bar placeholder */}
       </div>
-
+      <div className="ml-auto flex items-center gap-3">
+      <NotificationsBell />
       <ThemeToggle />
 
       <DropdownMenu>
@@ -78,6 +75,7 @@ export function Header() {
           <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      </div>
     </header>
   );
 }

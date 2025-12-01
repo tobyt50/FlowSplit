@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query, Param } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { PaystackChargeSuccessDto } from './dto/paystack-charge-success.dto';
 import { PaystackGuard } from '../common/guards/paystack.guard';
@@ -9,27 +9,22 @@ import { User } from '@flowsplit/prisma';
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
-  /**
-   * Dedicated, secure endpoint for receiving Paystack webhooks.
-   */
   @Post('webhooks/paystack')
   @UseGuards(PaystackGuard)
   async handlePaystackWebhook(@Body() payload: PaystackChargeSuccessDto) {
-    await this.transactionsService.processPaystackDeposit(payload);
+    this.transactionsService.processPaystackDeposit(payload);
     return { status: 'acknowledged' };
   }
 
-  /**
-   * Endpoint for users to get their transaction history.
-   * Supports optional filtering by walletId.
-   * GET /api/transactions?walletId=...
-   */
   @Get()
   @UseGuards(JwtAuthGuard)
-  findAll(
-    @CurrentUser() user: User,
-    @Query('walletId') walletId?: string // Capture the optional query param
-  ) {
+  findAll(@CurrentUser() user: User, @Query('walletId') walletId?: string) {
     return this.transactionsService.findAllForUser(user.id, walletId);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  findOne(@CurrentUser() user: User, @Param('id') id: string) {
+    return this.transactionsService.findOneById(user.id, id);
   }
 }

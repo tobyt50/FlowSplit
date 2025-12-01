@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { MonolithModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
-import { Transport } from '@nestjs/microservices';
+import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { Logger as PinoLogger } from 'nestjs-pino';
 
@@ -12,7 +12,7 @@ import { Logger as PinoLogger } from 'nestjs-pino';
 
 async function bootstrap() {
   const app = await NestFactory.create(MonolithModule, {
-    bufferLogs: false,
+    bufferLogs: true,
     rawBody: true,
   });
 
@@ -22,6 +22,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
+  const rabbitmqUrl = configService.get<string>('RABBITMQ_URL');
 
   if (!frontendUrl) {
     logger.warn('FRONTEND_ORIGIN_URL is not defined; CORS will not be configured.');
@@ -37,24 +38,44 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.setGlobalPrefix('api');
 
-  // --- Connect to RabbitMQ (Disabled for Local Monolith) ---
-  //   app.connectMicroservice({
-  //     transport: Transport.RMQ,
-  //     options: {
-  //       urls: [process.env.RABBITMQ_URL],
-  //       queue: 'rule_engine_queue',
-  //       queueOptions: { durable: true },
-  //       noAck: false,
-  //     },
-  //   });
+  // --- CONNECT ALL MICROSERVICE LISTENERS ---
+  if (!rabbitmqUrl) {
+    logger.error('RABBITMQ_URL is not defined! Cannot start event listeners.');
+  } else {
+    // Listener for the Rule Engine
+    app.connectMicroservice<MicroserviceOptions>({
+      transport: Transport.RMQ,
+      options: {
+        urls: [rabbitmqUrl],
+        queue: 'rule_engine_queue',
+        queueOptions: { durable: true },
+        noAck: false,
+      },
+    });
 
-  // Disabled because we are not using microservices transport right now
+    // Listener for the Notification Service
+    app.connectMicroservice<MicroserviceOptions>({
+      transport: Transport.RMQ,
+      options: {
+        urls: [rabbitmqUrl],
+        queue: 'notification_queue',
+        queueOptions: { durable: true },
+        noAck: false,
+      },
+    });
+  }
+
+  // --- START ALL CONFIGURED MICROSERVICES ---
+  // This tells NestJS to start listening on the queues defined above.
   // await app.startAllMicroservices();
 
   const port = 4000;
   await app.listen(port);
 
   logger.log(`🚀 MONOLITH Backend running on: http://localhost:${port}`);
+  if (rabbitmqUrl) {
+    logger.log(`🐰 Listening for events on RabbitMQ`);
+  }
 }
 
 bootstrap();

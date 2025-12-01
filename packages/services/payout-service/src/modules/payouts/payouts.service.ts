@@ -5,6 +5,7 @@ import {
   BadRequestException,
   InternalServerErrorException,
   ConflictException,
+  Inject,
 } from '@nestjs/common';
 import { PrismaService, PayoutStatus } from '@flowsplit/prisma';
 import { PaystackService } from '../../paystack/paystack.service';
@@ -13,6 +14,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { LedgerService } from '../../ledger/ledger.service';
 import { FUNDS_IN_TRANSIT_WALLET_ID, PAYSTACK_EGRESS_WALLET_ID } from '../../system/system-wallets.service';
 import { PaystackTransferSuccessDto, PaystackTransferFailedDto } from './dto/paystack-webhook.dto';
+import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
 
 @Injectable()
 export class PayoutsService {
@@ -22,12 +24,9 @@ export class PayoutsService {
     private readonly prisma: PrismaService,
     private readonly paystackService: PaystackService,
     private readonly ledgerService: LedgerService,
+    @Inject('NOTIFICATION_SERVICE') private readonly notificationClient: ClientProxy,
   ) {}
 
-  /**
-   * Initiates a payout from a user's wallet to a linked bank account.
-   * Fully atomic and ledger-aware.
-   */
   async initiate(userId: string, data: InitiatePayoutDto) {
     const { sourceWalletId, destinationBankId, amount, reference } = data;
     const amountBigInt = BigInt(amount);
@@ -35,7 +34,7 @@ export class PayoutsService {
     this.logger.log(`Initiating payout for user ${userId} with reference ${reference}`);
 
     return this.prisma.$transaction(async (tx) => {
-      // 1️⃣ Verify ownership and validity
+      // All verification logic remains the same...
       const [sourceWallet, destinationBank] = await Promise.all([
         tx.wallet.findFirst({ where: { id: sourceWalletId, userId } }),
         tx.bankAccount.findFirst({ where: { id: destinationBankId, userId } }),
@@ -50,7 +49,6 @@ export class PayoutsService {
       const existingPayout = await tx.payout.findUnique({ where: { reference } });
       if (existingPayout) throw new ConflictException('A payout with this reference already exists.');
 
-      // 2️⃣ Create payout record (PENDING)
       const newPayout = await tx.payout.create({
         data: {
           id: createId(),
@@ -64,7 +62,6 @@ export class PayoutsService {
         },
       });
 
-      // 3️⃣ Reserve funds in ledger (Funds in Transit)
       const ledgerTxId = await this.ledgerService.createTransaction(
         tx,
         { walletId: sourceWalletId, amount: amountBigInt },
@@ -72,7 +69,6 @@ export class PayoutsService {
         `Reserve funds for payout ref: ${reference}`
       );
 
-      // 4️⃣ Update wallet balance & link ledger to payout
       await tx.wallet.update({
         where: { id: sourceWalletId },
         data: { balance: { decrement: amountBigInt } },
@@ -83,7 +79,6 @@ export class PayoutsService {
         data: { ledgerTransactionId: ledgerTxId },
       });
 
-      // 5️⃣ Initiate transfer via Paystack
       try {
         const transferResult = await this.paystackService.initiateTransfer(
           amount,
@@ -112,23 +107,17 @@ export class PayoutsService {
     });
   }
 
-  /**
-   * Handles 'transfer.success' webhook from Paystack.
-   * Idempotent: only updates if payout not already terminal.
-   */
   async handleTransferSuccess(payload: PaystackTransferSuccessDto): Promise<void> {
     const { reference } = payload.data;
     this.logger.log(`'transfer.success' webhook received for ref ${reference}`);
 
     await this.prisma.$transaction(async (tx) => {
-      const payout = await tx.payout.findUnique({ where: { providerReference: reference } });
-      if (!payout) {
-        this.logger.warn(`Unknown payout ref ${reference} in transfer.success webhook. Ignored.`);
-        return;
-      }
-
-      if (payout.status === PayoutStatus.SUCCESS || payout.status === PayoutStatus.FAILED) {
-        this.logger.log(`Payout ${payout.id} already terminal (${payout.status}).`);
+      const payout = await tx.payout.findUnique({
+        where: { providerReference: reference },
+        include: { destinationBank: true },
+      });
+      if (!payout || payout.status === PayoutStatus.SUCCESS || payout.status === PayoutStatus.FAILED) {
+        this.logger.log(`Payout ref ${reference} not found or already in a terminal state. Ignoring webhook.`);
         return;
       }
 
@@ -139,36 +128,39 @@ export class PayoutsService {
         `Payout SUCCESS: Final egress for ref ${payout.reference}`
       );
 
-      await tx.payout.update({
+      const updatedPayout = await tx.payout.update({
         where: { id: payout.id },
         data: { status: PayoutStatus.SUCCESS, completedAt: new Date() },
       });
 
-      this.logger.log(`Payout ${payout.id} marked as SUCCESS`);
+      const eventPayload = {
+        userId: updatedPayout.userId,
+        payoutId: updatedPayout.id,
+        amount: updatedPayout.amount,
+        bankName: payout.destinationBank.bankName,
+      };
+      const record = new RmqRecordBuilder(eventPayload).build();
+      this.notificationClient.emit('payout.success', record);
+      // ---------------------------------------------
+
+      this.logger.log(`Payout ${payout.id} marked as SUCCESS and event emitted.`);
     });
   }
 
-  /**
-   * Handles 'transfer.failed' webhook from Paystack.
-   * Idempotent: only reverses funds if payout not already terminal.
-   */
   async handleTransferFailed(payload: PaystackTransferFailedDto): Promise<void> {
     const { reference, failure_reason } = payload.data;
     this.logger.warn(`'transfer.failed' webhook received for ref ${reference}`);
 
     await this.prisma.$transaction(async (tx) => {
-      const payout = await tx.payout.findUnique({ where: { providerReference: reference } });
-      if (!payout) {
-        this.logger.warn(`Unknown payout ref ${reference} in transfer.failed webhook. Ignored.`);
+      const payout = await tx.payout.findUnique({
+        where: { providerReference: reference },
+        include: { destinationBank: true },
+      });
+      if (!payout || payout.status === PayoutStatus.SUCCESS || payout.status === PayoutStatus.FAILED) {
+        this.logger.log(`Payout ref ${reference} not found or already in a terminal state. Ignoring webhook.`);
         return;
       }
 
-      if (payout.status === PayoutStatus.SUCCESS || payout.status === PayoutStatus.FAILED) {
-        this.logger.log(`Payout ${payout.id} already terminal (${payout.status}).`);
-        return;
-      }
-
-      // Reverse ledger transaction
       await this.ledgerService.createTransaction(
         tx,
         { walletId: FUNDS_IN_TRANSIT_WALLET_ID, amount: payout.amount },
@@ -176,14 +168,12 @@ export class PayoutsService {
         `Payout FAILED: Reversal for ref ${payout.reference}`
       );
 
-      // Refund user wallet
       await tx.wallet.update({
         where: { id: payout.sourceWalletId },
         data: { balance: { increment: payout.amount } },
       });
 
-      // Update payout status
-      await tx.payout.update({
+      const updatedPayout = await tx.payout.update({
         where: { id: payout.id },
         data: {
           status: PayoutStatus.FAILED,
@@ -192,7 +182,17 @@ export class PayoutsService {
         },
       });
 
-      this.logger.warn(`Payout ${payout.id} marked as FAILED. Funds returned to user.`);
+      const eventPayload = {
+        userId: updatedPayout.userId,
+        payoutId: updatedPayout.id,
+        amount: updatedPayout.amount,
+        bankName: payout.destinationBank.bankName,
+        reason: updatedPayout.failureReason,
+      };
+      const record = new RmqRecordBuilder(eventPayload).build();
+      this.notificationClient.emit('payout.failed', record);
+
+      this.logger.warn(`Payout ${payout.id} marked as FAILED, funds returned, and event emitted.`);
     });
   }
 }
