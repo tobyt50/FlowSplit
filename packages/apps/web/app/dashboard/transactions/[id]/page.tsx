@@ -2,13 +2,15 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Transaction, LedgerEntry, Wallet } from '@flowsplit/prisma';
+import { Transaction, LedgerEntry } from '@flowsplit/prisma';
 import { getTransactionById } from '../../../../lib/transactionService';
 import { formatCurrency } from '../../../../lib/walletService';
 import { Badge } from '../../../../components/ui/Badge';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../components/ui/Card';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { Separator } from '../../../../components/ui/Separator';
+import { ArrowLeft, ArrowDown, Wallet, Hash, Calendar, CheckCircle2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { cn } from '../../../../lib/utils';
 
 // Extend the Transaction type to include ledger entries for the frontend
 type TransactionWithLedger = Transaction & {
@@ -28,7 +30,6 @@ export default function TransactionDetailPage({ params }: { params: { id: string
         const txData = await getTransactionById(params.id);
         setTransaction(txData);
       } catch (error) {
-        // Redirect if not found
         router.push('/dashboard/transactions');
       } finally {
         setIsLoading(false);
@@ -38,56 +39,141 @@ export default function TransactionDetailPage({ params }: { params: { id: string
   }, [params.id, router]);
 
   if (isLoading || !transaction) {
-    return <div className="p-8 text-center">Loading transaction details...</div>;
+    return (
+      <div className="flex h-[50vh] items-center justify-center text-primary animate-pulse">
+        Loading Details...
+      </div>
+    );
   }
 
   const creditEntries = transaction.ledgerTransaction?.entries.filter(e => e.type === 'CREDIT') || [];
   const debitEntry = transaction.ledgerTransaction?.entries.find(e => e.type === 'DEBIT');
 
+  // Helper to render status badge
+  const renderStatusBadge = (status: string) => {
+    return (
+        <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 gap-1.5 px-2 py-0.5">
+            <CheckCircle2 className="h-3 w-3" />
+            <span className="uppercase tracking-wider text-[10px] font-bold">{status}</span>
+        </Badge>
+    );
+  };
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+    <div className="space-y-6 animate-in fade-in duration-500 pb-24 md:pb-10 max-w-3xl mx-auto">
+      
+      {/* Header */}
+      <div className="flex items-center gap-2 px-1">
+        <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => router.back()} 
+            className="h-8 w-8 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-semibold tracking-tight">Transaction Details</h1>
+        <h2 className="text-lg font-semibold text-foreground">Transaction Details</h2>
       </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex justify-between items-start">
-            <span>{transaction.description || 'Transaction'}</span>
-            <Badge variant={transaction.type === 'CREDIT' ? 'default' : 'destructive'}>
-              {formatCurrency(transaction.amount)}
-            </Badge>
-          </CardTitle>
-          <CardDescription>
-            Reference: {transaction.reference} | Date: {new Date(transaction.initiatedAt).toLocaleString()}
-          </CardDescription>
+      {/* Main Card */}
+      <Card className="overflow-hidden border-border bg-card">
+        {/* Top Section: Amount & Description */}
+        <CardHeader className="bg-muted/30 pb-6 pt-6 border-b border-border/50">
+           <div className="flex flex-col items-center text-center gap-1">
+              <div className={cn(
+                  "h-12 w-12 rounded-2xl flex items-center justify-center mb-2 shadow-inner",
+                  transaction.type === 'CREDIT' ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"
+              )}>
+                  {transaction.type === 'CREDIT' ? <ArrowDownLeft className="h-6 w-6" /> : <ArrowUpRight className="h-6 w-6" />}
+              </div>
+              <CardTitle className="text-3xl font-bold tracking-tight text-foreground">
+                 {formatCurrency(transaction.amount, transaction.currency)}
+              </CardTitle>
+              <CardDescription className="text-base font-medium text-muted-foreground">
+                  {transaction.description || 'System Transaction'}
+              </CardDescription>
+              <div className="mt-2">
+                 {renderStatusBadge(transaction.status)}
+              </div>
+           </div>
         </CardHeader>
-        <CardContent>
-          <h3 className="font-semibold mb-2">Ledger Breakdown</h3>
-          <div className="rounded-lg border p-4 space-y-4">
-            {debitEntry && (
-              <div className="flex items-center justify-between text-sm p-2 bg-red-50 dark:bg-red-900/20 rounded-md">
-                <span className="text-muted-foreground">From: <strong>{debitEntry.wallet.name}</strong></span>
-                <span className="font-mono text-red-600 dark:text-red-400">-{formatCurrency(debitEntry.amount)}</span>
-              </div>
-            )}
-            
-            <div className="flex justify-center">
-                <ArrowRight className="h-6 w-6 text-muted-foreground -rotate-90 sm:rotate-0" />
-            </div>
 
-            <div className="space-y-2">
-            {creditEntries.map(entry => (
-              <div key={entry.id} className="flex items-center justify-between text-sm p-2 bg-green-50 dark:bg-green-900/20 rounded-md">
-                <span className="text-muted-foreground">To: <strong>{entry.wallet.name}</strong></span>
-                <span className="font-mono text-green-600 dark:text-green-400">+{formatCurrency(entry.amount)}</span>
+        <CardContent className="p-0">
+           {/* Metadata Grid */}
+           <div className="grid grid-cols-2 gap-px bg-border/50">
+              <div className="bg-card p-4 flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                     <Hash className="h-3 w-3" /> Reference
+                  </span>
+                  <span className="text-sm font-mono text-foreground break-all">{transaction.reference}</span>
               </div>
-            ))}
-            </div>
-          </div>
+              <div className="bg-card p-4 flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                     <Calendar className="h-3 w-3" /> Date
+                  </span>
+                  <span className="text-sm text-foreground">{new Date(transaction.initiatedAt).toLocaleString()}</span>
+              </div>
+           </div>
+
+           {/* Ledger Flow Visualization */}
+           <div className="p-6 space-y-4">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                 <Wallet className="h-4 w-4 text-primary" />
+                 Money Flow
+              </h3>
+
+              <div className="relative pl-4 border-l-2 border-border/50 space-y-6 ml-2">
+                  
+                  {/* Source (Debit) */}
+                  {debitEntry && (
+                      <div className="relative">
+                          <div className="absolute -left-[21px] top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-card bg-red-500"></div>
+                          <div className="p-3 rounded-xl border border-red-500/20 bg-red-500/5 flex justify-between items-center">
+                              <div>
+                                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-0.5">Source</p>
+                                  <p className="text-sm font-semibold text-foreground">{debitEntry.wallet.name}</p>
+                              </div>
+                              <span className="font-mono text-sm font-medium text-red-500">
+                                  -{formatCurrency(debitEntry.amount)}
+                              </span>
+                          </div>
+                      </div>
+                  )}
+
+                  {/* Flow Arrow (Visual only) */}
+                  {debitEntry && creditEntries.length > 0 && (
+                      <div className="pl-4">
+                          <ArrowDown className="h-4 w-4 text-muted-foreground/30" />
+                      </div>
+                  )}
+
+                  {/* Destinations (Credits) */}
+                  <div className="space-y-3">
+                      {creditEntries.map((entry, idx) => (
+                        <div key={entry.id} className="relative">
+                            <div className="absolute -left-[21px] top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-card bg-green-500"></div>
+                            <div className="p-3 rounded-xl border border-green-500/20 bg-green-500/5 flex justify-between items-center transition-colors hover:bg-green-500/10">
+                                <div>
+                                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-0.5">
+                                        Destination {creditEntries.length > 1 ? `#${idx + 1}` : ''}
+                                    </p>
+                                    <p className="text-sm font-semibold text-foreground">{entry.wallet.name}</p>
+                                </div>
+                                <span className="font-mono text-sm font-medium text-green-500">
+                                    +{formatCurrency(entry.amount)}
+                                </span>
+                            </div>
+                        </div>
+                      ))}
+                      
+                      {creditEntries.length === 0 && (
+                          <div className="text-sm text-muted-foreground italic pl-2">
+                              No allocation breakdown available.
+                          </div>
+                      )}
+                  </div>
+              </div>
+           </div>
         </CardContent>
       </Card>
     </div>

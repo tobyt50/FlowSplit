@@ -2,14 +2,9 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { Wallet, SplitRule, Transaction } from '@flowsplit/prisma';
-
-//UI Components
-import { Button } from '../../../components/ui/Button';
-import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { Separator } from '../../../components/ui/Separator';
 
-//Dashboard Cards
+// Components
 import { OverviewCards } from './_components/OverviewCards';
 import { WalletBreakdown } from './_components/WalletBreakdown';
 import { RecentTransactions } from './_components/RecentTransactions';
@@ -20,14 +15,19 @@ import { CashFlowChart } from './_components/CashFlowChart';
 import { LastSplitBreakdown } from './_components/LastSplitBreakdown';
 import { AddFundsModal } from './_components/AddFundsModal';
 
-// Import all required data fetching functions from their dedicated services
+// Services
 import { getWallets } from '../../../lib/walletService';
 import { getRules } from '../../../lib/ruleService';
 import { getTransactions } from '../../../lib/transactionService';
 import { getAIInsight, AIInsight } from '../../../lib/aiService';
-import { getUpcomingBills, getCashFlow, CashFlowDataPoint, getLastSplitBreakdown, LastSplitBreakdown as LastSplitBreakdownData } from '../../../lib/dashboardService';
+import {
+  getUpcomingBills,
+  getCashFlow,
+  CashFlowDataPoint,
+  getLastSplitBreakdown,
+  LastSplitBreakdown as LastSplitBreakdownData,
+} from '../../../lib/dashboardService';
 
-// This is the single, consolidated state object for the entire dashboard
 interface FullDashboardData {
   wallets: Wallet[];
   rules: SplitRule[];
@@ -47,8 +47,15 @@ export default function OverviewPage() {
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch all dashboard data in parallel for maximum performance
-      const [wallets, rules, transactions, upcomingBills, cashFlow, lastSplit, aiInsight] = await Promise.all([
+      const [
+        wallets,
+        rules,
+        transactions,
+        upcomingBills,
+        cashFlow,
+        lastSplit,
+        aiInsight,
+      ] = await Promise.all([
         getWallets(),
         getRules(),
         getTransactions(),
@@ -57,7 +64,16 @@ export default function OverviewPage() {
         getLastSplitBreakdown(),
         getAIInsight(),
       ]);
-      setDashboardData({ wallets, rules, transactions, upcomingBills, cashFlow, lastSplit, aiInsight });
+
+      setDashboardData({
+        wallets,
+        rules,
+        transactions,
+        upcomingBills,
+        cashFlow,
+        lastSplit,
+        aiInsight,
+      });
     } catch (err: any) {
       setError(err.message);
       toast.error('Dashboard Error', { description: err.message });
@@ -70,73 +86,97 @@ export default function OverviewPage() {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  const renderContent = () => {
-    if (isLoading) return <p className="text-center pt-10">Loading your financial overview...</p>;
-    if (error || !dashboardData) return <p className="text-destructive text-center pt-10">Error: {error || 'Could not load dashboard data.'}</p>;
+  useEffect(() => {
+    const openModalHandler = () => setIsAddFundsOpen(true);
+    document.addEventListener('open-add-funds-modal', openModalHandler);
+    return () => document.removeEventListener('open-add-funds-modal', openModalHandler);
+  }, []);
 
+  if (isLoading) {
     return (
-      <div className="space-y-6">
-        <OverviewCards data={dashboardData} />
-
-        {dashboardData.aiInsight && (
-            <InsightCard insight={dashboardData.aiInsight} />
-        )}
-
-        <div>
-          <CashFlowChart data={dashboardData.cashFlow} />
-        </div>
-        
-        <div className="grid gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-3">
-            <WalletBreakdown wallets={dashboardData.wallets} rules={dashboardData.rules} />
-          </div>
-          <div className="lg:col-span-2">
-            {/* NEW: Place the LastSplitBreakdown component here */}
-            <LastSplitBreakdown data={dashboardData.lastSplit} />
-          </div>
-        </div>
-        
-        <div className="grid gap-6 lg:grid-cols-2">
-            <ActiveRules 
-              rules={dashboardData.rules} 
-              wallets={dashboardData.wallets}
-              onRuleToggle={fetchDashboardData}
-            />
-            <UpcomingBills bills={dashboardData.upcomingBills} />
-        </div>
-        
-        {/* RecentTransactions can be its own full-width section */}
-        <RecentTransactions transactions={dashboardData.transactions} />
+      <div className="flex h-[50vh] items-center justify-center text-primary animate-pulse">
+        Loading FlowSplit...
       </div>
     );
-  };
+  }
+
+  if (error || !dashboardData) {
+    return (
+      <div className="text-destructive text-center pt-10">
+        Error: {error || 'Could not load data.'}
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Overview</h1>
-          <p className="text-muted-foreground mt-1">
-            A high-level snapshot of your financial landscape.
-          </p>
+    <div className="space-y-6 animate-in fade-in duration-500 pb-24 md:pb-10">
+      
+      {/* --- SECTION 1: Top Metrics & Charts --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Main Content (Left) */}
+        <div className="col-span-1 lg:col-span-8 space-y-6">
+          {/* Top Assets (2x2 Grid on Mobile, Row on Desktop) */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-lg font-semibold text-foreground">Top Financial Assets</h2>
+              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md border border-border">
+                Real-time
+              </span>
+            </div>
+            
+            {/* 
+              Pass the compact chart as a child. 
+              OverviewCards will render it in the 4th grid slot on mobile 
+              and hide it on desktop.
+            */}
+            <OverviewCards data={dashboardData}>
+                <CashFlowChart data={dashboardData.cashFlow} compact />
+            </OverviewCards>
+          </div>
+
+          {/* AI Insight */}
+          {dashboardData.aiInsight && <InsightCard insight={dashboardData.aiInsight} />}
+
+          {/* Cash Flow Chart (Desktop Only - Full Version) */}
+          <div className="hidden lg:block bg-card border border-border rounded-2xl p-6 shadow-sm overflow-hidden">
+            <h3 className="text-foreground font-medium mb-4">Cash Flow Analytics</h3>
+            <CashFlowChart data={dashboardData.cashFlow} />
+          </div>
         </div>
-        {/* 5. The Add Funds Button */}
-        <Button onClick={() => setIsAddFundsOpen(true)} size="lg" className="shadow-sm">
-          <Plus className="mr-2 h-5 w-5" />
-          Add Funds
-        </Button>
+
+        {/* Sidebar Content (Right) */}
+        <div className="col-span-1 lg:col-span-4 space-y-6">
+          <WalletBreakdown wallets={dashboardData.wallets} rules={dashboardData.rules} />
+          <LastSplitBreakdown data={dashboardData.lastSplit} />
+        </div>
       </div>
 
-      <Separator />
 
-      {renderContent()}
+      {/* --- SECTION 2: Active Management --- */}
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-4 px-1">Active Management</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div className="h-full">
+                <ActiveRules
+                    rules={dashboardData.rules}
+                    wallets={dashboardData.wallets}
+                    onRuleToggle={fetchDashboardData}
+                />
+            </div>
 
-      {/* 6. The Modal Instance */}
-      <AddFundsModal 
-        isOpen={isAddFundsOpen} 
-        onClose={() => setIsAddFundsOpen(false)} 
-      />
+            <div className="h-full">
+                <UpcomingBills bills={dashboardData.upcomingBills} />
+            </div>
+
+            <div className="h-full">
+                <RecentTransactions transactions={dashboardData.transactions} />
+            </div>
+        </div>
+      </div>
+
+      <AddFundsModal isOpen={isAddFundsOpen} onClose={() => setIsAddFundsOpen(false)} />
     </div>
   );
 }

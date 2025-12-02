@@ -3,7 +3,9 @@ import { LedgerEntry, Transaction } from '@flowsplit/prisma';
 
 export type TransactionWithLedger = Transaction & {
   ledgerTransaction?: {
-    entries: (LedgerEntry & { wallet: { name: string } })[];
+    entries: ({
+      wallet: { name: string };
+    } & LedgerEntry)[];
   };
 };
 

@@ -35,24 +35,24 @@ export function BankAccountActions({ account, onSetPrimary, onDelete }: BankAcco
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+          <Button variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground">
             <span className="sr-only">Open menu</span>
-            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+            <MoreVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-48 bg-card border-border rounded-xl">
           <DropdownMenuItem 
             onClick={() => onSetPrimary(account.id)} 
             disabled={account.isPrimary}
-            className={account.isPrimary ? 'opacity-50 cursor-default' : ''}
+            className={account.isPrimary ? 'opacity-50 cursor-default' : 'cursor-pointer'}
           >
-            {account.isPrimary ? <Check className="mr-2 h-4 w-4" /> : <Star className="mr-2 h-4 w-4" />}
+            {account.isPrimary ? <Check className="mr-2 h-4 w-4 text-primary" /> : <Star className="mr-2 h-4 w-4" />}
             {account.isPrimary ? 'Primary Account' : 'Set as Primary'}
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="bg-border/50" />
           <DropdownMenuItem 
             onClick={() => setShowDeleteDialog(true)} 
-            className="text-destructive focus:text-destructive"
+            className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
           >
             <Trash2 className="mr-2 h-4 w-4" />
             <span>Unlink Account</span>
@@ -61,19 +61,19 @@ export function BankAccountActions({ account, onSetPrimary, onDelete }: BankAcco
       </DropdownMenu>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Unlink Bank Account?</AlertDialogTitle>
+            <AlertDialogTitle className="text-destructive">Unlink Bank Account?</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to remove <strong>{account.bankName} ({account.accountNumber})</strong>?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-lg">Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => onDelete(account.id)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg"
             >
               Yes, Unlink
             </AlertDialogAction>

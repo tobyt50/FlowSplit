@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/Card';
 import { Button } from '../../../../components/ui/Button';
 import { Sparkles, TrendingUp, AlertTriangle, PiggyBank, ArrowRight } from 'lucide-react';
 import { AIInsight } from '../../../../lib/aiService';
@@ -15,42 +14,49 @@ export function InsightCard({ insight }: InsightCardProps) {
   const router = useRouter();
 
   if (!insight || insight.insightCode === 'DEFAULT_GREETING') {
-    return null; // Don't show the card if everything is perfect
+    return null;
   }
 
-  // Determine Icon and Color based on the type of insight
+  // Determine Icon and Visual Theme based on insight type
   let Icon = Sparkles;
-  let colorClass = "text-primary"; // Default Teal
-  let bgClass = "bg-primary/10";
+  let themeColor = "primary"; // used for text classes mapping
+  let gradientClass = "from-primary/10 to-transparent";
+  let iconBgClass = "bg-primary/10 text-primary";
 
   switch (insight.insightCode) {
     case 'UNALLOCATED_FUNDS':
       Icon = AlertTriangle;
-      colorClass = "text-amber-500";
-      bgClass = "bg-amber-500/10";
+      themeColor = "amber-500";
+      gradientClass = "from-amber-500/10 to-transparent";
+      iconBgClass = "bg-amber-500/10 text-amber-500";
       break;
     case 'LOW_SAVINGS_RATE':
       Icon = PiggyBank;
-      colorClass = "text-blue-500";
-      bgClass = "bg-blue-500/10";
+      themeColor = "blue-500";
+      gradientClass = "from-blue-500/10 to-transparent";
+      iconBgClass = "bg-blue-500/10 text-blue-500";
       break;
     case 'HIGH_SPENDING_VELOCITY':
       Icon = TrendingUp;
-      colorClass = "text-red-500";
-      bgClass = "bg-red-500/10";
+      themeColor = "red-500";
+      gradientClass = "from-red-500/10 to-transparent";
+      iconBgClass = "bg-red-500/10 text-red-500";
+      break;
+    default:
+      // Default to the Sparkles look
+      Icon = Sparkles;
+      gradientClass = "from-primary/10 to-transparent";
+      iconBgClass = "bg-primary/10 text-primary";
       break;
   }
 
-  // Map the actionText to actual frontend logic
   const handleAction = () => {
     switch (insight.insightCode) {
       case 'UNALLOCATED_FUNDS':
-        // Ideally opens a "Transfer" modal. For V1, we send them to Wallets.
         router.push('/dashboard/wallets'); 
         break;
       case 'LOW_SAVINGS_RATE':
       case 'NEW_SUBSCRIPTION_DETECTED':
-        // Send them to the Rules page to fix their allocation
         router.push('/dashboard/rules');
         break;
       case 'HIGH_SPENDING_VELOCITY':
@@ -62,25 +68,43 @@ export function InsightCard({ insight }: InsightCardProps) {
   };
 
   return (
-    <Card className="border-l-4 border-l-primary relative overflow-hidden">
-      <CardHeader className="flex flex-row items-center gap-4 pb-2">
-        <div className={`p-2 rounded-full ${bgClass}`}>
-          <Icon className={`h-6 w-6 ${colorClass}`} />
+    <div className={`relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md`}>
+      {/* Background Gradient */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-50 pointer-events-none`} />
+
+      {/* Decorative large icon in background */}
+      <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+        <Icon className="h-24 w-24 text-foreground" />
+      </div>
+
+      <div className="relative z-10">
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`p-2 rounded-xl ${iconBgClass} shadow-sm`}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <span className={`text-xs font-bold uppercase tracking-wider opacity-80 ${iconBgClass.split(" ")[1]}`}>
+            AI Insight
+          </span>
         </div>
-        <div>
-          <CardTitle className="text-lg">{insight.title}</CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground text-sm mb-4">
+
+        <h3 className="text-lg font-semibold text-foreground mb-2">
+          {insight.title}
+        </h3>
+        
+        <p className="text-muted-foreground text-sm mb-5 max-w-xl leading-relaxed">
           {insight.description}
         </p>
+
         {insight.actionText && (
-          <Button onClick={handleAction} size="sm" className="w-full sm:w-auto">
+          <Button 
+            onClick={handleAction} 
+            size="sm" 
+            className="rounded-xl shadow-lg shadow-black/5 dark:shadow-black/20"
+          >
             {insight.actionText} <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

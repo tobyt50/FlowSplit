@@ -16,7 +16,6 @@ import {
 import { ChevronDown, Loader2, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Production-grade list of major Nigerian banks (can be expanded)
 const SUPPORTED_BANKS = [
   { name: 'Access Bank', code: '044' },
   { name: 'Guaranty Trust Bank', code: '058' },
@@ -31,7 +30,6 @@ const SUPPORTED_BANKS = [
 const formSchema = z.object({
   accountNumber: z.string().length(10, 'Account number must be exactly 10 digits'),
   bankCode: z.string().min(1, 'Please select a bank'),
-  // Bank Name is derived from code, but we track it for the API payload
   accountType: z.enum(['SAVINGS', 'CURRENT']),
 });
 
@@ -64,7 +62,6 @@ export function AddBankAccountModal({ isOpen, onClose, onSuccess }: AddBankAccou
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsLoading(true);
     try {
-      // Pass the derived bank name along with the code
       await addBankAccount({
         ...data,
         bankName: selectedBankName || 'Unknown Bank',
@@ -81,30 +78,31 @@ export function AddBankAccountModal({ isOpen, onClose, onSuccess }: AddBankAccou
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-card border-border">
         <DialogHeader>
           <DialogTitle>Link Bank Account</DialogTitle>
           <DialogDescription>
-            Add an external account for withdrawals. We verify the name automatically.
+            Add an external account for withdrawals.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
           {/* Bank Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Bank Name</label>
+            <label className="text-sm font-medium text-foreground">Bank Name</label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild disabled={isLoading}>
-                <Button variant="outline" className="w-full justify-between font-normal">
+                <Button variant="outline" className="w-full justify-between font-normal bg-muted border-input">
                   {selectedBankName || "Select Bank"}
                   <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[200px] overflow-y-auto">
+              <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[200px] overflow-y-auto bg-popover border-border">
                 {SUPPORTED_BANKS.map((bank) => (
                   <DropdownMenuItem 
                     key={bank.code} 
                     onSelect={() => setValue('bankCode', bank.code, { shouldValidate: true })}
+                    className="cursor-pointer"
                   >
                     {bank.name}
                   </DropdownMenuItem>
@@ -116,25 +114,26 @@ export function AddBankAccountModal({ isOpen, onClose, onSuccess }: AddBankAccou
 
           {/* Account Number */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Account Number</label>
+            <label className="text-sm font-medium text-foreground">Account Number</label>
             <Input 
               placeholder="0123456789" 
               {...register('accountNumber')} 
               maxLength={10}
               disabled={isLoading}
+              className="bg-muted border-input font-mono tracking-wider"
             />
             {errors.accountNumber && <p className="text-destructive text-xs">{errors.accountNumber.message}</p>}
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-            <Lock className="h-3 w-3" />
-            <span>Your details are encrypted and verified securely via Paystack.</span>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-primary/5 border border-primary/10 p-3 rounded-lg">
+            <Lock className="h-3 w-3 text-primary" />
+            <span>Encrypted & verified securely via Paystack.</span>
           </div>
 
-          <DialogFooter>
-            <Button type="submit" disabled={isLoading} className="w-full">
+          <DialogFooter className="mt-2">
+            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              {isLoading ? 'Verifying Account...' : 'Verify & Link Account'}
+              {isLoading ? 'Verifying...' : 'Verify & Link'}
             </Button>
           </DialogFooter>
         </form>

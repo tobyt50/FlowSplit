@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TransactionsController } from './transactions.controller';
 import { TransactionsService } from './transactions.service';
+import { VirtualAccountsService } from './virtual-accounts/virtual-accounts.service';
 import { AuthModule } from '../auth/auth.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -50,6 +51,9 @@ import { LedgerModule } from '../ledger/ledger.module';
     ]),
   ],
   controllers: [TransactionsController],
-  providers: [TransactionsService],
+  providers: [
+    TransactionsService,
+    VirtualAccountsService
+  ],
 })
 export class TransactionsModule {}

@@ -28,7 +28,6 @@ export function DeleteWalletModal({ isOpen, onClose, walletToDelete }: DeleteWal
 
   useEffect(() => {
     if (isOpen && hasBalance) {
-      // Fetch other wallets to transfer funds to
       getWallets().then(wallets => {
         setAvailableWallets(wallets.filter(w => w.id !== walletToDelete.id));
       });
@@ -44,8 +43,8 @@ export function DeleteWalletModal({ isOpen, onClose, walletToDelete }: DeleteWal
     setIsLoading(true);
     try {
       await deleteWallet(walletToDelete.id, targetWalletId);
-      toast.success("Wallet deleted and funds transferred.");
-      router.push('/dashboard/wallets'); // Redirect to main list
+      toast.success("Wallet deleted.");
+      router.push('/dashboard/wallets'); 
     } catch (error: any) {
       toast.error("Deletion Failed", { description: error.message });
     } finally {
@@ -57,7 +56,7 @@ export function DeleteWalletModal({ isOpen, onClose, walletToDelete }: DeleteWal
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-card border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" /> Delete Wallet
@@ -69,24 +68,24 @@ export function DeleteWalletModal({ isOpen, onClose, walletToDelete }: DeleteWal
         </DialogHeader>
 
         {hasBalance && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-md space-y-3">
-            <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+          <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl space-y-3">
+            <p className="text-sm text-amber-500 font-medium">
               This wallet contains <strong>{formatCurrency(walletToDelete.balance)}</strong>.
             </p>
-            <p className="text-sm text-amber-700 dark:text-amber-300">
+            <p className="text-sm text-muted-foreground">
               Select a destination to transfer these funds before deletion:
             </p>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
+                <Button variant="outline" className="w-full justify-between bg-background border-input">
                   {selectedWalletName || "Select Wallet"}
                   <ChevronDown className="h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] bg-popover border-border">
                 {availableWallets.map(w => (
-                  <DropdownMenuItem key={w.id} onSelect={() => setTargetWalletId(w.id)}>
+                  <DropdownMenuItem key={w.id} onSelect={() => setTargetWalletId(w.id)} className="cursor-pointer">
                     {w.name}
                   </DropdownMenuItem>
                 ))}
@@ -95,14 +94,15 @@ export function DeleteWalletModal({ isOpen, onClose, walletToDelete }: DeleteWal
           </div>
         )}
 
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded-lg">
           Associated split rules will be disabled automatically.
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>Cancel</Button>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button variant="ghost" onClick={onClose} disabled={isLoading}>Cancel</Button>
           <Button variant="destructive" onClick={handleDelete} disabled={isLoading || (hasBalance && !targetWalletId)}>
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete Wallet'}
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Delete Wallet
           </Button>
         </DialogFooter>
       </DialogContent>

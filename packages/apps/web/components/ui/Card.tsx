@@ -9,7 +9,9 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'rounded-lg border bg-card text-card-foreground shadow-sm',
+      // rounded-2xl matches the Stakeme reference
+      // bg-card uses the deep navy defined in globals.css
+      'rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-all',
       className
     )}
     {...props}
@@ -37,7 +39,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
+    className={cn('text-xl font-semibold leading-none tracking-tight text-foreground', className)}
     {...props}
   />
 ));

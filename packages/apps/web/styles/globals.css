@@ -3,53 +3,61 @@
 @tailwind utilities;
 @layer base {
      :root {
-        /* Light Mode Colors - "Soft grays + teal accents" */
+        /* --- Light Mode (Clean, White/Gray) --- */
         --background: 0 0% 100%;
         --foreground: 222.2 84% 4.9%;
         --card: 0 0% 100%;
         --card-foreground: 222.2 84% 4.9%;
         --popover: 0 0% 100%;
         --popover-foreground: 222.2 84% 4.9%;
-        --primary: 173 80% 40%;
-        /* Teal */
-        --primary-foreground: 173 100% 98%;
+        --primary: 221 83% 53%;
+        /* Bright Blue */
+        --primary-foreground: 210 40% 98%;
         --secondary: 210 40% 96.1%;
-        --secondary-foreground: 215 20% 25%;
+        --secondary-foreground: 222.2 47.4% 11.2%;
         --muted: 210 40% 96.1%;
         --muted-foreground: 215.4 16.3% 46.9%;
-        --accent: 158 75% 50%;
-        /* Mint */
+        --accent: 210 40% 96.1%;
         --accent-foreground: 222.2 47.4% 11.2%;
-        --destructive: 38 92% 50%;
-        /* Amber/Orange for Warnings */
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
         --border: 214.3 31.8% 91.4%;
         --input: 214.3 31.8% 91.4%;
-        --ring: 173 80% 40%;
-        --radius: 0.75rem;
+        --ring: 221 83% 53%;
+        --radius: 1rem;
     }
     .dark {
-        /* Dark Mode Colors - "Almost black + mint and amber highlights" */
-        --background: 222.2 84% 4.9%;
-        --foreground: 210 40% 98%;
-        --card: 222.2 84% 6.9%;
-        --card-foreground: 210 40% 98%;
-        --popover: 222.2 84% 4.9%;
-        --popover-foreground: 210 40% 98%;
-        --primary: 173 75% 45%;
-        /* Teal */
-        --primary-foreground: 173 100% 98%;
-        --secondary: 217.2 32.6% 17.5%;
-        --secondary-foreground: 210 40% 98%;
-        --muted: 217.2 32.6% 17.5%;
-        --muted-foreground: 215 20.2% 65.1%;
-        --accent: 158 80% 60%;
-        /* Mint */
-        --accent-foreground: 210 40% 98%;
-        --destructive: 38 92% 55%;
-        /* Amber/Orange */
-        --border: 217.2 32.6% 17.5%;
-        --input: 217.2 32.6% 17.5%;
-        --ring: 173 75% 45%;
+        /* --- Dark Mode – Just a tiny bit lighter than previous ultra-dark --- */
+        /* Main Background: very slightly lifted from pure black */
+        --background: 220 40% 6%;
+        /* #09101c */
+        --foreground: 210 20% 98%;
+        /* Card Background: subtle lift */
+        --card: 220 40% 9%;
+        /* #0e1626 */
+        --card-foreground: 210 20% 98%;
+        --popover: 220 40% 9%;
+        --popover-foreground: 210 20% 98%;
+        /* Primary: unchanged vibrant electric blue */
+        --primary: 217 91% 60%;
+        --primary-foreground: 222.2 47.4% 11.2%;
+        /* Secondary / accents: tiny lift */
+        --secondary: 217 40% 11%;
+        /* #111927 */
+        --secondary-foreground: 210 20% 98%;
+        /* Muted: same as secondary */
+        --muted: 217 40% 11%;
+        --muted-foreground: 215 20% 70%;
+        --accent: 217 40% 13%;
+        /* #162031 */
+        --accent-foreground: 210 20% 98%;
+        --destructive: 0 70% 45%;
+        --destructive-foreground: 210 40% 98%;
+        /* Borders: barely perceptible lift */
+        --border: 217 40% 13%;
+        /* #162031 */
+        --input: 217 40% 13%;
+        --ring: 217 91% 60%;
     }
 }
 

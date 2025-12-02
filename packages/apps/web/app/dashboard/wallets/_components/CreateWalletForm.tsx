@@ -4,24 +4,29 @@ import { useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { WalletType, Currency } from '@flowsplit/prisma';
+import { WalletType } from '@flowsplit/prisma';
 import { createWallet } from '../../../../lib/walletService';
 import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import { DialogFooter } from '../../../../components/ui/Dialog';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '../../../../components/ui/DropdownMenu';
 import { toast } from 'sonner';
+import { Loader2, ChevronDown } from 'lucide-react';
 
-// Define the form validation schema with Zod
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(50),
   type: z.nativeEnum(WalletType),
-  // We can add currency selection in the future if needed
 });
 
 type FormData = z.infer<typeof formSchema>;
 
 interface CreateWalletFormProps {
-  onSuccess: () => void; // A callback to run on successful creation
+  onSuccess: () => void;
 }
 
 export function CreateWalletForm({ onSuccess }: CreateWalletFormProps) {
@@ -31,59 +36,91 @@ export function CreateWalletForm({ onSuccess }: CreateWalletFormProps) {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      type: WalletType.SAVINGS, // Default value
+    },
   });
+
+  // Watch the type to display it in the button
+  const selectedType = watch('type');
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsLoading(true);
     setError(null);
     try {
       await createWallet(data);
-      toast.success('Wallet Created', { // 2. Show a success toast
-        description: `Your new wallet "${data.name}" has been successfully created.`,
+      toast.success('Wallet Created', {
+        description: `"${data.name}" is ready.`,
       });
       onSuccess();
     } catch (err: any) {
-      toast.error('Creation Failed', { // 3. Show an error toast
+      toast.error('Creation Failed', {
         description: err.message,
       });
-      setError(err.message); // Keep local error state for inline messages if desired
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Helper to format enum values (e.g., "SAVINGS" -> "Savings")
+  const formatType = (type: string) => {
+    return type.charAt(0) + type.slice(1).toLowerCase();
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {/* Wallet Name Field */}
-      <div>
-        <label htmlFor="name" className="text-sm font-medium">Wallet Name</label>
-        <Input id="name" placeholder="e.g., Holiday Fund" {...register('name')} disabled={isLoading} className="mt-1" />
-        {errors.name && <p className="text-destructive text-xs mt-1">{errors.name.message}</p>}
-      </div>
-
-      {/* Wallet Type Field */}
-      <div>
-        <label htmlFor="type" className="text-sm font-medium">Wallet Type</label>
-        <select
-          id="type"
-          {...register('type')}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
+      <div className="space-y-2">
+        <label htmlFor="name" className="text-sm font-medium text-foreground">Wallet Name</label>
+        <Input 
+          id="name" 
+          placeholder="e.g., Holiday Fund" 
+          {...register('name')} 
           disabled={isLoading}
-          className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
-        >
-          {Object.values(WalletType).map((type) => (
-            <option key={type} value={type}>{type.charAt(0) + type.slice(1).toLowerCase()}</option>
-          ))}
-        </select>
-        {errors.type && <p className="text-destructive text-xs mt-1">{errors.type.message}</p>}
+          className="bg-muted border-input"
+        />
+        {errors.name && <p className="text-destructive text-xs">{errors.name.message}</p>}
       </div>
 
-      {error && <p className="text-destructive text-sm text-center">{error}</p>}
+      <div className="space-y-2">
+        <label htmlFor="type" className="text-sm font-medium text-foreground">Wallet Type</label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild disabled={isLoading}>
+            <Button 
+              variant="outline" 
+              className="w-full justify-between bg-muted border-input font-normal text-foreground"
+            >
+              <span className="flex items-center gap-2">
+                {selectedType ? formatType(selectedType) : 'Select type'}
+              </span>
+              <ChevronDown className="h-4 w-4 opacity-50" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width] bg-popover border-border">
+            {Object.values(WalletType).map((type) => (
+              <DropdownMenuItem 
+                key={type} 
+                onSelect={() => setValue('type', type, { shouldValidate: true })}
+                className="cursor-pointer"
+              >
+                {formatType(type)}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {errors.type && <p className="text-destructive text-xs">{errors.type.message}</p>}
+      </div>
 
-      <DialogFooter>
-        <Button type="submit" disabled={isLoading}>
+      {error && <div className="text-destructive text-sm text-center bg-destructive/10 p-2 rounded-md">{error}</div>}
+
+      <DialogFooter className="mt-4 gap-2 sm:gap-0">
+        <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
           {isLoading ? 'Creating...' : 'Create Wallet'}
         </Button>
       </DialogFooter>

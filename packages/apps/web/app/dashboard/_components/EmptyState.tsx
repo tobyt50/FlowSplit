@@ -10,10 +10,6 @@ interface EmptyStateProps {
   onActionClick: () => void;
 }
 
-/**
- * A reusable component for displaying a user-friendly "empty state".
- * It guides the user on what to do next when a list or page is empty.
- */
 export function EmptyState({
   icon: Icon,
   title,
@@ -22,12 +18,16 @@ export function EmptyState({
   onActionClick,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm h-[400px]">
-      <div className="flex flex-col items-center gap-2 text-center">
-        <Icon className="h-12 w-12 text-muted-foreground" />
-        <h3 className="text-2xl font-bold tracking-tight">{title}</h3>
-        <p className="text-sm text-muted-foreground max-w-sm">{description}</p>
-        <Button className="mt-4" onClick={onActionClick}>
+    <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-border bg-card/30 h-[400px]">
+      <div className="flex flex-col items-center gap-3 text-center p-6 max-w-sm">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50 mb-2">
+            <Icon className="h-8 w-8 text-muted-foreground opacity-50" />
+        </div>
+        <h3 className="text-xl font-bold tracking-tight text-foreground">{title}</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {description}
+        </p>
+        <Button className="mt-4 rounded-xl shadow-lg" onClick={onActionClick}>
           <PlusCircle className="mr-2 h-4 w-4" />
           {actionText}
         </Button>

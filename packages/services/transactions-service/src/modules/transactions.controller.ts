@@ -1,30 +1,58 @@
-import { Controller, Get, Post, Body, UseGuards, Query, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, HttpCode, HttpStatus, Param, Query } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
+import { VirtualAccountsService } from './virtual-accounts/virtual-accounts.service';
 import { PaystackChargeSuccessDto } from './dto/paystack-charge-success.dto';
 import { PaystackGuard } from '../common/guards/paystack.guard';
 import { JwtAuthGuard, CurrentUser } from '@flowsplit/auth';
 import { User } from '@flowsplit/prisma';
 
 @Controller('transactions')
+@UseGuards(JwtAuthGuard)
 export class TransactionsController {
-  constructor(private readonly transactionsService: TransactionsService) {}
+  constructor(
+    private readonly transactionsService: TransactionsService,
+    private readonly virtualAccountsService: VirtualAccountsService,
+  ) {}
 
-  @Post('webhooks/paystack')
-  @UseGuards(PaystackGuard)
-  async handlePaystackWebhook(@Body() payload: PaystackChargeSuccessDto) {
-    this.transactionsService.processPaystackDeposit(payload);
-    return { status: 'acknowledged' };
-  }
-
+  /**
+   * GET /api/transactions
+   * Retrieves transaction history for the logged-in user.
+   * Can be filtered by walletId.
+   */
   @Get()
-  @UseGuards(JwtAuthGuard)
   findAll(@CurrentUser() user: User, @Query('walletId') walletId?: string) {
     return this.transactionsService.findAllForUser(user.id, walletId);
   }
 
+  /**
+   * GET /api/transactions/virtual-account
+   * Retrieves or provisions the dedicated virtual account for the logged-in user.
+   */
+  @Get('virtual-account')
+  async getVirtualAccount(@CurrentUser() user: User) {
+    return this.virtualAccountsService.getOrCreateVirtualAccount(user.id);
+  }
+
+  /**
+   * GET /api/transactions/:id
+   * Retrieves a single transaction by its ID. Must be last among GET routes.
+   */
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  findOne(@CurrentUser() user: User, @Param('id') id: string) {
+  async findOne(@CurrentUser() user: User, @Param('id') id: string) {
     return this.transactionsService.findOneById(user.id, id);
+  }
+
+  /**
+   * POST /api/transactions/webhooks/paystack
+   * Secure endpoint for receiving Paystack webhooks.
+   */
+  @Post('webhooks/paystack')
+  @UseGuards(PaystackGuard)
+  @HttpCode(HttpStatus.OK)
+  async handlePaystackWebhook(@Body() payload: any) {
+    if (payload.event === 'charge.success') {
+      await this.transactionsService.processPaystackDeposit(payload as PaystackChargeSuccessDto);
+    }
+    return;
   }
 }

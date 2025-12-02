@@ -151,17 +151,27 @@ export class TransactionsService {
     });
   }
 
-  async findOneById(userId: string, id: string): Promise<Transaction> {
+  async findOneById(userId: string, transactionId: string) {
+    this.logger.log(`Admin/User ${userId} attempting to find transaction ${transactionId}`);
+
     const transaction = await this.prisma.transaction.findFirst({
-      where: { id, userId },
+      where: {
+        id: transactionId,
+        userId: userId, // Strict ownership check
+      },
       include: {
+        // We must include the full ledger breakdown for the detail page.
         ledgerTransaction: {
           include: {
             entries: {
               include: {
-                wallet: { select: { name: true } },
+                wallet: {
+                  select: { name: true },
+                },
               },
-              orderBy: { type: 'desc' },
+              orderBy: { // Ensure credits are always shown after debits
+                  type: 'asc', 
+              }
             },
           },
         },
@@ -169,8 +179,10 @@ export class TransactionsService {
     });
 
     if (!transaction) {
+      this.logger.warn(`Transaction with ID ${transactionId} not found for user ${userId}.`);
       throw new NotFoundException('Transaction not found or you do not have permission to view it.');
     }
+
     return transaction;
   }
 }

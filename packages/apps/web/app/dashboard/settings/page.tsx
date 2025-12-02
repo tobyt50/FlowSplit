@@ -8,19 +8,20 @@ import { useAuthStore } from '../../../lib/authStore';
 import { updateUserProfile } from '../../../lib/userService';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
-import { Separator } from '../../../components/ui/Separator';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../../components/ui/Card';
 import { toast } from 'sonner';
+import { User, Mail, Loader2, Save } from 'lucide-react';
 
-// Define the validation schema for the profile form
+// Validation Schema
 const formSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters').max(100),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
-// A sub-component for the form itself
+// --- Sub-Component: User Profile Form ---
 function UserProfileForm() {
-  const { user, setUser } = useAuthStore(); // Get user data and the action to update it
+  const { user, setUser } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -35,7 +36,6 @@ function UserProfileForm() {
     },
   });
 
-  // When the user data in the global store changes, reset the form
   useEffect(() => {
     reset({ fullName: user?.fullName || '' });
   }, [user, reset]);
@@ -44,8 +44,10 @@ function UserProfileForm() {
     setIsLoading(true);
     try {
       const updatedUser = await updateUserProfile(data);
-      setUser(updatedUser); // Update the global state with the new user info
+      setUser(updatedUser);
       toast.success('Profile updated successfully!');
+      // Reset isDirty state by re-initializing with new values
+      reset({ fullName: updatedUser.fullName });
     } catch (err: any) {
       toast.error('Update Failed', { description: err.message });
     } finally {
@@ -54,47 +56,112 @@ function UserProfileForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <label htmlFor="fullName" className="text-sm font-medium">Full Name</label>
-        <Input id="fullName" {...register('fullName')} disabled={isLoading} className="mt-1" />
-        {errors.fullName && <p className="text-destructive text-xs mt-1">{errors.fullName.message}</p>}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      
+      {/* Full Name Field */}
+      <div className="space-y-2">
+        <label htmlFor="fullName" className="text-sm font-medium text-foreground flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            Full Name
+        </label>
+        <Input 
+            id="fullName" 
+            {...register('fullName')} 
+            disabled={isLoading} 
+            className="bg-muted/50 border-input transition-all focus:bg-background"
+        />
+        {errors.fullName && <p className="text-destructive text-xs">{errors.fullName.message}</p>}
       </div>
-      <div>
-        <label htmlFor="email" className="text-sm font-medium">Email Address</label>
-        <Input id="email" value={user?.email || ''} disabled className="mt-1 bg-muted/50" />
-        <p className="text-xs text-muted-foreground mt-1">Email address cannot be changed.</p>
+
+      {/* Email Field (Read Only) */}
+      <div className="space-y-2">
+        <label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            Email Address
+        </label>
+        <div className="relative">
+            <Input 
+                id="email" 
+                value={user?.email || ''} 
+                disabled 
+                className="bg-muted/30 border-dashed border-border text-muted-foreground cursor-not-allowed pl-3" 
+            />
+        </div>
+        <p className="text-[10px] text-muted-foreground px-1">
+            Email address is managed by your identity provider and cannot be changed here.
+        </p>
       </div>
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isLoading || !isDirty}>
-          {isLoading ? 'Saving...' : 'Save Changes'}
+
+      {/* Actions */}
+      <div className="pt-4 flex justify-end">
+        <Button 
+            type="submit" 
+            disabled={isLoading || !isDirty}
+            className="w-full sm:w-auto rounded-xl"
+        >
+          {isLoading ? (
+            <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
+            </>
+          ) : (
+            <>
+                <Save className="mr-2 h-4 w-4" /> Save Changes
+            </>
+          )}
         </Button>
       </div>
     </form>
   );
 }
 
-
-// The main page component for the settings route
+// --- Main Settings Page ---
 export default function SettingsPage() {
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage your account settings and preferences.
+    <div className="space-y-6 animate-in fade-in duration-500 pb-24 md:pb-10">
+      
+      {/* Page Header */}
+      <div className="flex flex-col gap-1 px-1">
+        <h2 className="text-lg font-semibold text-foreground">Settings</h2>
+        <p className="text-xs text-muted-foreground max-w-md">
+          Manage your account preferences and profile details.
         </p>
       </div>
-      <Separator />
       
-      <div className="max-w-2xl">
-        <h2 className="text-xl font-semibold">Profile</h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          This is how your name will be displayed in the application.
-        </p>
-        <div className="mt-6">
-          <UserProfileForm />
+      {/* Main Content Area */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+        
+        {/* Profile Card (Takes up 2 cols on large screens) */}
+        <div className="lg:col-span-2">
+            <Card className="border-border bg-card">
+                <CardHeader className="pb-4 border-b border-border/40">
+                    <CardTitle className="text-base">Profile Information</CardTitle>
+                    <CardDescription className="text-xs">
+                        Update your personal identification details.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                    <UserProfileForm />
+                </CardContent>
+            </Card>
         </div>
+
+        {/* Future Settings Placeholder (e.g. Preferences/Security) */}
+        <div className="lg:col-span-1 space-y-6">
+            <Card className="border-border bg-card/50">
+                <CardHeader className="pb-4">
+                    <CardTitle className="text-base text-muted-foreground">Appearance</CardTitle>
+                    <CardDescription className="text-xs">
+                        Customize your dashboard experience.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-muted-foreground italic">
+                        Theme toggles are available in the top navigation bar.
+                    </p>
+                </CardContent>
+            </Card>
+        </div>
+
       </div>
     </div>
   );
