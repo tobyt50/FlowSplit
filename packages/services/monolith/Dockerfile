@@ -15,7 +15,7 @@ RUN apk add --no-cache python3 make g++
 COPY . .
 
 # 2. INSTALL ALL DEPENDENCIES
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # 3. GENERATE PRISMA CLIENT
 # Essential for type definitions
