@@ -70,7 +70,7 @@ COPY --from=builder /usr/src/app/packages/prisma/schema.prisma ./packages/prisma
 
 # --- THE FIX ---
 # Regenerate Prisma Client in production using the installed Node 20 runtime
-RUN pnpm dlx prisma generate --schema=./packages/prisma/schema.prisma
+RUN pnpm dlx prisma@5.12.1 generate --schema=./packages/prisma/schema.prisma
 
 # Expose Port
 EXPOSE 4000
