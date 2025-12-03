@@ -1,25 +1,5 @@
 services:
   # -----------------------------------------------------------------------------
-  # INFRASTRUCTURE
-  # -----------------------------------------------------------------------------
-  - type: pserv
-    name: rabbitmq
-    env: docker
-    plan: starter
-    dockerfilePath: ./infra/rabbitmq/Dockerfile
-    dockerContext: .
-    numInstances: 1
-    disk:
-      name: rabbitmq-data
-      mountPath: /var/lib/rabbitmq
-      sizeGB: 10
-    envVars:
-      - key: RABBITMQ_DEFAULT_USER
-        sync: false
-      - key: RABBITMQ_DEFAULT_PASS
-        sync: false
-
-  # -----------------------------------------------------------------------------
   # BACKEND MICROSERVICES (HTTP)
   # -----------------------------------------------------------------------------
   
@@ -184,9 +164,7 @@ envVarGroups:
         sync: false
       - key: PAYSTACK_SECRET_KEY
         sync: false
-      
-      # The Node apps need the full URL.
-      # You will construct this string manually in the dashboard: amqp://[user]:[pass]@rabbitmq:5672
+      # We now treat RabbitMQ as an external URL, just like the Database
       - key: RABBITMQ_URL
         sync: false
 
