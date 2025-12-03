@@ -1,5 +1,5 @@
 # ---- Builder Stage ----
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /usr/src/app
 RUN npm install -g pnpm
 
@@ -27,7 +27,7 @@ COPY . .
 RUN turbo run build --filter=web
 
 # ---- Production Stage ----
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production

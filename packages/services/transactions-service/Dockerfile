@@ -1,5 +1,5 @@
 # ---- Builder Stage ----
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /usr/src/app
 RUN npm install -g pnpm
 
@@ -29,7 +29,7 @@ COPY . .
 RUN turbo run build --filter=@flowsplit/transactions-service
 
 # ---- Production Stage ----
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 WORKDIR /usr/src/app
 RUN npm install -g pnpm
 

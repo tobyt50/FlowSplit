@@ -1,5 +1,6 @@
 # ---- Base Stage ----
-FROM node:18-alpine AS base
+# CHANGED: Upgraded to Node 20 to satisfy Prisma requirements
+FROM node:20-alpine AS base
 WORKDIR /usr/src/app
 # Copy root config files
 COPY package.json pnpm-lock.yaml turbo.json ./
@@ -28,7 +29,7 @@ RUN pnpm --filter @flowsplit/prisma exec prisma generate
 RUN pnpm --filter @flowsplit/prisma run build
 RUN pnpm --filter @flowsplit/auth run build
 
-# Debug step (optional, can be kept)
+# Debug step
 RUN ls -la packages/libs/auth/dist
 
 # 5. BUILD MONOLITH
@@ -68,8 +69,7 @@ COPY --from=builder /usr/src/app/packages/libs/auth/dist ./packages/libs/auth/di
 COPY --from=builder /usr/src/app/packages/prisma/schema.prisma ./packages/prisma/schema.prisma
 
 # --- THE FIX ---
-# Instead of copying the complex .prisma folder (which fails with checksum errors),
-# we simply regenerate it here. 'pnpm dlx' runs the prisma CLI without installing it globally.
+# Regenerate Prisma Client in production using the installed Node 20 runtime
 RUN pnpm dlx prisma generate --schema=./packages/prisma/schema.prisma
 
 # Expose Port
