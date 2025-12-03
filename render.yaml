@@ -12,7 +12,7 @@ services:
     envVars:
       - fromGroup: flowsplit-env
       - key: PORT
-        value: 3000
+        value: 4000
 
   # -----------------------------------------------------------------------------
   # AI SERVICE (Python - Must be separate)
