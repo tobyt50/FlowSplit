@@ -1,20 +1,18 @@
 {
-  "extends": "../../../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "es2017",
+    "target": "es2019",
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./",
     "incremental": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "strict": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

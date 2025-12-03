@@ -27,6 +27,8 @@ RUN pnpm --filter @flowsplit/prisma exec prisma generate
 RUN pnpm --filter @flowsplit/prisma run build
 RUN pnpm --filter @flowsplit/auth run build
 
+RUN ls -la packages/libs/auth/dist
+
 # 5. BUILD MONOLITH
 # Now we build the monolith service. 
 # We skip the cache to ensure it sees the fresh libs.

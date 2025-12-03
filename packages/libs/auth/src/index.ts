@@ -3,3 +3,4 @@ export * from './jwt.strategy';
 export * from './current-user.decorator';
 export * from './auth.module'
 export * from './constants';
+export * from './current-user.decorator';
