@@ -12,7 +12,7 @@ export interface AppNotification {
 
 export const getUserNotifications = async (): Promise<AppNotification[]> => {
   try {
-    const response = await api.get<AppNotification[]>('http://localhost:4000/api/notifications'); //actually http://localhost:3108
+    const response = await api.get<AppNotification[]>('http://localhost:3108/api/notifications'); //actually http://localhost:3108
     return response.data;
   } catch (error) {
     console.error('Failed to fetch notifications', error);
@@ -22,7 +22,7 @@ export const getUserNotifications = async (): Promise<AppNotification[]> => {
 
 export const markNotificationRead = async (id: string): Promise<void> => {
   try {
-    await api.patch(`http://localhost:4000/api/notifications/${id}/read`);
+    await api.patch(`http://localhost:3108/api/notifications/${id}/read`);
   } catch (error) {
     console.error('Failed to mark notification as read', error);
   }

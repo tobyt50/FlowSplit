@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { RulesModule } from './modules/rules.module';
 import { UsersModule } from './users/users.module';
 import { LoggerModule } from 'nestjs-pino';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -29,5 +30,8 @@ import { LoggerModule } from 'nestjs-pino';
     RulesModule,
     UsersModule,
   ],
+    controllers: [
+      HealthController
+    ]
 })
 export class AppModule {}

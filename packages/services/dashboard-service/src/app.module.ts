@@ -4,6 +4,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from '@flowsplit/prisma';
 import { AuthModule } from './auth/auth.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -17,5 +18,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     AuthModule,
     DashboardModule,
   ],
+  controllers: [
+    HealthController
+  ]
 })
 export class AppModule {}

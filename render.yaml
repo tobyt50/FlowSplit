@@ -1,0 +1,203 @@
+services:
+  # -----------------------------------------------------------------------------
+  # INFRASTRUCTURE
+  # -----------------------------------------------------------------------------
+  - type: pserv
+    name: rabbitmq
+    env: docker
+    plan: starter
+    # Uses the Dockerfile we defined in infra/rabbitmq/Dockerfile
+    dockerfilePath: ./infra/rabbitmq/Dockerfile
+    dockerContext: .
+    numInstances: 1
+    disk:
+      name: rabbitmq-data
+      mountPath: /var/lib/rabbitmq
+      sizeGB: 10
+
+  # -----------------------------------------------------------------------------
+  # BACKEND MICROSERVICES (HTTP)
+  # -----------------------------------------------------------------------------
+  
+  # 1. Auth Service
+  - type: web
+    name: auth-service
+    env: docker
+    plan: starter
+    dockerfilePath: ./packages/services/auth/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: AUTH_SERVICE_PORT
+        value: 3100
+      - fromGroup: flowsplit-backend-env
+
+  # 2. User Service
+  - type: web
+    name: user-service
+    env: docker
+    plan: starter
+    dockerfilePath: ./packages/services/user-service/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: USER_SERVICE_PORT
+        value: 3101
+      - fromGroup: flowsplit-backend-env
+
+  # 3. Wallet Service
+  - type: web
+    name: wallet-service
+    env: docker
+    plan: starter
+    dockerfilePath: ./packages/services/wallet-service/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: WALLET_SERVICE_PORT
+        value: 3102
+      - fromGroup: flowsplit-backend-env
+
+  # 4. Transactions Service
+  - type: web
+    name: transactions-service
+    env: docker
+    plan: starter
+    dockerfilePath: ./packages/services/transactions-service/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: TRANSACTIONS_SERVICE_PORT
+        value: 3103
+      - fromGroup: flowsplit-backend-env
+
+  # 5. Rule Service (API for managing rules)
+  - type: web
+    name: rule-service
+    env: docker
+    plan: starter
+    dockerfilePath: ./packages/services/rule-service/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: RULE_SERVICE_PORT
+        value: 3104
+      - fromGroup: flowsplit-backend-env
+
+  # 6. Payout Service
+  - type: web
+    name: payout-service
+    env: docker
+    plan: starter
+    dockerfilePath: ./packages/services/payout-service/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: PAYOUT_SERVICE_PORT
+        value: 3105
+      - fromGroup: flowsplit-backend-env
+
+  # 7. Dashboard Service (Aggregator)
+  - type: web
+    name: dashboard-service
+    env: docker
+    plan: starter
+    dockerfilePath: ./packages/services/dashboard-service/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: DASHBOARD_SERVICE_PORT
+        value: 3106
+      - fromGroup: flowsplit-backend-env
+
+  # 8. Admin Service
+  - type: web
+    name: admin-service
+    env: docker
+    plan: starter
+    dockerfilePath: ./packages/services/admin-service/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: ADMIN_SERVICE_PORT
+        value: 3109
+      - key: SENTRY_DSN_ADMIN_SERVICE
+        sync: false
+      - fromGroup: flowsplit-backend-env
+
+  # 9. Notification Service (Hybrid: HTTP + Worker)
+  # Must be 'web' type because it serves the /api/notifications endpoint
+  - type: web
+    name: notification-service
+    env: docker
+    plan: starter
+    dockerfilePath: ./packages/services/notification-service/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NOTIFICATION_SERVICE_PORT
+        value: 3108
+      - fromGroup: flowsplit-backend-env
+      - fromGroup: email-env
+
+  # 10. AI Service (Python)
+  - type: web
+    name: ai-service
+    env: docker
+    plan: starter
+    dockerfilePath: ./packages/services/ai-service/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: AI_SERVICE_PORT
+        value: 3107
+      - fromGroup: flowsplit-backend-env
+
+  # -----------------------------------------------------------------------------
+  # WORKERS (Background Processing Only)
+  # -----------------------------------------------------------------------------
+  
+  # 11. Rule Engine (Pure Consumer)
+  - type: worker
+    name: rule-engine
+    env: docker
+    plan: starter
+    dockerfilePath: ./packages/services/rule-engine/Dockerfile
+    dockerContext: .
+    envVars:
+      - fromGroup: flowsplit-backend-env
+
+# -----------------------------------------------------------------------------
+# ENVIRONMENT GROUPS
+# -----------------------------------------------------------------------------
+envVarGroups:
+  - name: flowsplit-backend-env
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # User will input this in Render Dashboard (Neon URL)
+      - key: JWT_SECRET
+        sync: false # User will input this
+      - key: PAYSTACK_SECRET_KEY
+        sync: false # User will input this
+      - key: RABBITMQ_URL
+        fromService:
+          type: pserv
+          name: rabbitmq
+          property: connectionString
+
+  - name: email-env
+    envVars:
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_SECURE
+        value: false
+      - key: SMTP_FROM_EMAIL
+        value: "alerts@flowsplit.com"

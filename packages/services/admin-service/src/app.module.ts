@@ -8,6 +8,7 @@ import { AuditModule } from './audit/audit.module';
 import { AdminUsersModule } from './modules/users/admin-users.module';
 import { AdminLogsModule } from './modules/logs/admin-logs.module';
 import { AdminMetricsModule } from './modules/metrics/admin-metrics.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -28,5 +29,8 @@ import { AdminMetricsModule } from './modules/metrics/admin-metrics.module';
     AdminLogsModule,
     AdminMetricsModule,
   ],
+    controllers: [
+      HealthController
+    ]
 })
 export class AppModule {}

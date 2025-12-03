@@ -9,6 +9,7 @@ import { BankAccountsModule } from './modules/bank-accounts/bank-accounts.module
 import { PayoutsModule } from './modules/payouts/payouts.module';
 import { SystemModule } from './system/system.module';
 import { LedgerModule } from './ledger/ledger.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -27,5 +28,8 @@ import { LedgerModule } from './ledger/ledger.module';
     BankAccountsModule,
     PayoutsModule,
   ],
+  controllers: [
+    HealthController
+  ]
 })
 export class AppModule {}

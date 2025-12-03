@@ -103,6 +103,52 @@ services:
     depends_on:
       - postgres
     restart: unless-stopped
+
+  dashboard-service:
+    build:
+      context: .
+      dockerfile: packages/services/dashboard-service/Dockerfile
+    container_name: flowsplit_dashboard_service
+    ports:
+      - "3106:3106"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - DASHBOARD_SERVICE_PORT=3106
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: packages/services/notification-service/Dockerfile
+    container_name: flowsplit_notification_service
+    ports:
+      - "3108:3108"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - NOTIFICATION_SERVICE_PORT=3108
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  admin-service:
+    build:
+      context: .
+      dockerfile: packages/services/admin-service/Dockerfile
+    container_name: flowsplit_admin_service
+    ports:
+      - "3109:3109"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_SERVICE_PORT=3109
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
   rule-engine:
     build:
       context: .
@@ -153,8 +199,28 @@ services:
     container_name: flowsplit_web
     ports:
       - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # In Docker-to-Docker communication (Server Side Rendering), we use service names
+      # In Browser-to-Docker communication (Client Side), we use localhost (mapped ports)
+      # Since we are running this locally, the browser will access APIs via localhost.
+      - NEXT_PUBLIC_AUTH_API_URL=http://localhost:3100
+      - NEXT_PUBLIC_USER_API_URL=http://localhost:3101
+      - NEXT_PUBLIC_WALLET_API_URL=http://localhost:3102
+      - NEXT_PUBLIC_TRANSACTION_API_URL=http://localhost:3103
+      - NEXT_PUBLIC_RULE_API_URL=http://localhost:3104
+      - NEXT_PUBLIC_PAYOUT_API_URL=http://localhost:3105
+      - NEXT_PUBLIC_DASHBOARD_API_URL=http://localhost:3106
+      - NEXT_PUBLIC_AI_API_URL=http://localhost:3107
+      - NEXT_PUBLIC_NOTIFICATION_API_URL=http://localhost:3108
     depends_on:
-      - auth-service # and other backend services
+      - auth-service
+      - user-service
+      - wallet-service
+      - transactions-service
+      - rule-service
+      - payout-service
+      - dashboard-service
     restart: unless-stopped
 
 volumes:

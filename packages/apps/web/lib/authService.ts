@@ -29,7 +29,7 @@ type LoginResponse = {
 export const registerUser = async (data: RegisterData): Promise<Omit<User, 'password'>> => {
   try {
     const response = await api.post<Omit<User, 'password'>>(
-      'http://localhost:4000/api/auth/register', // URL to the auth-service
+      'http://localhost:3100/api/auth/register', // URL to the auth-service
       data
     );
     return response.data;
@@ -48,7 +48,7 @@ export const loginUser = async (data: LoginData): Promise<void> => {
   try {
     // 1. Call the login endpoint to get a token
     const response = await api.post<LoginResponse>(
-      'http://localhost:4000/api/auth/login', //actual service http://localhost:3100
+      'http://localhost:3100/api/auth/login', //actual service http://localhost:3100
       data
     );
     const { accessToken } = response.data;
@@ -58,7 +58,7 @@ export const loginUser = async (data: LoginData): Promise<void> => {
 
     // 3. Immediately call the profile endpoint to get the user's data
     const profileResponse = await api.get<Omit<User, 'password'>>(
-      'http://localhost:4000/api/auth/profile'
+      'http://localhost:3100/api/auth/profile'
       // The token is now automatically added by our axios interceptor
     );
 

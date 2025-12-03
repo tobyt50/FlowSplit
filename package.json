@@ -24,6 +24,7 @@
         "db:generate": "pnpm --filter @flowsplit/prisma run db:generate",
         "db:migrate": "pnpm --filter @flowsplit/prisma run db:migrate",
         "db:studio": "pnpm --filter @flowsplit/prisma run db:studio",
+        "db:deploy": "pnpm --filter @flowsplit/prisma run db:deploy",
 
         "//--- DEVOPS ---//": "",
         "docker": "docker-compose up -d"

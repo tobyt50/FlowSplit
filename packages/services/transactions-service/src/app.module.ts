@@ -5,6 +5,7 @@ import { TransactionsModule } from './modules/transactions.module';
 import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from 'nestjs-pino';
 import { SystemWalletsService } from './system/system-wallets.service';
+import { HealthController } from './health.controller';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -28,5 +29,8 @@ import { SystemWalletsService } from './system/system-wallets.service';
     AuthModule,
   ],
   providers: [SystemWalletsService],
+  controllers: [
+    HealthController
+  ]
 })
 export class AppModule {}
