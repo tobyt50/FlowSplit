@@ -13,9 +13,17 @@ services:
       name: rabbitmq-data
       mountPath: /var/lib/rabbitmq
       sizeGB: 10
+    envVars:
+      # Map the shared secrets to the specific variables RabbitMQ expects
+      - key: RABBITMQ_DEFAULT_USER
+        fromGroup: flowsplit-backend-env
+        key: RABBIT_USER
+      - key: RABBITMQ_DEFAULT_PASS
+        fromGroup: flowsplit-backend-env
+        key: RABBIT_PASS
 
   # -----------------------------------------------------------------------------
-  # BACKEND MICROSERVICES (HTTP)
+  # BACKEND MICROSERVICES
   # -----------------------------------------------------------------------------
   
   # 1. Auth Service
@@ -30,12 +38,6 @@ services:
       - key: AUTH_SERVICE_PORT
         value: 3100
       - fromGroup: flowsplit-backend-env
-      # Dynamic linking must happen here
-      - key: RABBITMQ_URL
-        fromService:
-          type: pserv
-          name: rabbitmq
-          property: connectionString
 
   # 2. User Service
   - type: web
@@ -49,11 +51,6 @@ services:
       - key: USER_SERVICE_PORT
         value: 3101
       - fromGroup: flowsplit-backend-env
-      - key: RABBITMQ_URL
-        fromService:
-          type: pserv
-          name: rabbitmq
-          property: connectionString
 
   # 3. Wallet Service
   - type: web
@@ -67,11 +64,6 @@ services:
       - key: WALLET_SERVICE_PORT
         value: 3102
       - fromGroup: flowsplit-backend-env
-      - key: RABBITMQ_URL
-        fromService:
-          type: pserv
-          name: rabbitmq
-          property: connectionString
 
   # 4. Transactions Service
   - type: web
@@ -85,11 +77,6 @@ services:
       - key: TRANSACTIONS_SERVICE_PORT
         value: 3103
       - fromGroup: flowsplit-backend-env
-      - key: RABBITMQ_URL
-        fromService:
-          type: pserv
-          name: rabbitmq
-          property: connectionString
 
   # 5. Rule Service
   - type: web
@@ -103,11 +90,6 @@ services:
       - key: RULE_SERVICE_PORT
         value: 3104
       - fromGroup: flowsplit-backend-env
-      - key: RABBITMQ_URL
-        fromService:
-          type: pserv
-          name: rabbitmq
-          property: connectionString
 
   # 6. Payout Service
   - type: web
@@ -121,11 +103,6 @@ services:
       - key: PAYOUT_SERVICE_PORT
         value: 3105
       - fromGroup: flowsplit-backend-env
-      - key: RABBITMQ_URL
-        fromService:
-          type: pserv
-          name: rabbitmq
-          property: connectionString
 
   # 7. Dashboard Service
   - type: web
@@ -139,11 +116,6 @@ services:
       - key: DASHBOARD_SERVICE_PORT
         value: 3106
       - fromGroup: flowsplit-backend-env
-      - key: RABBITMQ_URL
-        fromService:
-          type: pserv
-          name: rabbitmq
-          property: connectionString
 
   # 8. Admin Service
   - type: web
@@ -159,11 +131,6 @@ services:
       - key: SENTRY_DSN_ADMIN_SERVICE
         sync: false
       - fromGroup: flowsplit-backend-env
-      - key: RABBITMQ_URL
-        fromService:
-          type: pserv
-          name: rabbitmq
-          property: connectionString
 
   # 9. Notification Service
   - type: web
@@ -178,11 +145,6 @@ services:
         value: 3108
       - fromGroup: flowsplit-backend-env
       - fromGroup: email-env
-      - key: RABBITMQ_URL
-        fromService:
-          type: pserv
-          name: rabbitmq
-          property: connectionString
 
   # 10. AI Service
   - type: web
@@ -193,10 +155,9 @@ services:
     dockerContext: .
     healthCheckPath: /api/health
     envVars:
-      - key: AI_SERVICE_PORT
+      - key: PORT # Python/Uvicorn expects PORT
         value: 3107
       - fromGroup: flowsplit-backend-env
-      # AI Service connects to DB, usually doesn't need RabbitMQ unless emitting events
 
   # -----------------------------------------------------------------------------
   # WORKERS
@@ -211,11 +172,6 @@ services:
     dockerContext: .
     envVars:
       - fromGroup: flowsplit-backend-env
-      - key: RABBITMQ_URL
-        fromService:
-          type: pserv
-          name: rabbitmq
-          property: connectionString
 
 # -----------------------------------------------------------------------------
 # ENVIRONMENT GROUPS
@@ -231,7 +187,18 @@ envVarGroups:
         sync: false
       - key: PAYSTACK_SECRET_KEY
         sync: false
-      # RABBITMQ_URL removed from here because it uses fromService
+      
+      # --- RABBITMQ CONFIGURATION ---
+      # We define the User/Pass here to inject into the RabbitMQ container
+      - key: RABBIT_USER
+        sync: false
+      - key: RABBIT_PASS
+        sync: false
+      
+      # We define the Full URL here to inject into the Node.js Apps
+      # You will construct this string manually: amqp://[user]:[pass]@rabbitmq:5672
+      - key: RABBITMQ_URL
+        sync: false
 
   - name: email-env
     envVars:
