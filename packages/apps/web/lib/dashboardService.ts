@@ -27,7 +27,7 @@ export interface LastSplitBreakdown {
 export const getUpcomingBills = async (): Promise<UpcomingBill[]> => {
   try {
     const response = await api.get<UpcomingBill[]>(
-      'http://localhost:3106/api/dashboard/upcoming-bills' //actual service http://localhost:3106
+      'http://localhost:4000/api/dashboard/upcoming-bills' //actual service http://localhost:3106
     );
     // Important: Backend sends BigInts as strings. We need to convert them back.
     return response.data.map(bill => ({
@@ -48,7 +48,7 @@ export const getUpcomingBills = async (): Promise<UpcomingBill[]> => {
 export const getCashFlow = async (): Promise<CashFlowDataPoint[]> => {
   try {
     const response = await api.get<CashFlowDataPoint[]>(
-      'http://localhost:3106/api/dashboard/cash-flow' // URL to the dashboard-service
+      'http://localhost:4000/api/dashboard/cash-flow' // URL to the dashboard-service
     );
     return response.data; // No BigInt conversion needed as the service returns numbers
   } catch (error: any) {
@@ -60,7 +60,7 @@ export const getCashFlow = async (): Promise<CashFlowDataPoint[]> => {
 export const getLastSplitBreakdown = async (): Promise<LastSplitBreakdown | null> => {
   try {
     const response = await api.get<LastSplitBreakdown | null>(
-      'http://localhost:3106/api/dashboard/last-split'
+      'http://localhost:4000/api/dashboard/last-split'
     );
     if (!response.data) {
         return null;

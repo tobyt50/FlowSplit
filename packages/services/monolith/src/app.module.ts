@@ -30,6 +30,7 @@ import { AdminUsersModule } from '../../admin-service/src/modules/users/admin-us
 import { AdminLogsModule } from '../../admin-service/src/modules/logs/admin-logs.module';
 import { AuditModule } from '../../admin-service/src/audit/audit.module';
 import { AlertingModule } from '../../admin-service/src/alerting/alerting.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { AlertingModule } from '../../admin-service/src/alerting/alerting.module
     RuleEngineController,
     DashboardController,
     NotificationsController,
+    HealthController
   ],
   providers: [
     RuleEngineService,

@@ -16,7 +16,7 @@ interface UpdateUserData {
 export const updateUserProfile = async (data: UpdateUserData): Promise<Omit<User, 'password'>> => {
   try {
     const response = await api.patch<Omit<User, 'password'>>(
-      'http://localhost:3101/api/users/me', //actual service http://localhost:3101
+      'http://localhost:4000/api/users/me', //actual service http://localhost:3101
       data
     );
     return response.data;

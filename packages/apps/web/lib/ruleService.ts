@@ -39,7 +39,7 @@ export interface UpdateRuleData {
 export const getRules = async (): Promise<SplitRule[]> => {
   try {
     const response = await api.get<SplitRule[]>(
-      'http://localhost:3104/api/rules' //actual service http://localhost:3104
+      'http://localhost:4000/api/rules' //actual service http://localhost:3104
     );
     return response.data;
   } catch (error: any) {
@@ -58,7 +58,7 @@ export const createRule = async (data: CreateRuleData): Promise<SplitRule> => {
     // The payload is already in the correct format from our robust forms.
     // The form logic handles converting Naira to Kobo for FIXED types.
     const response = await api.post<SplitRule>(
-      'http://localhost:3104/api/rules', // URL to the rule-service POST endpoint
+      'http://localhost:4000/api/rules', // URL to the rule-service POST endpoint
       data
     );
     return response.data;
@@ -77,7 +77,7 @@ export const createRule = async (data: CreateRuleData): Promise<SplitRule> => {
 export const updateRule = async (ruleId: string, data: UpdateRuleData): Promise<SplitRule> => {
   try {
     const response = await api.patch<SplitRule>(
-      `http://localhost:3104/api/rules/${ruleId}`, // URL to the rule-service PATCH endpoint
+      `http://localhost:4000/api/rules/${ruleId}`, // URL to the rule-service PATCH endpoint
       data
     );
     return response.data;
@@ -95,7 +95,7 @@ export const updateRule = async (ruleId: string, data: UpdateRuleData): Promise<
 export const deleteRule = async (ruleId: string): Promise<void> => {
     try {
         await api.delete(
-            `http://localhost:3104/api/rules/${ruleId}` // URL to the rule-service DELETE endpoint
+            `http://localhost:4000/api/rules/${ruleId}` // URL to the rule-service DELETE endpoint
         );
     } catch (error: any) {
         console.error(`Failed to delete split rule ${ruleId}:`, error);

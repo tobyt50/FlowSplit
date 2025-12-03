@@ -35,7 +35,7 @@ interface CreateWalletData {
 export const getWallets = async (): Promise<Wallet[]> => {
   try {
     const response = await api.get<Wallet[]>(
-      'http://localhost:3102/api/wallets' //actual service http://localhost:3102
+      'http://localhost:4000/api/wallets' //actual service http://localhost:3102
     );
     return response.data;
   } catch (error: any) {
@@ -52,7 +52,7 @@ export const getWallets = async (): Promise<Wallet[]> => {
 export const createWallet = async (data: CreateWalletData): Promise<Wallet> => {
   try {
     const response = await api.post<Wallet>(
-      'http://localhost:3102/api/wallets', // URL to the wallet-service POST endpoint
+      'http://localhost:4000/api/wallets', // URL to the wallet-service POST endpoint
       data
     );
     return response.data;
@@ -67,7 +67,7 @@ export const createWallet = async (data: CreateWalletData): Promise<Wallet> => {
  */
 export const getWalletById = async (id: string): Promise<Wallet> => {
   try {
-    const response = await api.get<Wallet>(`http://localhost:3102/api/wallets/${id}`);
+    const response = await api.get<Wallet>(`http://localhost:4000/api/wallets/${id}`);
     return response.data;
   } catch (error: any) {
     console.error(`Failed to fetch wallet ${id}:`, error);
@@ -81,8 +81,8 @@ export const getWalletById = async (id: string): Promise<Wallet> => {
 export const deleteWallet = async (id: string, targetWalletId?: string): Promise<void> => {
   try {
     const url = targetWalletId 
-      ? `http://localhost:3102/api/wallets/${id}?targetWalletId=${targetWalletId}`
-      : `http://localhost:3102/api/wallets/${id}`;
+      ? `http://localhost:4000/api/wallets/${id}?targetWalletId=${targetWalletId}`
+      : `http://localhost:4000/api/wallets/${id}`;
       
     await api.delete(url);
   } catch (error: any) {
