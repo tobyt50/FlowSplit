@@ -20,6 +20,9 @@ RUN pnpm install --frozen-lockfile
 # Critical: The build will fail if the Prisma Client types aren't generated.
 RUN pnpm --filter @flowsplit/prisma exec prisma generate
 
+RUN pnpm --filter @flowsplit/prisma run build
+RUN pnpm --filter @flowsplit/auth run build
+
 # 4. BUILD MONOLITH
 # We use Turbo to build the monolith and its dependencies.
 RUN pnpm turbo run build --filter=@flowsplit/monolith...
