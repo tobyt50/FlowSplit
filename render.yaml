@@ -14,16 +14,13 @@ services:
       mountPath: /var/lib/rabbitmq
       sizeGB: 10
     envVars:
-      # Map the shared secrets to the specific variables RabbitMQ expects
       - key: RABBITMQ_DEFAULT_USER
-        fromGroup: flowsplit-backend-env
-        key: RABBIT_USER
+        sync: false
       - key: RABBITMQ_DEFAULT_PASS
-        fromGroup: flowsplit-backend-env
-        key: RABBIT_PASS
+        sync: false
 
   # -----------------------------------------------------------------------------
-  # BACKEND MICROSERVICES
+  # BACKEND MICROSERVICES (HTTP)
   # -----------------------------------------------------------------------------
   
   # 1. Auth Service
@@ -155,7 +152,7 @@ services:
     dockerContext: .
     healthCheckPath: /api/health
     envVars:
-      - key: PORT # Python/Uvicorn expects PORT
+      - key: PORT
         value: 3107
       - fromGroup: flowsplit-backend-env
 
@@ -188,15 +185,8 @@ envVarGroups:
       - key: PAYSTACK_SECRET_KEY
         sync: false
       
-      # --- RABBITMQ CONFIGURATION ---
-      # We define the User/Pass here to inject into the RabbitMQ container
-      - key: RABBIT_USER
-        sync: false
-      - key: RABBIT_PASS
-        sync: false
-      
-      # We define the Full URL here to inject into the Node.js Apps
-      # You will construct this string manually: amqp://[user]:[pass]@rabbitmq:5672
+      # The Node apps need the full URL.
+      # You will construct this string manually in the dashboard: amqp://[user]:[pass]@rabbitmq:5672
       - key: RABBITMQ_URL
         sync: false
 
