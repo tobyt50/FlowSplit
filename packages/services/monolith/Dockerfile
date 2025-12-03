@@ -1,79 +1,57 @@
 # ---- Base Stage ----
-# CHANGED: Upgraded to Node 20 to satisfy Prisma requirements
 FROM node:20-alpine AS base
+# Enable pnpm via corepack
+RUN corepack enable
 WORKDIR /usr/src/app
 # Copy root config files
 COPY package.json pnpm-lock.yaml turbo.json ./
 
 # ---- Builder Stage ----
 FROM base AS builder
-# Install pnpm and system dependencies if needed
-RUN npm install -g pnpm
+# Install system deps required for some node modules
 RUN apk add --no-cache python3 make g++
 
-# 1. COPY SOURCE FIRST
-# Copy the entire monorepo so pnpm can link workspaces correctly
+# 1. COPY SOURCE
+# Copy the entire monorepo
 COPY . .
 
 # 2. INSTALL ALL DEPENDENCIES
-# Removed --frozen-lockfile to ensure lockfile can update if needed during build
 RUN pnpm install
 
-# 3. GENERATE PRISMA CLIENT
-# Essential for type definitions during build
+# 3. GENERATE & BUILD SHARED LIBS
+# Generate Prisma Client
 RUN pnpm --filter @flowsplit/prisma exec prisma generate
-
-# 4. EXPLICITLY BUILD SHARED LIBRARIES
-# We force these to build first so their .d.ts files exist 
-# when the services try to import them.
+# Build libs to generate .d.ts and .js files
 RUN pnpm --filter @flowsplit/prisma run build
 RUN pnpm --filter @flowsplit/auth run build
 
-# Debug step
-RUN ls -la packages/libs/auth/dist
-
-# 5. BUILD MONOLITH
-# Now we build the monolith service. 
-# We skip the cache to ensure it sees the fresh libs.
+# 4. BUILD MONOLITH
+# Build the service
 RUN pnpm turbo run build --filter=@flowsplit/monolith --force
+
+# 5. PRUNE DEPENDENCIES
+# Remove devDependencies from node_modules to make the image smaller
+# The --prod flag ensures only runtime deps remain
+RUN pnpm prune --prod
 
 # ---- Production Stage ----
 FROM base AS production
-RUN npm install -g pnpm
-
 WORKDIR /usr/src/app
 
-# Copy root config files
-COPY package.json pnpm-lock.yaml turbo.json ./
+# 1. COPY EVERYTHING FROM BUILDER
+# We copy the entire node_modules structure which we know is correct and pruned.
+# We also copy the built packages.
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/packages ./packages
+COPY --from=builder /usr/src/app/package.json ./package.json
 
-# Copy package definitions to install prod dependencies
-COPY packages/services/monolith/package.json ./packages/services/monolith/
-COPY packages/prisma/package.json ./packages/prisma/
-COPY packages/libs/auth/package.json ./packages/libs/auth/
-
-# Install ONLY production dependencies
-# We need the workspace structure temporarily for linking
-COPY packages/services/monolith ./packages/services/monolith
-COPY packages/prisma ./packages/prisma
-COPY packages/libs/auth ./packages/libs/auth
-
-# Install prod deps
-RUN pnpm install --prod --ignore-scripts
-
-# Copy the built artifacts from the builder stage
-COPY --from=builder /usr/src/app/packages/services/monolith/dist ./packages/services/monolith/dist
-COPY --from=builder /usr/src/app/packages/prisma/dist ./packages/prisma/dist
-COPY --from=builder /usr/src/app/packages/libs/auth/dist ./packages/libs/auth/dist
-
-# Copy Prisma schema
-COPY --from=builder /usr/src/app/packages/prisma/schema.prisma ./packages/prisma/schema.prisma
-
-# --- THE FIX ---
-# Regenerate Prisma Client in production using the installed Node 20 runtime
+# 2. REGENERATE PRISMA CLIENT (Just to be safe with binary paths)
+# We point to the schema inside the copied packages
 RUN pnpm dlx prisma@5.12.1 generate --schema=./packages/prisma/schema.prisma
 
 # Expose Port
 EXPOSE 4000
 
 # Run the Monolith
+# We use the full path to the main.js
 CMD ["node", "packages/services/monolith/dist/main.js"]
