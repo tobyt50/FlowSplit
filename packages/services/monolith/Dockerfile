@@ -15,10 +15,11 @@ RUN apk add --no-cache python3 make g++
 COPY . .
 
 # 2. INSTALL ALL DEPENDENCIES
+# Removed --frozen-lockfile to ensure lockfile can update if needed during build
 RUN pnpm install
 
 # 3. GENERATE PRISMA CLIENT
-# Essential for type definitions
+# Essential for type definitions during build
 RUN pnpm --filter @flowsplit/prisma exec prisma generate
 
 # 4. EXPLICITLY BUILD SHARED LIBRARIES
@@ -27,6 +28,7 @@ RUN pnpm --filter @flowsplit/prisma exec prisma generate
 RUN pnpm --filter @flowsplit/prisma run build
 RUN pnpm --filter @flowsplit/auth run build
 
+# Debug step (optional, can be kept)
 RUN ls -la packages/libs/auth/dist
 
 # 5. BUILD MONOLITH
@@ -62,10 +64,13 @@ COPY --from=builder /usr/src/app/packages/services/monolith/dist ./packages/serv
 COPY --from=builder /usr/src/app/packages/prisma/dist ./packages/prisma/dist
 COPY --from=builder /usr/src/app/packages/libs/auth/dist ./packages/libs/auth/dist
 
-# Copy Prisma schema and generated client
+# Copy Prisma schema
 COPY --from=builder /usr/src/app/packages/prisma/schema.prisma ./packages/prisma/schema.prisma
-COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /usr/src/app/packages/prisma/node_modules/.prisma ./packages/prisma/node_modules/.prisma
+
+# --- THE FIX ---
+# Instead of copying the complex .prisma folder (which fails with checksum errors),
+# we simply regenerate it here. 'pnpm dlx' runs the prisma CLI without installing it globally.
+RUN pnpm dlx prisma generate --schema=./packages/prisma/schema.prisma
 
 # Expose Port
 EXPOSE 4000
