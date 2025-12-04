@@ -1,16 +1,17 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { PayoutsController } from './payouts.controller';
 import { PayoutsService } from './payouts.service';
 import { PaystackModule } from '../../paystack/paystack.module';
 import { LedgerModule } from '../../ledger/ledger.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     PaystackModule,
     LedgerModule,
-    
+    forwardRef(() => AuthModule),
     ClientsModule.registerAsync([
       {
         name: 'NOTIFICATION_SERVICE',

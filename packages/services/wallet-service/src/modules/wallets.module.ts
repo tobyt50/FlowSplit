@@ -1,11 +1,13 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { WalletsController } from './wallets.controller';
 import { WalletsService } from './wallets.service';
 import { LedgerModule } from '../ledger/ledger.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     LedgerModule,
+    forwardRef(() => AuthModule),
   ],
   controllers: [WalletsController],
   providers: [WalletsService],
