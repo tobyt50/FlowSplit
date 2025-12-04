@@ -1,17 +1,20 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy, USERS_SERVICE_TOKEN } from '@flowsplit/auth';
-import { UsersService } from '../users/users.service';
+import { AdminUsersModule } from '../modules/users/admin-users.module';
+import { AdminUsersService } from '../modules/users/admin-users.service';
+
 
 @Module({
-  imports: [ConfigModule, PassportModule.register({ defaultStrategy: 'jwt' })],
+  imports: [ConfigModule, PassportModule.register({ defaultStrategy: 'jwt' }),
+    forwardRef(() => AdminUsersModule),
+  ],
   providers: [
     JwtStrategy,
-    UsersService,
     {
       provide: USERS_SERVICE_TOKEN,
-      useExisting: UsersService,
+      useExisting: AdminUsersService,
     },
   ],
   exports: [PassportModule],

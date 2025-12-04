@@ -2,7 +2,6 @@ import { forwardRef, Module } from '@nestjs/common';
 import { TransactionsController } from './transactions.controller';
 import { TransactionsService } from './transactions.service';
 import { VirtualAccountsService } from './virtual-accounts/virtual-accounts.service';
-import { AuthModule } from '../auth/auth.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LedgerModule } from '../ledger/ledger.module';
@@ -10,7 +9,6 @@ import { LedgerModule } from '../ledger/ledger.module';
 @Module({
   imports: [
     LedgerModule,
-    forwardRef(() => AuthModule),
     ClientsModule.registerAsync([
       {
         name: 'RULE_ENGINE_SERVICE',

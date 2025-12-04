@@ -6,9 +6,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy, USERS_SERVICE_TOKEN } from '@flowsplit/auth';
 import { UsersService } from '../users/users.service';
+import { UsersModule } from '../users/users.module'; 
 
 @Module({
   imports: [
+    UsersModule,
     ConfigModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -24,7 +26,6 @@ import { UsersService } from '../users/users.service';
   providers: [
     AuthService,
     JwtStrategy,
-    UsersService,
     {
       provide: USERS_SERVICE_TOKEN,
       useExisting: UsersService,
