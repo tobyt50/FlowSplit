@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Wallet } from '@flowsplit/prisma';
+import { Wallet } from '../../../../types/index';
 import { getWallets, deleteWallet, formatCurrency } from '../../../../lib/walletService';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter

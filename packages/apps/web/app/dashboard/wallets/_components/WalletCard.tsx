@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Wallet, WalletType } from '@flowsplit/prisma';
+import { Wallet, WalletType } from '../../../../types/index';
 import { Card } from '../../../../components/ui/Card';
 import { formatCurrency } from '../../../../lib/walletService';
 import { PiggyBank, Landmark, ShieldCheck, ArrowRight } from 'lucide-react';

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Wallet, SplitRule, Transaction } from '@flowsplit/prisma';
+import { Wallet, SplitRule, Transaction } from '../../../types/index';
 import { toast } from 'sonner';
 
 // Components

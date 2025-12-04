@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation'; // Import useRouter
-import { Transaction, TransactionType } from '@flowsplit/prisma';
+import { Transaction, TransactionType } from '../../../types/index';
 import { getTransactions } from '../../../lib/transactionService';
 import { formatCurrency } from '../../../lib/walletService';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/Table';

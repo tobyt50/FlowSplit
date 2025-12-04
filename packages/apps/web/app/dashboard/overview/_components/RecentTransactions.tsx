@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Transaction } from '@flowsplit/prisma';
+import { Transaction } from '../../../../types/index';
 import { TransactionType } from '../../../../lib/enums';
 import { formatCurrency } from '../../../../lib/walletService';
 import { ArrowDownLeft, ArrowUpRight, ArrowRightLeft, History, ArrowRight } from 'lucide-react';

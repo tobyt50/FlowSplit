@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { SplitRule, SplitType } from '@flowsplit/prisma';
+import { SplitRule } from '../../../types/index';
+import { SplitTypes } from '../../../lib/enums';
 import { getRules, deleteRule } from '../../../lib/ruleService';
 import { getWallets, formatCurrency } from '../../../lib/walletService';
 import { Button, buttonVariants } from '../../../components/ui/Button';
@@ -60,7 +61,7 @@ export default function RulesPage() {
   };
 
   const formatValue = (rule: SplitRule) => {
-    if (rule.type === SplitType.FIXED) {
+    if (rule.type === SplitTypes.FIXED) {
       return formatCurrency(BigInt(Math.round(rule.value)));
     }
     return `${rule.value}%`;

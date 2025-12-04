@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Wallet } from '@flowsplit/prisma';
+import { Wallet } from '../../../types/index';
 import { getWallets } from '../../../lib/walletService';
 import { PlusCircle, Wallet as WalletIcon } from 'lucide-react';
 import { WalletCard } from './_components/WalletCard';

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Transaction, LedgerEntry } from '@flowsplit/prisma';
+import { Transaction, LedgerEntry } from '../../../../types/index';
 import { getTransactionById } from '../../../../lib/transactionService';
 import { formatCurrency } from '../../../../lib/walletService';
 import { Badge } from '../../../../components/ui/Badge';
@@ -130,7 +130,7 @@ export default function TransactionDetailPage({ params }: { params: { id: string
                           <div className="p-3 rounded-xl border border-red-500/20 bg-red-500/5 flex justify-between items-center">
                               <div>
                                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-0.5">Source</p>
-                                  <p className="text-sm font-semibold text-foreground">{debitEntry.wallet.name}</p>
+                                  <p className="text-sm font-semibold text-foreground">{debitEntry.wallet?.name || 'Unknown Source'}</p>
                               </div>
                               <span className="font-mono text-sm font-medium text-red-500">
                                   -{formatCurrency(debitEntry.amount)}
@@ -147,7 +147,7 @@ export default function TransactionDetailPage({ params }: { params: { id: string
                   )}
 
                   {/* Destinations (Credits) */}
-                  <div className="space-y-3">
+                  <div className="space-y-3"> 
                       {creditEntries.map((entry, idx) => (
                         <div key={entry.id} className="relative">
                             <div className="absolute -left-[21px] top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-card bg-green-500"></div>
@@ -156,7 +156,7 @@ export default function TransactionDetailPage({ params }: { params: { id: string
                                     <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-0.5">
                                         Destination {creditEntries.length > 1 ? `#${idx + 1}` : ''}
                                     </p>
-                                    <p className="text-sm font-semibold text-foreground">{entry.wallet.name}</p>
+                                    <p className="text-sm font-semibold text-foreground">{entry.wallet?.name || 'Unknown Destination'}</p>
                                 </div>
                                 <span className="font-mono text-sm font-medium text-green-500">
                                     +{formatCurrency(entry.amount)}

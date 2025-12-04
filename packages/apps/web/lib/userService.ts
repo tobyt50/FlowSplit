@@ -1,5 +1,5 @@
 import api from './api';
-import { User } from '@flowsplit/prisma';
+import { User } from '../types/index';
 
 interface UpdateUserData {
   fullName?: string;

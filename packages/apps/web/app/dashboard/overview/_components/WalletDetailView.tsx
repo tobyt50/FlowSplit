@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Wallet, SplitRule } from '@flowsplit/prisma';
+import { Wallet, SplitRule } from '../../../../types/index';
 import { SplitTypes } from '../../../../lib/enums';
 import { formatCurrency } from '../../../../lib/walletService';
 import { Button } from '../../../../components/ui/Button';

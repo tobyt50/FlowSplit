@@ -1,6 +1,6 @@
 import api from './api';
 import { useAuthStore } from './authStore';
-import { User } from '@flowsplit/prisma';
+import { User } from '../types/index';
 
 type RegisterData = {
   fullName: string;

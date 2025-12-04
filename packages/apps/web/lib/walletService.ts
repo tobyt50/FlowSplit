@@ -1,5 +1,6 @@
 import api from './api'; // Our configured, authenticated axios instance
-import { Wallet, WalletType } from '@flowsplit/prisma';
+import { Wallet } from '../types/index';
+import { WalletType } from '../lib/enums';
 
 /**
  * A utility function to format a BigInt string (representing kobo/cents)

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Wallet, SplitRule } from '@flowsplit/prisma';
+import { Wallet, SplitRule } from '../../../../types/index';
 import { SplitTypes } from '../../../../lib/enums';
 import { getWallets } from '../../../../lib/walletService';
 import { updateRule } from '../../../../lib/ruleService';

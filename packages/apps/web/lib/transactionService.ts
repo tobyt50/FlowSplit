@@ -1,7 +1,7 @@
 import api from './api';
-import { LedgerEntry, Transaction } from '@flowsplit/prisma';
+import { LedgerEntry, Transaction } from '../types/index';
 
-export type TransactionWithLedger = Transaction & {
+export type TransactionWithLedger = Transaction & { 
   ledgerTransaction?: {
     entries: ({
       wallet: { name: string };

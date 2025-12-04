@@ -1,5 +1,6 @@
 import api from './api'; // Our configured, authenticated axios instance
-import { SplitRule, SplitType } from '@flowsplit/prisma';
+import { SplitRule } from '../types/index';
+import { SplitType } from './enums';
 
 // --- DATA TRANSFER INTERFACES ---
 

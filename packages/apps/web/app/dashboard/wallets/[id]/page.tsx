@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wallet, Transaction, WalletType } from '@flowsplit/prisma';
-import { getWallets } from '../../../../lib/walletService'; // Assuming getWalletById exists or we filter
+import { Wallet, Transaction } from '../../../../types/index';
+import { WalletType } from '../../../../lib/enums';
+import { getWallets } from '../../../../lib/walletService';
 import { getTransactions } from '../../../../lib/transactionService';
 import { formatCurrency } from '../../../../lib/walletService';
 import { Button } from '../../../../components/ui/Button';

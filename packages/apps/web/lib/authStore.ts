@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { User } from '@flowsplit/prisma';
+import { User } from '../types/index'; 
 import Cookies from 'js-cookie';
 
 // Define the shape of the store's state

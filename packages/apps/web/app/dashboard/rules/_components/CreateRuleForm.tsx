@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Wallet } from '@flowsplit/prisma';
+import { Wallet } from '../../../../types/index';
 import { SplitTypes } from '../../../../lib/enums';
 import { ChevronDown, Loader2 } from 'lucide-react';
 import { getWallets } from '../../../../lib/walletService';

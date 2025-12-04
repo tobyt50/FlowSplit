@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Wallet, SplitRule } from '@flowsplit/prisma';
+import { Wallet, SplitRule } from '../../../../types/index';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatCurrency } from '../../../../lib/walletService';
 import { WalletDetailView } from './WalletDetailView';
