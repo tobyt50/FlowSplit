@@ -1,7 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { RulesController } from './rules.controller';
 import { RulesService } from './rules.service';
-import { AuthModule } from 'src/auth/auth.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [

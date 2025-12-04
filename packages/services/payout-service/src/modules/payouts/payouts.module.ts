@@ -5,7 +5,7 @@ import { PaystackModule } from '../../paystack/paystack.module';
 import { LedgerModule } from '../../ledger/ledger.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
-import { AuthModule } from 'src/auth/auth.module';
+import { AuthModule } from '../../auth/auth.module';
 
 @Module({
   imports: [
