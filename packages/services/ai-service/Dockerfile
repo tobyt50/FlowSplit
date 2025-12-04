@@ -4,14 +4,16 @@ FROM python:3.10-slim
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Copy the requirements file into the container at /usr/src/app
-COPY requirements.txt ./
+# --- UPDATED COPY COMMAND ---
+# Since context is now the repo root, we must specify the full path to requirements.txt
+COPY packages/services/ai-service/requirements.txt ./
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application's code into the container
-COPY . .
+# --- UPDATED COPY COMMAND ---
+# Copy the source code from the specific service directory
+COPY packages/services/ai-service/ .
 
 # Expose the port the app runs on
 EXPOSE 3107
