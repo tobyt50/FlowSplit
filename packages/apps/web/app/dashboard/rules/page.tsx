@@ -7,7 +7,7 @@ import { getWallets, formatCurrency } from '../../../lib/walletService';
 import { Button, buttonVariants } from '../../../components/ui/Button';
 import { PlusCircle, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/Dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../../../components/ui/AlertDialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../../../components/ui/AlertDialog';
 import { CreateRuleForm } from './_components/CreateRuleForm';
 import { EditRuleForm } from './_components/EditRuleForm';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/Table';
@@ -173,7 +173,7 @@ export default function RulesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-destructive">Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the "{ruleToDelete?.name}" rule.
+              This action cannot be undone. This will permanently delete the &quot;{ruleToDelete?.name}&quot; rule.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

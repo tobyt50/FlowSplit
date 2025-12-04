@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../../lib/authStore';
@@ -14,7 +15,7 @@ import { useAuthStore } from '../../lib/authStore';
 const withAuth = <P extends object>(Component: React.ComponentType<P>) => {
   const AuthComponent = (props: P) => {
     const router = useRouter();
-    const { isAuthenticated, user } = useAuthStore();
+    const { isAuthenticated } = useAuthStore();
     const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {

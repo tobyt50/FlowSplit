@@ -1,5 +1,6 @@
 'use client'; // This component also interacts with client-side state
 
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../lib/authStore';
 

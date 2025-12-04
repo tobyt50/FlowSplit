@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata } from 'next';
 import * as Sentry from '@sentry/nextjs';
 import { Inter } from 'next/font/google';

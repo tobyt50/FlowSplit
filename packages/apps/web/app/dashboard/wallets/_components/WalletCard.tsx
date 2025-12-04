@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { Wallet, WalletType } from '@flowsplit/prisma';
-import { Card, CardContent } from '../../../../components/ui/Card';
+import { Card } from '../../../../components/ui/Card';
 import { formatCurrency } from '../../../../lib/walletService';
-import { PiggyBank, Landmark, ShieldCheck, ArrowRight, Wallet as WalletIcon } from 'lucide-react';
+import { PiggyBank, Landmark, ShieldCheck, ArrowRight } from 'lucide-react';
 import { Badge } from '../../../../components/ui/Badge';
 import { cn } from '../../../../lib/utils';
 

@@ -7,9 +7,8 @@ import { getWallets } from '../../../../lib/walletService'; // Assuming getWalle
 import { getTransactions } from '../../../../lib/transactionService';
 import { formatCurrency } from '../../../../lib/walletService';
 import { Button } from '../../../../components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/Card';
+import { Card } from '../../../../components/ui/Card';
 import { Badge } from '../../../../components/ui/Badge';
-import { Separator } from '../../../../components/ui/Separator';
 import { DeleteWalletModal } from '../_components/DeleteWalletModal';
 import { 
   ArrowLeft, 

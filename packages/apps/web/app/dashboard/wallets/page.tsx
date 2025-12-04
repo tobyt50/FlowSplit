@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Wallet } from '@flowsplit/prisma';
 import { getWallets } from '../../../lib/walletService';
-import { Button } from '../../../components/ui/Button';
 import { PlusCircle, Wallet as WalletIcon } from 'lucide-react';
 import { WalletCard } from './_components/WalletCard';
 import {
@@ -12,7 +11,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '../../../components/ui/Dialog';
 import { CreateWalletForm } from './_components/CreateWalletForm';
 import { EmptyState } from '../_components/EmptyState';
