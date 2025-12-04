@@ -22,20 +22,32 @@ const customStorage = {
     // Try to get from localStorage first
     const str = localStorage.getItem(name);
     // Also ensure the cookie is set if the item exists
-    if (str) Cookies.set('flowsplit_token', JSON.parse(str).state.token, { expires: 1 });
+    if (str) {
+      try {
+        const parsed = JSON.parse(str);
+        if (parsed.state && parsed.state.token) {
+           Cookies.set('flowsplit_token', parsed.state.token, { expires: 1 });
+        }
+      } catch (e) {
+        // Ignore parsing errors on read
+      }
+    }
     return str;
   },
   setItem: (name: string, value: string) => {
     // Set both localStorage and the cookie
     localStorage.setItem(name, value);
     try {
-        const token = JSON.parse(value).state.token;
-        if (token) {
-            Cookies.set('flowsplit_token', token, { expires: 1 }); // expires in 1 day
-        } else {
-            Cookies.remove('flowsplit_token');
-        }
-    } catch (e) {}
+      const token = JSON.parse(value).state.token;
+      if (token) {
+        Cookies.set('flowsplit_token', token, { expires: 1 }); // expires in 1 day
+      } else {
+        Cookies.remove('flowsplit_token');
+      }
+    } catch (e) {
+      // Ignore JSON parse errors during storage sync
+      // This prevents the build from failing due to the no-empty rule
+    }
   },
   removeItem: (name: string) => {
     // Remove from both
