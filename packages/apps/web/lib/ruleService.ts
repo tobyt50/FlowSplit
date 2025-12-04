@@ -1,6 +1,7 @@
 import api from './api'; // Our configured, authenticated axios instance
 import { SplitRule } from '../types/index';
 import { SplitType } from './enums';
+import { API_URLS } from './config';
 
 // --- DATA TRANSFER INTERFACES ---
 
@@ -40,7 +41,7 @@ export interface UpdateRuleData {
 export const getRules = async (): Promise<SplitRule[]> => {
   try {
     const response = await api.get<SplitRule[]>(
-      'http://localhost:4000/api/rules' //actual service http://localhost:3104
+      `${API_URLS.MONOLITH}/rules`
     );
     return response.data;
   } catch (error: any) {
@@ -59,7 +60,7 @@ export const createRule = async (data: CreateRuleData): Promise<SplitRule> => {
     // The payload is already in the correct format from our robust forms.
     // The form logic handles converting Naira to Kobo for FIXED types.
     const response = await api.post<SplitRule>(
-      'http://localhost:4000/api/rules', // URL to the rule-service POST endpoint
+      `${API_URLS.MONOLITH}/rules`,
       data
     );
     return response.data;
@@ -78,7 +79,7 @@ export const createRule = async (data: CreateRuleData): Promise<SplitRule> => {
 export const updateRule = async (ruleId: string, data: UpdateRuleData): Promise<SplitRule> => {
   try {
     const response = await api.patch<SplitRule>(
-      `http://localhost:4000/api/rules/${ruleId}`, // URL to the rule-service PATCH endpoint
+      `${API_URLS.MONOLITH}/rules/${ruleId}`,
       data
     );
     return response.data;
@@ -96,7 +97,7 @@ export const updateRule = async (ruleId: string, data: UpdateRuleData): Promise<
 export const deleteRule = async (ruleId: string): Promise<void> => {
     try {
         await api.delete(
-            `http://localhost:4000/api/rules/${ruleId}` // URL to the rule-service DELETE endpoint
+            `${API_URLS.MONOLITH}/rules/${ruleId}`
         );
     } catch (error: any) {
         console.error(`Failed to delete split rule ${ruleId}:`, error);

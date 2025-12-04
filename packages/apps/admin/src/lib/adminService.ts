@@ -3,7 +3,7 @@ import { UserStatus, User } from '@flowsplit/prisma';
 import { AdminDashboardMetrics, UserGrowthDataPoint, UserListResponse, AuditLogFilters, AuditLogResponse, UserDetail } from '../types/admin-api';
 
 // The single, authoritative base URL for the admin service
-const ADMIN_API_BASE_URL = 'http://localhost:3109/api';
+const ADMIN_API_BASE_URL = process.env.NEXT_PUBLIC_ADMIN_SERVICE_URL || 'http://localhost:3109/api';
 
 /**
  * Fetches the high-level metrics for the admin overview dashboard.

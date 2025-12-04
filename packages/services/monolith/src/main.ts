@@ -4,8 +4,9 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { Logger as PinoLogger } from 'nestjs-pino';
+import { PrismaService } from '@flowsplit/prisma';
 
-// BigInt Patch
+// BigInt JSON Serialization Patch
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
 };
@@ -17,32 +18,43 @@ async function bootstrap() {
   });
 
   app.useLogger(app.get(PinoLogger));
-
-  const logger = new Logger('Monolith');
-
+  const logger = new Logger('MonolithBootstrap');
   const configService = app.get(ConfigService);
-  const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
-  const rabbitmqUrl = configService.get<string>('RABBITMQ_URL');
 
-  if (!frontendUrl) {
-    logger.warn('FRONTEND_ORIGIN_URL is not defined; CORS will not be configured.');
-  } else {
-    app.enableCors({
-      origin: frontendUrl,
-      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-      credentials: true,
-    });
-    logger.log(`CORS enabled for origin: ${frontendUrl}`);
-  }
+  const frontendUrl = configService.get<string>('FRONTEND_URL'); // e.g. https://flowsplit.vercel.app
+  const adminUrl = configService.get<string>('ADMIN_FRONTEND_URL'); // e.g. https://admin.flowsplit.vercel.app
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  const allowedOrigins = [
+    'http://localhost:3000', // Local Web
+    'http://localhost:3001', // Local Admin
+  ];
+
+  if (frontendUrl) allowedOrigins.push(frontendUrl);
+  if (adminUrl) allowedOrigins.push(adminUrl);
+
+  app.enableCors({
+    origin: allowedOrigins,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    credentials: true,
+  });
+  
+  logger.log(`CORS Enabled for: ${allowedOrigins.join(', ')}`);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
   app.setGlobalPrefix('api');
 
-  // --- CONNECT ALL MICROSERVICE LISTENERS ---
-  if (!rabbitmqUrl) {
-    logger.error('RABBITMQ_URL is not defined! Cannot start event listeners.');
-  } else {
-    // Listener for the Rule Engine
+  const prismaService = app.get(PrismaService);
+  await prismaService.enableShutdownHooks(app);
+
+  const rabbitmqUrl = configService.get<string>('RABBITMQ_URL');
+
+  if (rabbitmqUrl) {
     app.connectMicroservice<MicroserviceOptions>({
       transport: Transport.RMQ,
       options: {
@@ -53,7 +65,6 @@ async function bootstrap() {
       },
     });
 
-    // Listener for the Notification Service
     app.connectMicroservice<MicroserviceOptions>({
       transport: Transport.RMQ,
       options: {
@@ -63,19 +74,16 @@ async function bootstrap() {
         noAck: false,
       },
     });
+
+    await app.startAllMicroservices();
+    logger.log(`🐰 RabbitMQ Microservices connected and listening`);
+  } else {
+    logger.warn(`⚠️ RABBITMQ_URL not found. Event-driven features will NOT work.`);
   }
 
-  // --- START ALL CONFIGURED MICROSERVICES ---
-  // This tells NestJS to start listening on the queues defined above.
-  // await app.startAllMicroservices();
+  const port = process.env.PORT || 4000;
+  await app.listen(port, '0.0.0.0');
 
-  const port = 4000;
-  await app.listen(port);
-
-  logger.log(`🚀 MONOLITH Backend running on: http://localhost:${port}`);
-  if (rabbitmqUrl) {
-    logger.log(`🐰 Listening for events on RabbitMQ`);
-  }
+  logger.log(`🚀 MONOLITH Backend running on: ${await app.getUrl()}`);
 }
-
 bootstrap();

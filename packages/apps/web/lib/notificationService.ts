@@ -1,4 +1,5 @@
 import api from './api';
+import { API_URLS } from './config';
 
 export interface AppNotification {
   id: string;
@@ -12,17 +13,17 @@ export interface AppNotification {
 
 export const getUserNotifications = async (): Promise<AppNotification[]> => {
   try {
-    const response = await api.get<AppNotification[]>('http://localhost:4000/api/notifications'); //actually http://localhost:3108
+    const response = await api.get<AppNotification[]>(`${API_URLS.MONOLITH}/notifications`);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch notifications', error);
-    return []; // Return empty array on failure to not break the UI
+    return [];
   }
 };
 
 export const markNotificationRead = async (id: string): Promise<void> => {
   try {
-    await api.patch(`http://localhost:4000/api/notifications/${id}/read`);
+    await api.patch(`${API_URLS.MONOLITH}/notifications/${id}/read`);
   } catch (error) {
     console.error('Failed to mark notification as read', error);
   }

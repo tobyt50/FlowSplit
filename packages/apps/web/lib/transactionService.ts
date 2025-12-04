@@ -1,5 +1,6 @@
 import api from './api';
 import { LedgerEntry, Transaction } from '../types/index';
+import { API_URLS } from './config';
 
 export type TransactionWithLedger = Transaction & { 
   ledgerTransaction?: {
@@ -17,8 +18,8 @@ export type TransactionWithLedger = Transaction & {
 export const getTransactions = async (walletId?: string): Promise<Transaction[]> => {
   try {
     const url = walletId 
-      ? `http://localhost:4000/api/transactions?walletId=${walletId}` //actual service http://localhost:3103
-      : 'http://localhost:4000/api/transactions';
+      ? `${API_URLS.MONOLITH}/transactions?walletId=${walletId}`
+      : `${API_URLS.MONOLITH}/transactions`;
       
     const response = await api.get<Transaction[]>(url);
     return response.data;
@@ -36,7 +37,7 @@ export const getTransactions = async (walletId?: string): Promise<Transaction[]>
 export const getTransactionById = async (id: string): Promise<TransactionWithLedger> => {
     try {
         const response = await api.get<TransactionWithLedger>(
-            `http://localhost:4000/api/transactions/${id}`
+            `${API_URLS.MONOLITH}/transactions/${id}`
         );
         return response.data;
     } catch (error: any) {

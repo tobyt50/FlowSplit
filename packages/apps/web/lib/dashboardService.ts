@@ -1,5 +1,6 @@
 import api from './api'; // Our configured, authenticated axios instance
 import { UpcomingBill } from '../app/dashboard/overview/_components/UpcomingBills';
+import { API_URLS } from './config';
 
 export interface CashFlowDataPoint {
   month: string;
@@ -27,7 +28,7 @@ export interface LastSplitBreakdown {
 export const getUpcomingBills = async (): Promise<UpcomingBill[]> => {
   try {
     const response = await api.get<UpcomingBill[]>(
-      'http://localhost:4000/api/dashboard/upcoming-bills' //actual service http://localhost:3106
+      `${API_URLS.MONOLITH}/dashboard/upcoming-bills`
     );
     // Important: Backend sends BigInts as strings. We need to convert them back.
     return response.data.map(bill => ({
@@ -48,9 +49,9 @@ export const getUpcomingBills = async (): Promise<UpcomingBill[]> => {
 export const getCashFlow = async (): Promise<CashFlowDataPoint[]> => {
   try {
     const response = await api.get<CashFlowDataPoint[]>(
-      'http://localhost:4000/api/dashboard/cash-flow' // URL to the dashboard-service
+      `${API_URLS.MONOLITH}/dashboard/cash-flow`
     );
-    return response.data; // No BigInt conversion needed as the service returns numbers
+    return response.data;
   } catch (error: any) {
     console.error('Failed to fetch cash flow data:', error);
     throw new Error(error.response?.data?.message || 'Could not load your cash flow data.');
@@ -60,7 +61,7 @@ export const getCashFlow = async (): Promise<CashFlowDataPoint[]> => {
 export const getLastSplitBreakdown = async (): Promise<LastSplitBreakdown | null> => {
   try {
     const response = await api.get<LastSplitBreakdown | null>(
-      'http://localhost:4000/api/dashboard/last-split'
+      `${API_URLS.MONOLITH}/dashboard/last-split`
     );
     if (!response.data) {
         return null;

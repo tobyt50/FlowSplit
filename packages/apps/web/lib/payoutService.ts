@@ -1,4 +1,5 @@
 import api from './api'; // Our authenticated axios instance
+import { API_URLS } from './config';
 
 // --- Types ---
 export interface BankAccount {
@@ -31,7 +32,7 @@ export interface InitiatePayoutData {
  */
 export const getBankAccounts = async (): Promise<BankAccount[]> => {
   try {
-    const response = await api.get<BankAccount[]>('http://localhost:4000/api/bank-accounts'); //actual service http://localhost:3105
+    const response = await api.get<BankAccount[]>(`${API_URLS.MONOLITH}/bank-accounts`);
     return response.data;
   } catch (error: any) {
     console.error('Failed to fetch bank accounts:', error);
@@ -44,7 +45,7 @@ export const getBankAccounts = async (): Promise<BankAccount[]> => {
  */
 export const addBankAccount = async (data: AddBankAccountData): Promise<BankAccount> => {
   try {
-    const response = await api.post<BankAccount>('http://localhost:4000/api/bank-accounts', data);
+    const response = await api.post<BankAccount>(`${API_URLS.MONOLITH}/bank-accounts`, data);
     return response.data;
   } catch (error: any) {
     console.error('Failed to add bank account:', error);
@@ -57,7 +58,7 @@ export const addBankAccount = async (data: AddBankAccountData): Promise<BankAcco
  */
 export const initiatePayout = async (data: InitiatePayoutData): Promise<{ payoutId: string, status: string }> => {
   try {
-    const response = await api.post('http://localhost:4000/api/payouts/initiate', data);
+    const response = await api.post(`${API_URLS.MONOLITH}/payouts/initiate`, data);
     return response.data;
   } catch (error: any) {
     console.error('Failed to initiate payout:', error);
@@ -70,7 +71,7 @@ export const initiatePayout = async (data: InitiatePayoutData): Promise<{ payout
  */
 export const setPrimaryBankAccount = async (accountId: string): Promise<void> => {
   try {
-    await api.patch(`http://localhost:4000/api/bank-accounts/${accountId}/primary`);
+    await api.patch(`${API_URLS.MONOLITH}/bank-accounts/${accountId}/primary`);
   } catch (error: any) {
     console.error('Failed to set primary account:', error);
     throw new Error(error.response?.data?.message || 'Could not update account settings.');
@@ -82,7 +83,7 @@ export const setPrimaryBankAccount = async (accountId: string): Promise<void> =>
  */
 export const deleteBankAccount = async (accountId: string): Promise<void> => {
   try {
-    await api.delete(`http://localhost:4000/api/bank-accounts/${accountId}`);
+    await api.delete(`${API_URLS.MONOLITH}/bank-accounts/${accountId}`);
   } catch (error: any) {
     console.error('Failed to delete bank account:', error);
     throw new Error(error.response?.data?.message || 'Could not delete account.');

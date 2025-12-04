@@ -1,4 +1,5 @@
 import api from './api'; // Our authenticated axios instance
+import { API_URLS } from './config';
 
 // Matches the Pydantic 'InsightPayload' model
 export interface InsightPayload {
@@ -24,7 +25,7 @@ export interface AIInsight {
 export const getAIInsight = async (): Promise<AIInsight> => {
   try {
     const response = await api.get<AIInsight>(
-      'http://localhost:3107/api/insight' // Python service URL
+      `${API_URLS.AI}/insight`
     );
     return response.data;
   } catch (error: any) {

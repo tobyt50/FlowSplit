@@ -1,5 +1,6 @@
 import api from './api';
 import { User } from '../types/index';
+import { API_URLS } from './config';
 
 interface UpdateUserData {
   fullName?: string;
@@ -16,7 +17,7 @@ interface UpdateUserData {
 export const updateUserProfile = async (data: UpdateUserData): Promise<Omit<User, 'password'>> => {
   try {
     const response = await api.patch<Omit<User, 'password'>>(
-      'http://localhost:4000/api/users/me', //actual service http://localhost:3101
+      `${API_URLS.MONOLITH}/users/me`,
       data
     );
     return response.data;

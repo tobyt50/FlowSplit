@@ -1,6 +1,7 @@
 import api from './api';
 import { useAuthStore } from './authStore';
 import { User } from '../types/index';
+import { API_URLS } from './config';
 
 type RegisterData = {
   fullName: string;
@@ -29,8 +30,7 @@ type LoginResponse = {
 export const registerUser = async (data: RegisterData): Promise<Omit<User, 'password'>> => {
   try {
     const response = await api.post<Omit<User, 'password'>>(
-      'http://localhost:4000/api/auth/register', // URL to the auth-service
-      data
+      `${API_URLS.MONOLITH}/auth/register`, data
     );
     return response.data;
   } catch (error: any) {
@@ -48,7 +48,7 @@ export const loginUser = async (data: LoginData): Promise<void> => {
   try {
     // 1. Call the login endpoint to get a token
     const response = await api.post<LoginResponse>(
-      'http://localhost:4000/api/auth/login', //actual service http://localhost:3100
+      `${API_URLS.MONOLITH}/auth/login`,
       data
     );
     const { accessToken } = response.data;
@@ -58,8 +58,7 @@ export const loginUser = async (data: LoginData): Promise<void> => {
 
     // 3. Immediately call the profile endpoint to get the user's data
     const profileResponse = await api.get<Omit<User, 'password'>>(
-      'http://localhost:4000/api/auth/profile'
-      // The token is now automatically added by our axios interceptor
+      `${API_URLS.MONOLITH}/auth/profile`
     );
 
     // 4. Update the global store with the fetched user profile
@@ -75,6 +74,5 @@ export const loginUser = async (data: LoginData): Promise<void> => {
  */
 export const logoutUser = () => {
   useAuthStore.getState().logout();
-  // Optional: redirect the user to the login page
   window.location.href = '/login';
 };
