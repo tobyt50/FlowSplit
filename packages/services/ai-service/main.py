@@ -1,6 +1,6 @@
 import os
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware # 1. Import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 from app.api import router as api_router
@@ -13,16 +13,30 @@ app = FastAPI(
     version="1.0.0"
 )
 
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+# Read environment variables (same as NestJS ConfigService)
+frontend_url = os.getenv("FRONTEND_URL")        # Example: https://flowsplit.vercel.app
+admin_frontend_url = os.getenv("ADMIN_FRONTEND_URL")  # Example: https://admin.flowsplit.vercel.app
+
+# Default local dev origins (like NestJS)
+allowed_origins = [
+    "http://localhost:3000",   # Local Web
+    "http://localhost:3001",   # Local Admin
 ]
+
+# Append dynamic env-based URLs
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
+if admin_frontend_url:
+    allowed_origins.append(admin_frontend_url)
+
+print("CORS Enabled for:", allowed_origins)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
