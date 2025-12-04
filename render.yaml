@@ -21,8 +21,10 @@ services:
     name: flowsplit-ai
     env: docker
     plan: free
+    # Keep the path to the Dockerfile relative to the repo root
     dockerfilePath: ./packages/services/ai-service/Dockerfile
-    dockerContext: .
+    # CHANGE THIS: Set context to the service directory so COPY commands work
+    dockerContext: ./packages/services/ai-service
     envVars:
       - fromGroup: flowsplit-env
       - key: PORT
