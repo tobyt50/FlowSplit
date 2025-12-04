@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 
-const MODELS_WITH_CUID2: Prisma.ModelName[] = [
+const MODELS_WITH_CUID2 = [
   'User',
   'Wallet',
   'Account',
@@ -12,8 +12,8 @@ const MODELS_WITH_CUID2: Prisma.ModelName[] = [
   'WebhookEvent',
 ];
 
-export function cuid2Middleware(): Prisma.Middleware {
-  return async (params: Prisma.MiddlewareParams, next: (params: Prisma.MiddlewareParams) => Promise<unknown>) => {
+export function cuid2Middleware(): any {
+  return async (params: any, next: (params: any) => Promise<any>) => {
     if (!params.model || !MODELS_WITH_CUID2.includes(params.model)) {
       return next(params);
     }
@@ -26,7 +26,7 @@ export function cuid2Middleware(): Prisma.Middleware {
         }
       }
     } else if (params.action === 'createMany') {
-      if (Array.isArray(params.args.data)) {
+      if (params.args.data && Array.isArray(params.args.data)) {
         for (const item of params.args.data) {
           if (typeof item === 'object' && item !== null) {
             const itemData = item as Record<string, any>;
