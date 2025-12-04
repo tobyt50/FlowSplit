@@ -19,26 +19,22 @@ export function InsightCard({ insight }: InsightCardProps) {
 
   // Determine Icon and Visual Theme based on insight type
   let Icon = Sparkles;
-  let themeColor = "primary"; // used for text classes mapping
   let gradientClass = "from-primary/10 to-transparent";
   let iconBgClass = "bg-primary/10 text-primary";
 
   switch (insight.insightCode) {
     case 'UNALLOCATED_FUNDS':
       Icon = AlertTriangle;
-      themeColor = "amber-500";
       gradientClass = "from-amber-500/10 to-transparent";
       iconBgClass = "bg-amber-500/10 text-amber-500";
       break;
     case 'LOW_SAVINGS_RATE':
       Icon = PiggyBank;
-      themeColor = "blue-500";
       gradientClass = "from-blue-500/10 to-transparent";
       iconBgClass = "bg-blue-500/10 text-blue-500";
       break;
     case 'HIGH_SPENDING_VELOCITY':
       Icon = TrendingUp;
-      themeColor = "red-500";
       gradientClass = "from-red-500/10 to-transparent";
       iconBgClass = "bg-red-500/10 text-red-500";
       break;

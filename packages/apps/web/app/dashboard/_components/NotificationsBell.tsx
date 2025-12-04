@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { Bell, Check, Inbox } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/Popover';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
@@ -27,7 +26,6 @@ const timeAgo = (dateString: string) => {
 export function NotificationsBell() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

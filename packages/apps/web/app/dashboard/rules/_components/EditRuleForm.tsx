@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Wallet, SplitRule, SplitType } from '@flowsplit/prisma';
+import { Wallet, SplitRule } from '@flowsplit/prisma';
+import { SplitTypes } from '../../../../lib/enums';
 import { getWallets } from '../../../../lib/walletService';
 import { updateRule } from '../../../../lib/ruleService';
 import { Button } from '../../../../components/ui/Button';
@@ -18,14 +19,14 @@ import { toast } from 'sonner';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name is required').max(50),
-  type: z.nativeEnum(SplitType),
+  type: z.nativeEnum(SplitTypes),
   value: z.number().min(0.01, 'Value must be a positive number'),
   destinationWalletId: z.string().min(1, 'Please select a destination wallet'),
   priority: z.number().int().min(1),
   isBill: z.boolean(),
   dueDate: z.number().int().min(1).max(31).optional(),
 }).refine(data => {
-  if (data.type === SplitType.PERCENTAGE) return data.value <= 100;
+  if (data.type === SplitTypes.PERCENTAGE) return data.value <= 100;
   return true;
 }, { message: 'Percentage value cannot exceed 100', path: ['value'] })
 .refine(data => {
@@ -57,7 +58,7 @@ export function EditRuleForm({ rule, onSuccess }: EditRuleFormProps) {
     defaultValues: {
       name: rule.name,
       type: rule.type,
-      value: rule.type === SplitType.FIXED ? rule.value / 100 : rule.value,
+      value: rule.type === SplitTypes.FIXED ? rule.value / 100 : rule.value,
       destinationWalletId: rule.destinationWalletId || '',
       priority: rule.priority,
       isBill: rule.isBill ?? false,
@@ -78,7 +79,7 @@ export function EditRuleForm({ rule, onSuccess }: EditRuleFormProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const valueToSubmit = data.type === SplitType.FIXED ? Math.round(data.value * 100) : data.value;
+      const valueToSubmit = data.type === SplitTypes.FIXED ? Math.round(data.value * 100) : data.value;
 
       await updateRule(rule.id, { ...data, value: valueToSubmit });
       toast.success('Rule Updated', { description: `"${data.name}" saved.` });
@@ -117,7 +118,7 @@ export function EditRuleForm({ rule, onSuccess }: EditRuleFormProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[180px]">
-              {Object.values(SplitType).map((t) => (
+              {Object.values(SplitTypes).map((t) => (
                 <DropdownMenuItem key={t} onSelect={() => setValue('type', t, { shouldValidate: true })} className="cursor-pointer">{t}</DropdownMenuItem>
               ))}
             </DropdownMenuContent>

@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Wallet, SplitRule, SplitType } from '@flowsplit/prisma';
+import { Wallet, SplitRule } from '@flowsplit/prisma';
+import { SplitTypes } from '../../../../lib/enums';
 import { formatCurrency } from '../../../../lib/walletService';
 import { Button } from '../../../../components/ui/Button';
 import { Badge } from '../../../../components/ui/Badge';
@@ -16,7 +17,7 @@ interface WalletDetailViewProps {
 export function WalletDetailView({ wallet, rules, onBack }: WalletDetailViewProps) {
   
   const formatRuleValue = (rule: SplitRule): string => {
-    if (rule.type === SplitType.FIXED) {
+    if (rule.type === SplitTypes.FIXED) {
       return formatCurrency(BigInt(Math.round(rule.value)));
     }
     return `${rule.value}%`;

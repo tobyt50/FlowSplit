@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Wallet, SplitType } from '@flowsplit/prisma';
+import { Wallet } from '@flowsplit/prisma';
+import { SplitTypes } from '../../../../lib/enums';
 import { ChevronDown, Loader2 } from 'lucide-react';
 import { getWallets } from '../../../../lib/walletService';
 import { createRule } from '../../../../lib/ruleService';
@@ -18,14 +19,14 @@ import { toast } from 'sonner';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name is required').max(50),
-  type: z.nativeEnum(SplitType),
+  type: z.nativeEnum(SplitTypes),
   value: z.number().min(0.01, 'Value must be a positive number'),
   destinationWalletId: z.string().min(1, 'Please select a destination wallet'),
   priority: z.number().int().min(1, 'Priority must be at least 1'),
   isBill: z.boolean(),
   dueDate: z.number().int().min(1).max(31).optional(),
 }).refine(data => {
-  if (data.type === SplitType.PERCENTAGE) {
+  if (data.type === SplitTypes.PERCENTAGE) {
     return data.value <= 100;
   }
   return true;
@@ -76,7 +77,7 @@ export function CreateRuleForm({ onSuccess }: CreateRuleFormProps) {
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: SplitType.PERCENTAGE,
+      type: SplitTypes.PERCENTAGE,
       priority: 10,
       isBill: false,
     },
@@ -91,7 +92,7 @@ export function CreateRuleForm({ onSuccess }: CreateRuleFormProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const valueToSubmit = data.type === SplitType.FIXED ? Math.round(data.value * 100) : data.value;
+      const valueToSubmit = data.type === SplitTypes.FIXED ? Math.round(data.value * 100) : data.value;
 
       await createRule({ ...data, value: valueToSubmit });
       toast.success('Rule Created', {
@@ -134,7 +135,7 @@ export function CreateRuleForm({ onSuccess }: CreateRuleFormProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-[180px]">
-                {Object.values(SplitType).map((t) => (
+                {Object.values(SplitTypes).map((t) => (
                   <DropdownMenuItem key={t} onSelect={() => setValue('type', t, { shouldValidate: true })} className="cursor-pointer">
                     {t}
                   </DropdownMenuItem>
@@ -145,7 +146,7 @@ export function CreateRuleForm({ onSuccess }: CreateRuleFormProps) {
           </div>
           <div className="space-y-2">
             <label htmlFor="value" className="text-sm font-medium text-foreground">
-              {ruleType === SplitType.FIXED ? 'Amount (NGN)' : 'Percent (%)'}
+              {ruleType === SplitTypes.FIXED ? 'Amount (NGN)' : 'Percent (%)'}
             </label>
             <Input id="value" type="number" step="0.01" {...register('value', { valueAsNumber: true })} disabled={isLoading} className="bg-muted border-input" />
             {errors.value && <p className="text-destructive text-xs">{errors.value.message}</p>}

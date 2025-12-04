@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Transaction, TransactionType } from '@flowsplit/prisma';
+import { Transaction } from '@flowsplit/prisma';
+import { TransactionType } from '../../../../lib/enums';
 import { formatCurrency } from '../../../../lib/walletService';
 import { ArrowDownLeft, ArrowUpRight, ArrowRightLeft, History, ArrowRight } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../../../../components/ui/Card';

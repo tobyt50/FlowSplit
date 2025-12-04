@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { WalletType } from '@flowsplit/prisma';
+import { WalletTypes } from '../../../../lib/enums';
 import { createWallet } from '../../../../lib/walletService';
 import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
@@ -20,7 +20,7 @@ import { Loader2, ChevronDown } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(50),
-  type: z.nativeEnum(WalletType),
+  type: z.nativeEnum(WalletTypes),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -42,7 +42,7 @@ export function CreateWalletForm({ onSuccess }: CreateWalletFormProps) {
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: WalletType.SAVINGS, // Default value
+      type: WalletTypes.SAVINGS, // Default value
     },
   });
 
@@ -102,7 +102,7 @@ export function CreateWalletForm({ onSuccess }: CreateWalletFormProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width] bg-popover border-border">
-            {Object.values(WalletType).map((type) => (
+            {Object.values(WalletTypes).map((type) => (
               <DropdownMenuItem 
                 key={type} 
                 onSelect={() => setValue('type', type, { shouldValidate: true })}

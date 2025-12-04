@@ -80,10 +80,7 @@ export default function WalletDetailsPage({ params }: { params: { id: string } }
       // 2. Fetch Transactions (Simulating filter by wallet ID)
       // In a real app, you'd pass ?walletId=... to the API
       const allTx = await getTransactions();
-      const walletTx = allTx.filter(tx => 
-        // Logic to check if tx involves this wallet (simplified for UI demo)
-        // You would likely check ledger entries or a walletId field
-        true 
+      const walletTx = allTx.filter(() => true 
       ).slice(0, 10); // Limit to 10
       setTransactions(walletTx);
 
