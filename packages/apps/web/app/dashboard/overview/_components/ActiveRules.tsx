@@ -2,7 +2,8 @@
 
 import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { SplitRule, Wallet, SplitType } from '@flowsplit/prisma';
+import { SplitRule, Wallet } from '@flowsplit/prisma';
+import { SplitTypes } from '@/packages/apps/web/lib/enums';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../../../components/ui/Card';
 import { Switch } from '../../../../components/ui/Switch';
 import { Button } from '../../../../components/ui/Button';
@@ -33,7 +34,7 @@ export function ActiveRules({ rules, wallets, onRuleToggle }: ActiveRulesProps) 
   };
 
   const formatRuleValue = (rule: SplitRule): string => {
-    if (rule.type === SplitType.FIXED) {
+    if (rule.type === SplitTypes.FIXED) {
       return formatCurrency(BigInt(Math.round(rule.value)));
     }
     return `${rule.value}%`;
