@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import type { SplitRule, Wallet } from '@flowsplit/prisma';
+import { Wallet, SplitRule } from '@flowsplit/prisma';
 import { SplitTypes } from '@/packages/apps/web/lib/enums';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../../../components/ui/Card';
 import { Switch } from '../../../../components/ui/Switch';
