@@ -38,9 +38,8 @@ RUN pnpm prune --prod
 FROM base AS production
 WORKDIR /usr/src/app
 
-# 1. COPY EVERYTHING FROM BUILDER
-# We copy the entire node_modules structure which we know is correct and pruned.
-# We also copy the built packages.
+RUN apk add --no-cache openssl
+
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/packages ./packages
 COPY --from=builder /usr/src/app/package.json ./package.json

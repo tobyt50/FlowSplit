@@ -1,22 +1,20 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy, USERS_SERVICE_TOKEN } from '@flowsplit/auth';
-import { AdminAuthUserService } from './admin-auth-user.service';
+import { UsersService } from '../users/users.service';
 
+@Global()
 @Module({
-  imports: [
-    ConfigModule,
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-  ],
+  imports: [ConfigModule, PassportModule.register({ defaultStrategy: 'jwt' })],
   providers: [
     JwtStrategy,
-    AdminAuthUserService,
+    UsersService,
     {
       provide: USERS_SERVICE_TOKEN,
-      useExisting: AdminAuthUserService,
+      useExisting: UsersService,
     },
   ],
-  exports: [PassportModule],
+  exports: [PassportModule, JwtStrategy],
 })
 export class AuthModule {}

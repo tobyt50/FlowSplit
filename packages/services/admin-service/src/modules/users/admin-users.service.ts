@@ -6,17 +6,6 @@ export class AdminUsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Lightweight lookup used specifically by the JwtStrategy.
-   * Unlike 'findOne', this does NOT fetch relations (wallets, txns),
-   * making it much faster for per-request authentication.
-   */
-  async findOneById(id: string) {
-    return this.prisma.user.findUnique({ 
-      where: { id } 
-    });
-  }
-
-  /**
    * Fetches a paginated list of all users in the system.
    * Production-grade: includes pagination to handle millions of users.
    */
