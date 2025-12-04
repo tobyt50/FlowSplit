@@ -322,7 +322,7 @@ importers:
         version: link:../../prisma
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
@@ -350,10 +350,10 @@ importers:
     dependencies:
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/platform-express':
         specifier: ^10.0.0
         version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)
@@ -375,10 +375,10 @@ importers:
     dependencies:
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/platform-express':
         specifier: ^10.0.0
         version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)
@@ -400,10 +400,10 @@ importers:
     dependencies:
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@paralleldrive/cuid2':
         specifier: ^3.0.4
         version: 3.0.4
@@ -417,8 +417,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
     devDependencies:
       '@types/node':
         specifier: ^20.3.1
@@ -440,13 +440,13 @@ importers:
         version: link:../../prisma
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/passport':
         specifier: ^11.0.5
         version: 11.0.5(@nestjs/common@10.0.0)(passport@0.7.0)
@@ -484,8 +484,8 @@ importers:
         specifier: ^13.1.2
         version: 13.1.2
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
@@ -533,13 +533,13 @@ importers:
         version: link:../../shared
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/jwt':
         specifier: ^10.2.0
         version: 10.2.0(@nestjs/common@10.0.0)
@@ -580,8 +580,8 @@ importers:
         specifier: ^13.1.2
         version: 13.1.2
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.0.0
@@ -624,16 +624,16 @@ importers:
         version: link:../../prisma
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/microservices':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/passport':
         specifier: ^11.0.5
         version: 11.0.5(@nestjs/common@10.0.0)(passport@0.7.0)
@@ -665,8 +665,8 @@ importers:
         specifier: ^13.1.2
         version: 13.1.2
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.0.0
@@ -718,16 +718,25 @@ importers:
         version: link:../wallet-service
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.0
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/microservices':
+        specifier: ^10.0.0
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/platform-express':
         specifier: ^10.0.0
         version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)
+      amqp-connection-manager:
+        specifier: ^4.1.14
+        version: 4.1.14(amqplib@0.10.3)
+      amqplib:
+        specifier: ^0.10.3
+        version: 0.10.3
       nestjs-pino:
         specifier: ^3.0.0
         version: 3.0.0(@nestjs/common@10.0.0)(pino-http@8.0.0)
@@ -761,13 +770,16 @@ importers:
         version: link:../../prisma
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/microservices':
+        specifier: ^10.0.0
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/passport':
         specifier: ^11.0.5
         version: 11.0.5(@nestjs/common@10.0.0)(passport@0.7.0)
@@ -777,6 +789,12 @@ importers:
       '@prisma/client':
         specifier: ^5.12.1
         version: 5.12.1(prisma@5.12.1)
+      amqp-connection-manager:
+        specifier: ^4.1.14
+        version: 4.1.14(amqplib@0.10.3)
+      amqplib:
+        specifier: ^0.10.3
+        version: 0.10.3
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -799,8 +817,8 @@ importers:
         specifier: ^13.1.2
         version: 13.1.2
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.0.0
@@ -831,16 +849,16 @@ importers:
         version: link:../../prisma
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/microservices':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/passport':
         specifier: ^10.0.3
         version: 10.0.3(@nestjs/common@10.0.0)(passport@0.7.0)
@@ -878,8 +896,8 @@ importers:
         specifier: ^13.1.2
         version: 13.1.2
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.0.0
@@ -904,16 +922,16 @@ importers:
         version: link:../../prisma
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/microservices':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@paralleldrive/cuid2':
         specifier: ^3.0.4
         version: 3.0.4
@@ -939,8 +957,8 @@ importers:
         specifier: ^13.1.2
         version: 13.1.2
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.0.0
@@ -965,13 +983,13 @@ importers:
         version: link:../../prisma
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/passport':
         specifier: ^10.0.3
         version: 10.0.3(@nestjs/common@10.0.0)(passport@0.7.0)
@@ -1000,8 +1018,8 @@ importers:
         specifier: ^13.1.2
         version: 13.1.2
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.0.0
@@ -1029,16 +1047,16 @@ importers:
         version: link:../../prisma
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/microservices':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/passport':
         specifier: ^11.0.5
         version: 11.0.5(@nestjs/common@10.0.0)(passport@0.7.0)
@@ -1051,6 +1069,15 @@ importers:
       '@prisma/client':
         specifier: ^5.12.1
         version: 5.12.1(prisma@5.12.1)
+      amqp-connection-manager:
+        specifier: ^4.1.14
+        version: 4.1.14(amqplib@0.10.3)
+      amqplib:
+        specifier: ^0.10.3
+        version: 0.10.3
+      axios:
+        specifier: ^1.6.0
+        version: 1.13.2
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -1073,8 +1100,8 @@ importers:
         specifier: ^13.1.2
         version: 13.1.2
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.0.0
@@ -1102,13 +1129,13 @@ importers:
         version: link:../../prisma
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/passport':
         specifier: ^11.0.5
         version: 11.0.5(@nestjs/common@10.0.0)(passport@0.7.0)
@@ -1137,8 +1164,8 @@ importers:
         specifier: ^13.1.2
         version: 13.1.2
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.0.0
@@ -1166,13 +1193,13 @@ importers:
         version: link:../../prisma
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/passport':
         specifier: ^11.0.5
         version: 11.0.5(@nestjs/common@10.0.0)(passport@0.7.0)
@@ -1204,8 +1231,8 @@ importers:
         specifier: ^13.1.2
         version: 13.1.2
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.0.0
@@ -1227,10 +1254,10 @@ importers:
     dependencies:
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/platform-express':
         specifier: ^10.0.0
         version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)
@@ -1267,13 +1294,13 @@ importers:
         version: link:../prisma
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/config':
         specifier: ^3.2.2
         version: 3.2.2(@nestjs/common@10.0.0)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/passport':
         specifier: ^10.0.0
         version: 10.0.3(@nestjs/common@10.0.0)(passport@0.7.0)
@@ -1290,8 +1317,8 @@ importers:
         specifier: ^0.14.1
         version: 0.14.1
       reflect-metadata:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: 0.1.14
+        version: 0.1.14
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.0.0
@@ -1313,10 +1340,10 @@ importers:
     dependencies:
       '@nestjs/common':
         specifier: ^10.0.0
-        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^10.0.0
-        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+        version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/platform-express':
         specifier: ^10.0.0
         version: 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)
@@ -4719,7 +4746,7 @@ packages:
       - webpack-cli
     dev: true
 
-  /@nestjs/common@10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2):
+  /@nestjs/common@10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2):
     resolution: {integrity: sha512-Fa2GDQJrO5TTTcpISWfm0pdPS62V+8YbxeG5CA01zMUI+dCO3v3oFf+BSjqCGUUo7GDNzDsjAejwGXuqA54RPw==}
     peerDependencies:
       class-transformer: '*'
@@ -4735,7 +4762,7 @@ packages:
       class-transformer: 0.5.1
       class-validator: 0.14.1
       iterare: 1.2.1
-      reflect-metadata: 0.2.0
+      reflect-metadata: 0.1.14
       rxjs: 7.8.2
       tslib: 2.5.3
       uid: 2.0.2
@@ -4746,7 +4773,7 @@ packages:
       '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0
       rxjs: ^7.1.0
     dependencies:
-      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       dotenv: 16.4.5
       dotenv-expand: 10.0.0
       lodash: 4.17.21
@@ -4754,7 +4781,7 @@ packages:
       uuid: 9.0.1
     dev: false
 
-  /@nestjs/core@10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2):
+  /@nestjs/core@10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2):
     resolution: {integrity: sha512-HFTdj4vsF+2qOaq97ZPRDle6Q/KyL5lmMah0/ZR0ie+e1/tnlvmlqw589xFACTemLJFFOjZMy763v+icO9u72w==}
     requiresBuild: true
     peerDependencies:
@@ -4772,14 +4799,14 @@ packages:
       '@nestjs/websockets':
         optional: true
     dependencies:
-      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
-      '@nestjs/microservices': 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/microservices': 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/platform-express': 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)
       '@nuxtjs/opencollective': 0.3.2
       fast-safe-stringify: 2.1.1
       iterare: 1.2.1
       path-to-regexp: 3.2.0
-      reflect-metadata: 0.2.0
+      reflect-metadata: 0.1.14
       rxjs: 7.8.2
       tslib: 2.5.3
       uid: 2.0.2
@@ -4791,12 +4818,12 @@ packages:
     peerDependencies:
       '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0
     dependencies:
-      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@types/jsonwebtoken': 9.0.5
       jsonwebtoken: 9.0.2
     dev: false
 
-  /@nestjs/microservices@10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.2.0)(rxjs@7.8.2):
+  /@nestjs/microservices@10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)(amqp-connection-manager@4.1.14)(amqplib@0.10.3)(reflect-metadata@0.1.14)(rxjs@7.8.2):
     resolution: {integrity: sha512-ZXMny2nUFPLWaFxlkwUlEYHmDWUFilkscMHaDbCMdYLVvRsNPm3nM2dBuunu/K+dqQIgUdNq+Yqo3C3tUyeAIA==}
     peerDependencies:
       '@grpc/grpc-js': '*'
@@ -4832,12 +4859,12 @@ packages:
       nats:
         optional: true
     dependencies:
-      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
-      '@nestjs/core': 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/core': 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       amqp-connection-manager: 4.1.14(amqplib@0.10.3)
       amqplib: 0.10.3
       iterare: 1.2.1
-      reflect-metadata: 0.2.0
+      reflect-metadata: 0.1.14
       rxjs: 7.8.2
       tslib: 2.5.3
 
@@ -4847,7 +4874,7 @@ packages:
       '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0
       passport: ^0.4.0 || ^0.5.0 || ^0.6.0 || ^0.7.0
     dependencies:
-      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       passport: 0.7.0
     dev: false
 
@@ -4857,7 +4884,7 @@ packages:
       '@nestjs/common': ^10.0.0 || ^11.0.0
       passport: ^0.5.0 || ^0.6.0 || ^0.7.0
     dependencies:
-      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       passport: 0.7.0
     dev: false
 
@@ -4867,8 +4894,8 @@ packages:
       '@nestjs/common': ^10.0.0
       '@nestjs/core': ^10.0.0
     dependencies:
-      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
-      '@nestjs/core': 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/core': 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       body-parser: 1.20.2
       cors: 2.8.5
       express: 4.18.2
@@ -4905,8 +4932,8 @@ packages:
       '@nestjs/platform-express':
         optional: true
     dependencies:
-      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
-      '@nestjs/core': 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/core': 10.0.0(@nestjs/common@10.0.0)(@nestjs/microservices@10.0.0)(@nestjs/platform-express@10.0.0)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/platform-express': 10.0.0(@nestjs/common@10.0.0)(@nestjs/core@10.0.0)
       tslib: 2.8.1
     dev: true
@@ -14439,7 +14466,7 @@ packages:
       '@nestjs/common': ^8.0.0
       pino-http: ^6.4.0 || ^7.0.0 || ^8.0.0
     dependencies:
-      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       pino-http: 8.0.0
     dev: false
 
@@ -14452,7 +14479,7 @@ packages:
       pino-http: ^6.4.0 || ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
       rxjs: ^7.1.0
     dependencies:
-      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.2)
+      '@nestjs/common': 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       pino: 9.14.0
       pino-http: 11.0.0
       rxjs: 7.8.2
@@ -15848,9 +15875,8 @@ packages:
       strip-indent: 3.0.0
     dev: true
 
-  /reflect-metadata@0.2.0:
-    resolution: {integrity: sha512-vUN0wuk3MuhSVMfU/ImnPQAK8QZcXJ339DtVsP3jDscxCe6dT+PsOe3J1BYS9Ec2Fd4oC6ry6bCBebzTya0IYw==}
-    deprecated: This version has a critical bug in fallback handling. Please upgrade to reflect-metadata@0.2.2 or newer.
+  /reflect-metadata@0.1.14:
+    resolution: {integrity: sha512-ZhYeb6nRaXCfhnndflDK8qI6ZQ/YcWZCISRAWICW9XYqMUwjZM9Z0DveWX/ABN01oxSHwVxKQmxeYZSsm0jh5A==}
 
   /reflect.getprototypeof@1.0.10:
     resolution: {integrity: sha512-00o4I+DVrefhv+nX0ulyi3biSHCPDe+yLv5o/p6d/UVlirijB8E16FtfwSAi4g3tcqrQ4lRAqQSoFEZJehYEcw==}

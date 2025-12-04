@@ -14,7 +14,7 @@
         "@nestjs/platform-express": "^10.0.0",
         "@nestjs/config": "^3.2.2",
         "@flowsplit/prisma": "workspace:*",
-        "reflect-metadata": "^0.2.0",
+        "reflect-metadata": "0.1.14",
         "class-validator": "^0.14.1",
         "class-transformer": "^0.5.1",
         "@prisma/client": "^5.12.1"
