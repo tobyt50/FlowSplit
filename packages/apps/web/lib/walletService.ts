@@ -1,6 +1,7 @@
 import api from './api'; // Our configured, authenticated axios instance
 import { Wallet } from '../types/index';
 import { WalletType } from '../lib/enums';
+import { API_URLS } from './config';
 
 /**
  * A utility function to format a BigInt string (representing kobo/cents)
@@ -36,7 +37,7 @@ interface CreateWalletData {
 export const getWallets = async (): Promise<Wallet[]> => {
   try {
     const response = await api.get<Wallet[]>(
-      'http://localhost:4000/api/wallets' //actual service http://localhost:3102
+      `${API_URLS.MONOLITH}/wallets`
     );
     return response.data;
   } catch (error: any) {
@@ -53,7 +54,7 @@ export const getWallets = async (): Promise<Wallet[]> => {
 export const createWallet = async (data: CreateWalletData): Promise<Wallet> => {
   try {
     const response = await api.post<Wallet>(
-      'http://localhost:4000/api/wallets', // URL to the wallet-service POST endpoint
+      `${API_URLS.MONOLITH}/wallets`,
       data
     );
     return response.data;
@@ -68,7 +69,7 @@ export const createWallet = async (data: CreateWalletData): Promise<Wallet> => {
  */
 export const getWalletById = async (id: string): Promise<Wallet> => {
   try {
-    const response = await api.get<Wallet>(`http://localhost:4000/api/wallets/${id}`);
+    const response = await api.get<Wallet>(`${API_URLS.MONOLITH}/wallets/${id}`);
     return response.data;
   } catch (error: any) {
     console.error(`Failed to fetch wallet ${id}:`, error);
@@ -82,8 +83,8 @@ export const getWalletById = async (id: string): Promise<Wallet> => {
 export const deleteWallet = async (id: string, targetWalletId?: string): Promise<void> => {
   try {
     const url = targetWalletId 
-      ? `http://localhost:4000/api/wallets/${id}?targetWalletId=${targetWalletId}`
-      : `http://localhost:4000/api/wallets/${id}`;
+      ? `${API_URLS.MONOLITH}/wallets/${id}?targetWalletId=${targetWalletId}`
+      : `${API_URLS.MONOLITH}/wallets/${id}`;
       
     await api.delete(url);
   } catch (error: any) {
