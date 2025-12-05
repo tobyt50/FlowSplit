@@ -179,3 +179,18 @@ export interface Payout {
   completedAt: string | null;
   ledgerTransactionId: string | null;
 }
+
+export interface InsightPayload {
+  amount?: string;
+  currentRate?: number;
+  name?: string;
+  walletName?: string;
+}
+
+export interface AIInsight {
+  insightCode: string;
+  title: string;
+  description: string;
+  actionText: string | null;
+  payload: InsightPayload;
+}

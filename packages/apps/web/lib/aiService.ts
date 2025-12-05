@@ -1,22 +1,6 @@
-import api from './api'; // Our authenticated axios instance
+import { AIInsight } from '../types';
+import api from './api';
 import { API_URLS } from './config';
-
-// Matches the Pydantic 'InsightPayload' model
-export interface InsightPayload {
-  amount?: string;
-  currentRate?: number;
-  name?: string;
-  walletName?: string;
-}
-
-// Matches the Pydantic 'AIInsight' model
-export interface AIInsight {
-  insightCode: string;
-  title: string;
-  description: string;
-  actionText: string | null;
-  payload: InsightPayload;
-}
 
 /**
  * Fetches the single, highest-priority insight for the current user.

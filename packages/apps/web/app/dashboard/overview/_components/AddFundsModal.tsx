@@ -18,6 +18,7 @@ import { Copy, CheckCircle2, Loader2, Phone, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../../../../lib/api';
 import { updateUserProfile } from '../../../../lib/userService';
+import { API_URLS } from '../../../../lib/config';
 
 interface VirtualAccount {
   bankName: string;
@@ -62,7 +63,7 @@ export function AddFundsModal({ isOpen, onClose }: AddFundsModalProps) {
     setError(null);
     setIsMissingPhone(false);
     try {
-      const res = await api.get<VirtualAccount>('http://localhost:4000/api/transactions/virtual-account');
+      const res = await api.get<VirtualAccount>(`${API_URLS.MONOLITH}/transactions/virtual-account`);
       setAccount(res.data);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Could not retrieve account details.';

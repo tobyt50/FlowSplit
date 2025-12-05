@@ -4,7 +4,6 @@ import { User } from '../types/index';
 import { API_URLS } from './config';
 
 type RegisterData = {
-  fullName: string;
   email: string;
   phone: string;
   password: string;

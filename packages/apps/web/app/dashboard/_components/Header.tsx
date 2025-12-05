@@ -43,10 +43,13 @@ export function Header() {
     <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
       
       <div className="flex items-center gap-2 md:hidden">
-        <div className="relative h-8 w-8 overflow-hidden rounded-lg">
+        <div className="relative h-7 w-7 overflow-hidden rounded-[8px]">
              <Image src="/images/logo.jpg" alt="FlowSplit" fill className="object-cover" />
         </div>
-        <span className="font-bold text-foreground">FlowSplit</span>
+        <span className="text-lg tracking-wide font-bold transition-colors">
+                    <span className="text-foreground">Flow</span>
+                    <span className="text-teal">Split</span>
+        </span>
       </div>
 
       <div className="hidden md:flex flex-col">

@@ -3,23 +3,24 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { registerUser } from '../../../lib/authService';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../../../components/ui/Card';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Define the validation schema using Zod for type-safe form validation
+// Removed fullName from schema
 const formSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   email: z.email('Please enter a valid email address'),
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Enter a valid phone number (e.g. +234...)'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
-// Infer the TypeScript type from the schema
 type FormData = z.infer<typeof formSchema>;
 
 export default function RegisterPage() {
@@ -40,63 +41,110 @@ export default function RegisterPage() {
     setError(null);
     try {
       await registerUser(data);
+      toast.success('Account created!', {
+        description: `Your account has been successfully created. Please log in.`,
+      });
       router.push('/login?registered=true');
-      
-    toast.success('Account created!', {
-          description: `Your account has been successfully created.`,
-        });
-      } catch (err: any) {
-        toast.error('Creation Failed', {
-          description: err.message,
-        });
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
+    } catch (err: any) {
+      toast.error('Creation Failed', {
+        description: err.message,
+      });
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <>
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Create an Account</h1>
-        <p className="text-sm text-muted-foreground mt-2">
-          Split your income, save effortlessly, and stay on top of bills.
-        </p>
+      {/* Mobile Logo: Visible only on small screens */}
+      <div className="flex flex-col items-center gap-2 mb-2 lg:hidden">
+        <div className="relative h-12 w-12 rounded-xl overflow-hidden shadow-lg shadow-primary/20">
+           <Image src="/images/logo.jpg" alt="FlowSplit" fill className="object-cover" />
+        </div>
+        <span className="text-xl font-bold text-foreground tracking-tight">FlowSplit</span>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Full Name Field */}
-        <div>
-          <Input placeholder="Full Name" {...register('fullName')} disabled={isLoading} />
-          {errors.fullName && <p className="text-destructive text-xs mt-1">{errors.fullName.message}</p>}
-        </div>
+      <Card className="border-border bg-card shadow-xl">
+        <CardHeader className="space-y-1 text-center pb-6">
+          <CardTitle className="text-2xl font-bold tracking-tight">Create an Account</CardTitle>
+          <CardDescription>
+            Split income, save effortlessly, and master your finances.
+          </CardDescription>
+        </CardHeader>
 
-        {/* Email Field */}
-        <div>
-          <Input type="email" placeholder="Email Address" {...register('email')} disabled={isLoading} />
-          {errors.email && <p className="text-destructive text-xs mt-1">{errors.email.message}</p>}
-        </div>
+        <CardContent>
+          {error && (
+            <div className="mb-4 rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-center text-sm text-destructive font-medium">
+              {error}
+            </div>
+          )}
 
-        {/* Password Field */}
-        <div>
-          <Input type="password" placeholder="Password" {...register('password')} disabled={isLoading} />
-          {errors.password && <p className="text-destructive text-xs mt-1">{errors.password.message}</p>}
-        </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            
+            {/* Email */}
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium text-foreground">Email Address</label>
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="name@example.com" 
+                {...register('email')} 
+                disabled={isLoading}
+                className="bg-muted/50" 
+              />
+              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+            </div>
 
-        {/* Display general API errors */}
-        {error && <p className="text-destructive text-sm text-center">{error}</p>}
+            {/* Phone Number */}
+            <div className="space-y-2">
+              <label htmlFor="phone" className="text-sm font-medium text-foreground">Phone Number</label>
+              <Input 
+                id="phone" 
+                type="tel" 
+                placeholder="+234..." 
+                {...register('phone')} 
+                disabled={isLoading}
+                className="bg-muted/50" 
+              />
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
+            </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? 'Creating Account...' : 'Create Account'}
-        </Button>
-      </form>
+            {/* Password */}
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
+              <Input 
+                id="password" 
+                type="password" 
+                placeholder="Create a password" 
+                {...register('password')} 
+                disabled={isLoading}
+                className="bg-muted/50" 
+              />
+              {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+            </div>
 
-      <div className="text-center text-sm text-muted-foreground mt-6">
-        Already have an account?{' '}
-        <Link href="/login" className="text-primary hover:underline">
-          Sign In
-        </Link>
-      </div>
+            <Button type="submit" className="w-full mt-2" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
+            </Button>
+          </form>
+        </CardContent>
+
+        <CardFooter className="flex flex-col gap-4 text-center text-sm text-muted-foreground pt-0">
+          <div>
+            Already have an account?{' '}
+            <Link href="/login" className="text-primary hover:text-primary/80 font-medium underline-offset-4 hover:underline transition-colors">
+              Sign In
+            </Link>
+          </div>
+        </CardFooter>
+      </Card>
     </>
   );
 }

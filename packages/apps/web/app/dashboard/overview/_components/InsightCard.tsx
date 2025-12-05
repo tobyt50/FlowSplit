@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../../../components/ui/Button';
 import { Sparkles, TrendingUp, AlertTriangle, PiggyBank, ArrowRight } from 'lucide-react';
-import { AIInsight } from '../../../../lib/aiService';
+import { AIInsight } from '../../../../types/index';
 
 interface InsightCardProps {
   insight: AIInsight | null;

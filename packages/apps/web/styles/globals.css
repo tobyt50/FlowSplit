@@ -21,6 +21,8 @@
         --accent-foreground: 222.2 47.4% 11.2%;
         --destructive: 0 84.2% 60.2%;
         --destructive-foreground: 210 40% 98%;
+        --teal: 180 100% 30%;
+        --teal-foreground: 180 100% 95%;
         --border: 214.3 31.8% 91.4%;
         --input: 214.3 31.8% 91.4%;
         --ring: 221 83% 53%;
@@ -51,6 +53,8 @@
         --accent: 217 40% 13%;
         /* #162031 */
         --accent-foreground: 210 20% 98%;
+        --teal: 180 70% 40%;
+        --teal-foreground: 180 100% 10%;
         --destructive: 0 70% 45%;
         --destructive-foreground: 210 40% 98%;
         /* Borders: barely perceptible lift */
@@ -67,5 +71,20 @@
     }
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+@layer utilities {
+    .teal {
+        color: hsl(var(--teal));
+    }
+    .bg-teal {
+        background-color: hsl(var(--teal));
+    }
+    .text-teal {
+        color: hsl(var(--teal));
+    }
+    .border-teal {
+        border-color: hsl(var(--teal));
     }
 }

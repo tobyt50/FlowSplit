@@ -69,11 +69,14 @@ export function Sidebar() {
         <div className="flex h-full flex-col gap-4">
           <div className="flex h-[80px] items-center px-6">
             <Link href="/dashboard" className="flex items-center gap-3 font-semibold group">
-               <div className="relative h-8 w-8 overflow-hidden rounded-xl border border-border shadow-lg shadow-primary/10 transition-transform duration-300 group-hover:scale-105">
+               <div className="relative h-8 w-8 overflow-hidden rounded-[8px] border border-border shadow-lg shadow-primary/10 transition-transform duration-300 group-hover:scale-105">
                  <Image src="/images/logo.jpg" alt="FlowSplit" fill className="object-cover" priority />
                </div>
               <div className="flex flex-col">
-                  <span className="text-lg text-foreground tracking-wide font-bold group-hover:text-primary transition-colors">FlowSplit</span>
+                  <span className="text-lg tracking-wide font-bold transition-colors">
+                    <span className="text-foreground">Flow</span>
+                    <span className="text-teal">Split</span>
+                  </span>
                   <span className="text-xs text-muted-foreground">Finance Manager</span>
               </div>
             </Link>
@@ -110,26 +113,48 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* --- MOBILE BOTTOM DOCK (Corrected & Compact) --- */}
-      <div className="md:hidden fixed bottom-4 left-4 right-4 z-50 h-16 rounded-2xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-black/5 dark:ring-white/10">
+      {/* --- MOBILE BOTTOM DOCK (Full-width with Top Glow) --- */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-14 bg-background/80 backdrop-blur-xl">
+        
+        {/* The GLOW effect container */}
+        <div className="absolute -top-px left-0 w-full h-8 pointer-events-none [mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)]">
+            <svg 
+              className="absolute top-0 left-0 w-full h-auto [filter:drop-shadow(0_-1px_3px_hsl(var(--primary)/0.9))]"
+              viewBox="0 0 320 18" 
+              fill="none" 
+              preserveAspectRatio="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+                {/* This path draws the curved line with a dip in the middle */}
+                <path 
+                    d="M 0 10 A 10 10 0 0 1 10 0 H 125 C 130 0, 135 4, 140 10 L 145 15 C 150 20, 170 20, 175 15 L 180 10 C 185 4, 190 0, 195 0 H 310 A 10 10 0 0 1 320 10" 
+                    className="stroke-primary"
+                    strokeWidth="0.5"
+                />
+            </svg>
+        </div>
+
         <nav className="flex items-center justify-between h-full px-2">
           
           <div className="flex flex-1 justify-around">
             {mobileLeftItems.map(renderMobileNavItem)}
           </div>
 
-          <div className="relative -top-5 shrink-0">
+          <div className="relative -top-4 shrink-0">
             <button 
               onClick={handleOpenDeposit}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/40 ring-4 ring-background transition-transform active:scale-95"
+              // Increased size to h-[52px] w-[52px] (approx h-13)
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/40 ring-4 ring-background transition-transform active:scale-95"
             >
-              <Plus className="h-7 w-7" />
+              <Plus className="h-6 w-6" />
             </button>
           </div>
 
           <div className="flex flex-1 justify-around">
             {mobileRightItems.map(renderMobileNavItem)}
           </div>
+
         </nav>
       </div>
     </>

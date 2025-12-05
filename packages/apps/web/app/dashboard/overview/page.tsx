@@ -19,7 +19,8 @@ import { AddFundsModal } from './_components/AddFundsModal';
 import { getWallets } from '../../../lib/walletService';
 import { getRules } from '../../../lib/ruleService';
 import { getTransactions } from '../../../lib/transactionService';
-import { getAIInsight, AIInsight } from '../../../lib/aiService';
+import { getAIInsight } from '../../../lib/aiService';
+import { AIInsight } from '../../../types/index';
 import {
   getUpcomingBills,
   getCashFlow,
