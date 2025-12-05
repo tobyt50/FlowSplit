@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Wallet, SplitRule, Transaction } from '@flowsplit/prisma';
+import { Wallet, SplitRule, Transaction } from '../../../../types/index';
 import { formatCurrency } from '../../../../lib/walletService';
 import { ArrowUpRight, Wallet as WalletIcon, PiggyBank, Activity } from 'lucide-react';
 import { Card } from '../../../../components/ui/Card';
@@ -40,10 +40,10 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
   const { wallets } = data;
 
   const metrics = useMemo(() => {
-    const totalBalance = wallets.reduce((sum, wallet) => sum + wallet.balance, 0n);
+    const totalBalance = wallets.reduce((sum, wallet) => sum + BigInt(wallet.balance), 0n);
     const totalSaved = wallets
       .filter((w) => w.type === 'SAVINGS')
-      .reduce((sum, wallet) => sum + wallet.balance, 0n);
+      .reduce((sum, wallet) => sum + BigInt(wallet.balance), 0n);
     const activeWallets = wallets.length;
     return { totalBalance, totalSaved, activeWallets };
   }, [wallets]);
