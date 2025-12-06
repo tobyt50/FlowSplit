@@ -55,11 +55,14 @@ export default function LoginPage() {
         Only visible on small screens (lg:hidden) to establish branding 
         since the left sidebar image is hidden.
       */}
-      <div className="flex flex-col items-center gap-2 mb-2 lg:hidden">
+      <div className="flex flex-col items-center gap-2 -mt-24 mb-2 lg:hidden">
         <div className="relative h-12 w-12 rounded-xl overflow-hidden shadow-lg shadow-primary/20">
            <Image src="/images/logo.jpg" alt="FlowSplit" fill className="object-cover" />
         </div>
-        <span className="text-xl font-bold text-foreground tracking-tight">FlowSplit</span>
+        <span className="text-lg tracking-wide font-bold transition-colors">
+                    <span className="text-foreground">Flow</span>
+                    <span className="text-teal">Split</span>
+                  </span>
       </div>
 
       <Card className="border-border bg-card shadow-xl">
