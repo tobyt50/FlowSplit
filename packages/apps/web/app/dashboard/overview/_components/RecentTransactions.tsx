@@ -36,7 +36,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
 
   if (transactions.length === 0) {
       return (
-        <Card className="h-full flex flex-col items-center justify-center text-center p-6 bg-card border-border min-h-[300px]">
+        <Card className="h-[430px] flex flex-col items-center justify-center text-center p-6 bg-card border-border min-h-[300px]">
             <div className="h-14 w-14 rounded-full bg-muted/50 flex items-center justify-center mb-4">
                 <History className="h-7 w-7 text-muted-foreground opacity-50" />
             </div>
@@ -46,7 +46,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   }
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden bg-card border-border min-h-[400px]">
+    <Card className="h-[430px] flex flex-col overflow-hidden bg-card border-border min-h-[400px]">
       <CardHeader className="flex flex-row items-center justify-between pb-2 pt-5 px-5 shrink-0">
         <CardTitle className="text-lg">Recent Data</CardTitle>
       </CardHeader>

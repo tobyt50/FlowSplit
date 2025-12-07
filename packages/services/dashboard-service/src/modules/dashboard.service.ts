@@ -194,47 +194,39 @@ export class DashboardService {
   async getLastSplitBreakdown(userId: string): Promise<LastSplitBreakdown | null> {
     this.logger.log(`Fetching last split breakdown for user ${userId}`);
 
-    // 1. Find the most recent external transaction record that was successfully split.
+    // 1. Find the most recent external transaction record that was successfully split
+    //    AND has a ledger transaction linked to it.
     const lastDeposit = await this.prisma.transaction.findFirst({
       where: {
         userId,
         type: TransactionType.CREDIT,
-        splitApplied: true, // Critically, we only look for splits that have happened
+        splitApplied: true,
+        ledgerTransactionId: {
+          not: null, // Ensure the link exists
+        },
       },
       orderBy: {
-        completedAt: 'desc',
+        completedAt: 'desc', // Use completedAt for more accuracy
       },
     });
 
-    if (!lastDeposit) {
-      this.logger.log(`No split deposits found for user ${userId}`);
-      return null; // Return null if the user has never had a split
+    if (!lastDeposit || !lastDeposit.ledgerTransactionId) {
+      this.logger.log(`No split deposits with a linked ledger found for user ${userId}`);
+      return null;
     }
 
-    // 2. Find the corresponding LedgerTransaction for the split.
-    // We can identify it by looking for a transaction that DEBITS the user's SOURCE wallet
-    // for the exact amount of the deposit, happening shortly after the deposit.
-    const userSourceWallet = await this.prisma.wallet.findFirst({
-      where: { userId, type: WalletType.SOURCE },
-    });
-    if (!userSourceWallet) return null;
-
-    const splitLedgerTx = await this.prisma.ledgerTransaction.findFirst({
+    // 2. --- THE CRITICAL FIX ---
+    // Directly fetch the LedgerTransaction using the foreign key.
+    // This is guaranteed to be the correct one.
+    const splitLedgerTx = await this.prisma.ledgerTransaction.findUnique({
       where: {
-        description: {
-          contains: `Split for deposit ref: ${lastDeposit.reference}`,
-        },
-        entries: {
-          some: {
-            walletId: userSourceWallet.id,
-            type: LedgerEntryType.DEBIT,
-            amount: lastDeposit.amount,
-          },
-        },
+        id: lastDeposit.ledgerTransactionId,
       },
       include: {
-        // Include all entries for this transaction, along with the wallet names
         entries: {
+          where: {
+            type: LedgerEntryType.CREDIT, // We only need the credit allocations
+          },
           include: {
             wallet: {
               select: { name: true },
@@ -245,19 +237,16 @@ export class DashboardService {
     });
 
     if (!splitLedgerTx) {
-      this.logger.warn(`Could not find a matching split ledger transaction for deposit ${lastDeposit.id}`);
+      this.logger.warn(`Data inconsistency: Linked ledger transaction ${lastDeposit.ledgerTransactionId} not found for deposit ${lastDeposit.id}`);
       return null;
     }
 
-    // 3. Format the data for the frontend
-    const allocations: SplitAllocation[] = splitLedgerTx.entries
-      // We only care about the CREDIT entries for the breakdown
-      .filter(entry => entry.type === LedgerEntryType.CREDIT)
-      .map(entry => ({
-        walletId: entry.walletId,
-        walletName: entry.wallet.name,
-        amount: entry.amount,
-      }));
+    // 3. Format the data for the frontend (this is now simpler)
+    const allocations: SplitAllocation[] = splitLedgerTx.entries.map(entry => ({
+      walletId: entry.walletId,
+      walletName: entry.wallet.name,
+      amount: entry.amount,
+    }));
 
     return {
       depositTransactionId: lastDeposit.id,

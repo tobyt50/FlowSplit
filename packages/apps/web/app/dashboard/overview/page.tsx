@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wallet, SplitRule, Transaction, AIInsight, SplitType } from '../../../types/index';
+import { Wallet, SplitRule, Transaction, AIInsight } from '../../../types/index';
 import { toast } from 'sonner';
 
 // Components
@@ -16,7 +16,7 @@ import { CashFlowChart } from './_components/CashFlowChart';
 import { LastSplitBreakdown } from './_components/LastSplitBreakdown';
 import { AddFundsModal } from './_components/AddFundsModal';
 
-// New Modals for AI Actions
+// Modals
 import { InternalTransferModal } from './_components/InternalTransferModal';
 import { CreateRuleForm } from '../rules/_components/CreateRuleForm';
 import { EditRuleForm } from '../rules/_components/EditRuleForm';
@@ -53,14 +53,10 @@ export default function OverviewPage() {
   
   // Modal States
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false);
-  
-  // AI Action States
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferProps, setTransferProps] = useState<{ fromId?: string, amount?: string }>({});
-
   const [isEditRuleOpen, setIsEditRuleOpen] = useState(false);
   const [ruleToEdit, setRuleToEdit] = useState<SplitRule | null>(null);
-
   const [isCreateRuleOpen, setIsCreateRuleOpen] = useState(false);
   const [createRuleDefaults, setCreateRuleDefaults] = useState<{ name?: string, value?: number, isBill?: boolean }>({});
 
@@ -112,10 +108,8 @@ export default function OverviewPage() {
     return () => document.removeEventListener('open-add-funds-modal', openModalHandler);
   }, []);
 
-  // --- THE BRAIN: Routing AI Insights to Actions ---
   const handleAIAction = (insight: AIInsight) => {
     switch (insight.insightCode) {
-      // 1. UNALLOCATED FUNDS -> Transfer Modal
       case 'UNALLOCATED_FUNDS': {
         const sourceWallet = dashboardData?.wallets.find(w => w.type === 'SOURCE');
         setTransferProps({
@@ -125,8 +119,6 @@ export default function OverviewPage() {
         setIsTransferModalOpen(true);
         break;
       }
-
-      // 2. LOW SAVINGS -> Edit Rule Modal
       case 'LOW_SAVINGS_RATE': {
         const ruleId = insight.payload.ruleId;
         if (ruleId && dashboardData) {
@@ -138,20 +130,15 @@ export default function OverviewPage() {
         }
         break;
       }
-
-      // 3. NEW SUBSCRIPTION -> Create Rule Modal (Pre-filled)
       case 'NEW_SUBSCRIPTION_DETECTED': {
         setCreateRuleDefaults({
           name: insight.payload.name,
-          // Convert string amount from API (kobo) to number (Naira) for form
           value: insight.payload.amount ? Number(insight.payload.amount) / 100 : undefined,
           isBill: true,
         });
         setIsCreateRuleOpen(true);
         break;
       }
-
-      // 4. VELOCITY -> Deep Link to Wallet Details
       case 'HIGH_SPENDING_VELOCITY': {
         const walletId = insight.payload.walletId;
         if (walletId) {
@@ -181,76 +168,78 @@ export default function OverviewPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-24 md:pb-10">
       
-      {/* --- SECTION 1: Top Metrics & Charts --- */}
+      {/* --- Main Dashboard Grid --- */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Main Content (Left) */}
-        <div className="col-span-1 lg:col-span-8 space-y-6">
-          {/* Top Assets (2x2 Grid on Mobile, Row on Desktop) */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between px-1">
+        {/* Left Column (Main Metrics & Charts) - Spans 8 cols */}
+        <div className="col-span-1 lg:col-span-8 flex flex-col gap-6">
+          
+          {/* 1. Overview Cards (Top) */}
+          <div>
+            <div className="flex items-center justify-between px-1 mb-4">
               <h2 className="text-lg font-semibold text-foreground">Top Financial Assets</h2>
               <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md border border-border">
                 Real-time
               </span>
             </div>
-            
             <OverviewCards data={dashboardData}>
-                <CashFlowChart data={dashboardData.cashFlow} compact />
+                {/* Mobile-only compact chart */}
+                <div className="lg:hidden">
+                    <CashFlowChart data={dashboardData.cashFlow} compact />
+                </div>
             </OverviewCards>
           </div>
 
-          {/* AI Insight - Wired to Handle Action */}
-          {dashboardData.aiInsight && (
-            <InsightCard 
-              insight={dashboardData.aiInsight} 
-              onActionClick={() => handleAIAction(dashboardData.aiInsight!)}
-            />
-          )}
+          {/* 2. Insight & Last Split Row */}
+          {/* This grid allows them to sit side-by-side without pushing content down */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+               {dashboardData.aiInsight && (
+                  <InsightCard 
+                    insight={dashboardData.aiInsight} 
+                    onActionClick={() => handleAIAction(dashboardData.aiInsight!)}
+                  />
+               )}
+            </div>
+            <div className="lg:col-span-1">
+               {/* This component has a fixed height of 250px internally */}
+               <LastSplitBreakdown data={dashboardData.lastSplit} />
+            </div>
+          </div>
 
-          {/* Cash Flow Chart (Desktop Only - Full Version) */}
+          {/* 3. Cash Flow Chart (Full Width in Left Col) */}
           <div className="hidden lg:block bg-card border border-border rounded-2xl p-6 shadow-sm overflow-hidden">
             <h3 className="text-foreground font-medium mb-4">Cash Flow Analytics</h3>
             <CashFlowChart data={dashboardData.cashFlow} />
           </div>
         </div>
 
-        {/* Sidebar Content (Right) */}
-        <div className="col-span-1 lg:col-span-4 space-y-6">
+        {/* Right Column (Sidebar Widgets) - Spans 4 cols */}
+        <div className="col-span-1 lg:col-span-4 flex flex-col gap-6">
           <WalletBreakdown wallets={dashboardData.wallets} rules={dashboardData.rules} />
-          <LastSplitBreakdown data={dashboardData.lastSplit} />
+          {/* Transaction History now lives in the sidebar for better density */}
+          <div className="flex-1 min-h-[300px]">
+            <RecentTransactions transactions={dashboardData.transactions} />
+          </div>
         </div>
       </div>
 
-
-      {/* --- SECTION 2: Active Management --- */}
+      {/* --- Active Management Section (Bottom Full Width) --- */}
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-4 px-1">Active Management</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            <div className="h-full">
-                <ActiveRules
-                    rules={dashboardData.rules}
-                    wallets={dashboardData.wallets}
-                    onRuleToggle={fetchDashboardData}
-                />
-            </div>
-
-            <div className="h-full">
-                <UpcomingBills bills={dashboardData.upcomingBills} />
-            </div>
-
-            <div className="h-full">
-                <RecentTransactions transactions={dashboardData.transactions} />
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ActiveRules
+                rules={dashboardData.rules}
+                wallets={dashboardData.wallets}
+                onRuleToggle={fetchDashboardData}
+            />
+            <UpcomingBills bills={dashboardData.upcomingBills} />
         </div>
       </div>
 
+      {/* --- Modals --- */}
       <AddFundsModal isOpen={isAddFundsOpen} onClose={() => setIsAddFundsOpen(false)} />
-
-      {/* --- AI ACTION MODALS --- */}
       
-      {/* 1. Transfer Modal (Unallocated) */}
       <InternalTransferModal 
         isOpen={isTransferModalOpen}
         onClose={() => { setIsTransferModalOpen(false); setTransferProps({}); }}
@@ -259,7 +248,6 @@ export default function OverviewPage() {
         initialAmount={transferProps.amount}
       />
 
-      {/* 2. Edit Rule Modal (Low Savings) */}
       <Dialog open={isEditRuleOpen} onOpenChange={(open) => { setIsEditRuleOpen(open); if(!open) setRuleToEdit(null); }}>
         <DialogContent>
           <DialogHeader><DialogTitle>Optimize Savings Rule</DialogTitle></DialogHeader>
@@ -272,7 +260,6 @@ export default function OverviewPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 3. Create Rule Modal (New Subscription) */}
       <Dialog open={isCreateRuleOpen} onOpenChange={(open) => { setIsCreateRuleOpen(open); if(!open) setCreateRuleDefaults({}); }}>
         <DialogContent>
           <DialogHeader><DialogTitle>Automate New Bill</DialogTitle></DialogHeader>
@@ -282,7 +269,6 @@ export default function OverviewPage() {
           />
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }
