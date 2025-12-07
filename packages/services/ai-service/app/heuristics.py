@@ -21,14 +21,25 @@ def find_unallocated_funds(data: FinancialDataAccess):
 
 # --- Heuristic 2: Low Savings Rate ---
 def check_savings_rate(data: FinancialDataAccess):
-    percentage = data.get_primary_savings_rule_percentage()
-    if percentage and percentage < 10:
+    # We need to fetch the ID now too
+    data.cursor.execute("""
+        SELECT r.id, r.value FROM "SplitRule" r
+        JOIN "Wallet" w ON r."destinationWalletId" = w.id
+        WHERE r."userId" = %s AND r.type = 'PERCENTAGE' AND w.type = 'SAVINGS'
+        ORDER BY r.priority ASC LIMIT 1
+    """, (data.user_id,))
+    result = data.cursor.fetchone()
+
+    if result and result['value'] < 10:
         return {
             "insightCode": "LOW_SAVINGS_RATE",
             "title": "Boost Your Savings",
-            "description": f"You're currently allocating only {percentage}% to savings. Experts recommend 15-20%. Increasing your allocation could help you reach your goals much faster.",
+            "description": f"You're currently allocating only {result['value']}% to savings...",
             "actionText": "Review Savings Rule",
-            "payload": {"currentRate": percentage}
+            "payload": {
+                "currentRate": result['value'],
+                "ruleId": result['id'] # <-- NEW: Return the ID
+            }
         }
     return None
 
@@ -115,9 +126,12 @@ def check_spending_velocity(data: FinancialDataAccess):
              return {
                 "insightCode": "HIGH_SPENDING_VELOCITY",
                 "title": "Pacing Alert",
-                "description": f"You've already spent {int(percent_spent * 100)}% of your '{category}' budget, but only {int(percent_of_month_passed * 100)}% of the month has passed. You may want to slow your spending to stay on track.",
+                "description": f"You've already spent {int(percent_spent * 100)}% of your '{category}' budget...",
                 "actionText": "View Wallet History",
-                "payload": {"walletName": category}
+                "payload": {
+                    "walletName": category,
+                    "walletId": wallet_data['id'] # <-- NEW: Return the ID
+                }
             }
     return None
 

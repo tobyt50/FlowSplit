@@ -2,10 +2,10 @@
 
 import React, { useMemo } from 'react';
 import { Wallet, SplitRule, Transaction } from '../../../../types/index';
-import { formatCurrency } from '../../../../lib/walletService';
-import { ArrowUpRight, Wallet as WalletIcon, PiggyBank, Activity } from 'lucide-react';
+import { ArrowUpRight, Wallet as WalletIcon, PiggyBank, Zap } from 'lucide-react';
 import { Card } from '../../../../components/ui/Card';
 import { cn } from '../../../../lib/utils';
+import Link from 'next/link';
 
 interface OverviewCardsProps {
   data: {
@@ -16,39 +16,57 @@ interface OverviewCardsProps {
   children?: React.ReactNode; 
 }
 
-// Helper to handle really large numbers gracefully
-const formatCompactNumber = (amount: bigint) => {
-  const num = Number(amount);
+// --- SMART FORMATTER ---
+const formatSmartNumber = (amount: bigint) => {
+  // 1. Convert Kobo to Naira
+  const nairaAmount = Number(amount) / 100;
   
-  if (num >= 1_000_000_000) {
+  // 2. Case: 9 figures or more (≥ 100 Million) -> Use M, B, T
+  if (nairaAmount >= 100_000_000) {
     return new Intl.NumberFormat('en-NG', {
-      style: 'currency', currency: 'NGN', notation: 'compact', maximumFractionDigits: 2
-    }).format(num);
-  }
-  
-  if (num >= 1_000_000) {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency', currency: 'NGN', notation: 'compact', maximumFractionDigits: 2
-    }).format(num);
+      style: 'currency', 
+      currency: 'NGN', 
+      notation: 'compact', 
+      maximumFractionDigits: 1 
+    }).format(nairaAmount);
   }
 
-  // Fallback to standard formatting for smaller numbers
-  return formatCurrency(amount);
+  // 3. Case: 7 or 8 figures (1 Million to 99.99 Million) -> Hide Kobo, show full text
+  if (nairaAmount >= 1_000_000) {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0, // Explicitly remove decimals
+    }).format(nairaAmount);
+  }
+
+  // 4. Case: Less than 1 Million -> Show full detail with Kobo
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    minimumFractionDigits: 2,
+  }).format(nairaAmount);
 };
 
 export function OverviewCards({ data, children }: OverviewCardsProps) {
-  const { wallets } = data;
+  const { wallets, rules } = data;
 
   const metrics = useMemo(() => {
+    // Summing BigInts (Kobo)
     const totalBalance = wallets.reduce((sum, wallet) => sum + BigInt(wallet.balance), 0n);
     const totalSaved = wallets
       .filter((w) => w.type === 'SAVINGS')
       .reduce((sum, wallet) => sum + BigInt(wallet.balance), 0n);
-    const activeWallets = wallets.length;
-    return { totalBalance, totalSaved, activeWallets };
-  }, [wallets]);
+    
+    // Calculate Active Rules instead of redundant wallet count
+    const activeRules = rules.filter(r => r.isActive).length;
 
-  const StatCard = ({ title, value, subValue, icon: Icon, theme }: any) => (
+    return { totalBalance, totalSaved, activeRules };
+  }, [wallets, rules]);
+
+  const StatCard = ({ title, value, subValue, subtitle, icon: Icon, theme, href }: any) => (
+    <Link href={href} className="block group">
     <div 
       className={cn(
         "group relative rounded-2xl p-[1px] h-[140px] md:h-auto transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
@@ -69,7 +87,7 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
             </div>
             <div>
               <p className="text-[10px] md:text-xs font-medium text-muted-foreground leading-tight">{title}</p>
-              <p className="hidden md:block text-sm font-semibold text-foreground">FlowSplit Asset</p>
+              <p className="hidden md:block text-sm font-semibold text-foreground">{subtitle}</p>
             </div>
           </div>
           <div className="hidden md:flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background/50 text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary cursor-pointer">
@@ -79,14 +97,8 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
 
         {/* Value Section */}
         <div className="relative z-10 mt-1 md:mt-6">
-          <p className="hidden md:block text-xs text-muted-foreground mb-1">Current Balance</p>
+          <p className="hidden md:block text-xs text-muted-foreground mb-1">Current Metric</p>
           <div className="flex items-end gap-2">
-             {/* 
-                MOBILE TRICK: 
-                - scale-y-110: Stretches the font vertically to look "Tall".
-                - tracking-tighter: Squeezes letters slightly to compensate for the stretch.
-                - text-2xl: Large base size for mobile.
-             */}
              <h3 className="text-xl md:text-2xl font-bold text-foreground tracking-tighter transform scale-y-110 origin-bottom-left md:transform-none md:tracking-tight truncate max-w-full">
                 {value}
              </h3>
@@ -94,7 +106,7 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
           <div className="mt-2 md:mt-2 flex items-center gap-2">
               <div className="flex items-center text-green-500 bg-green-500/10 px-1 py-0.5 md:px-1.5 rounded text-[9px] md:text-[10px] font-bold border border-green-500/20">
                 <ArrowUpRight className="h-2.5 w-2.5 mr-1" />
-                2.4%
+                Active
               </div>
               <span className="hidden md:inline text-xs text-muted-foreground">{subValue}</span>
           </div>
@@ -118,15 +130,18 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
         </div>
       </Card>
     </div>
+    </Link>
   );
 
   return (
     <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-3">
       <StatCard 
         title="Total Balance" 
-        value={formatCompactNumber(metrics.totalBalance)}  
+        subtitle="Available Liquidity"
+        value={formatSmartNumber(metrics.totalBalance)}  
         subValue="Across all wallets"
         icon={WalletIcon}
+        href="/dashboard/wallets"
         theme={{
             borderGradient: "from-blue-500/60",
             innerGradient: "from-blue-500/10 to-transparent",
@@ -137,9 +152,11 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
       />
       <StatCard 
         title="Total Saved" 
-        value={formatCompactNumber(metrics.totalSaved)} 
+        subtitle="Secure Reserves"
+        value={formatSmartNumber(metrics.totalSaved)} 
         subValue="In savings buckets"
         icon={PiggyBank}
+        href="/dashboard/wallets"
         theme={{
             borderGradient: "from-amber-500/60",
             innerGradient: "from-amber-500/10 to-transparent",
@@ -149,10 +166,12 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
         }}
       />
       <StatCard 
-        title="Active Wallets" 
-        value={metrics.activeWallets.toString()} 
-        subValue="Operational wallets"
-        icon={Activity}
+        title="Active Rules" 
+        subtitle="Automation Engine"
+        value={metrics.activeRules.toString()} 
+        subValue="Splits running"
+        icon={Zap}
+        href="/dashboard/rules"
         theme={{
             borderGradient: "from-pink-500/60",
             innerGradient: "from-pink-500/10 to-transparent",

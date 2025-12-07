@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Wallet, SplitRule, Transaction } from '../../../types/index';
+import { useRouter } from 'next/navigation';
+import { Wallet, SplitRule, Transaction, AIInsight, SplitType } from '../../../types/index';
 import { toast } from 'sonner';
 
 // Components
@@ -15,12 +16,17 @@ import { CashFlowChart } from './_components/CashFlowChart';
 import { LastSplitBreakdown } from './_components/LastSplitBreakdown';
 import { AddFundsModal } from './_components/AddFundsModal';
 
+// New Modals for AI Actions
+import { InternalTransferModal } from './_components/InternalTransferModal';
+import { CreateRuleForm } from '../rules/_components/CreateRuleForm';
+import { EditRuleForm } from '../rules/_components/EditRuleForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/Dialog';
+
 // Services
 import { getWallets } from '../../../lib/walletService';
 import { getRules } from '../../../lib/ruleService';
 import { getTransactions } from '../../../lib/transactionService';
 import { getAIInsight } from '../../../lib/aiService';
-import { AIInsight } from '../../../types/index';
 import {
   getUpcomingBills,
   getCashFlow,
@@ -40,10 +46,23 @@ interface FullDashboardData {
 }
 
 export default function OverviewPage() {
+  const router = useRouter();
   const [dashboardData, setDashboardData] = useState<FullDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Modal States
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false);
+  
+  // AI Action States
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferProps, setTransferProps] = useState<{ fromId?: string, amount?: string }>({});
+
+  const [isEditRuleOpen, setIsEditRuleOpen] = useState(false);
+  const [ruleToEdit, setRuleToEdit] = useState<SplitRule | null>(null);
+
+  const [isCreateRuleOpen, setIsCreateRuleOpen] = useState(false);
+  const [createRuleDefaults, setCreateRuleDefaults] = useState<{ name?: string, value?: number, isBill?: boolean }>({});
 
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true);
@@ -93,6 +112,56 @@ export default function OverviewPage() {
     return () => document.removeEventListener('open-add-funds-modal', openModalHandler);
   }, []);
 
+  // --- THE BRAIN: Routing AI Insights to Actions ---
+  const handleAIAction = (insight: AIInsight) => {
+    switch (insight.insightCode) {
+      // 1. UNALLOCATED FUNDS -> Transfer Modal
+      case 'UNALLOCATED_FUNDS': {
+        const sourceWallet = dashboardData?.wallets.find(w => w.type === 'SOURCE');
+        setTransferProps({
+          fromId: sourceWallet?.id,
+          amount: insight.payload.amount,
+        });
+        setIsTransferModalOpen(true);
+        break;
+      }
+
+      // 2. LOW SAVINGS -> Edit Rule Modal
+      case 'LOW_SAVINGS_RATE': {
+        const ruleId = insight.payload.ruleId;
+        if (ruleId && dashboardData) {
+          const rule = dashboardData.rules.find(r => r.id === ruleId);
+          if (rule) {
+            setRuleToEdit(rule);
+            setIsEditRuleOpen(true);
+          }
+        }
+        break;
+      }
+
+      // 3. NEW SUBSCRIPTION -> Create Rule Modal (Pre-filled)
+      case 'NEW_SUBSCRIPTION_DETECTED': {
+        setCreateRuleDefaults({
+          name: insight.payload.name,
+          // Convert string amount from API (kobo) to number (Naira) for form
+          value: insight.payload.amount ? Number(insight.payload.amount) / 100 : undefined,
+          isBill: true,
+        });
+        setIsCreateRuleOpen(true);
+        break;
+      }
+
+      // 4. VELOCITY -> Deep Link to Wallet Details
+      case 'HIGH_SPENDING_VELOCITY': {
+        const walletId = insight.payload.walletId;
+        if (walletId) {
+          router.push(`/dashboard/wallets/${walletId}`);
+        }
+        break;
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-[50vh] items-center justify-center text-primary animate-pulse">
@@ -126,18 +195,18 @@ export default function OverviewPage() {
               </span>
             </div>
             
-            {/* 
-              Pass the compact chart as a child. 
-              OverviewCards will render it in the 4th grid slot on mobile 
-              and hide it on desktop.
-            */}
             <OverviewCards data={dashboardData}>
                 <CashFlowChart data={dashboardData.cashFlow} compact />
             </OverviewCards>
           </div>
 
-          {/* AI Insight */}
-          {dashboardData.aiInsight && <InsightCard insight={dashboardData.aiInsight} />}
+          {/* AI Insight - Wired to Handle Action */}
+          {dashboardData.aiInsight && (
+            <InsightCard 
+              insight={dashboardData.aiInsight} 
+              onActionClick={() => handleAIAction(dashboardData.aiInsight!)}
+            />
+          )}
 
           {/* Cash Flow Chart (Desktop Only - Full Version) */}
           <div className="hidden lg:block bg-card border border-border rounded-2xl p-6 shadow-sm overflow-hidden">
@@ -178,6 +247,42 @@ export default function OverviewPage() {
       </div>
 
       <AddFundsModal isOpen={isAddFundsOpen} onClose={() => setIsAddFundsOpen(false)} />
+
+      {/* --- AI ACTION MODALS --- */}
+      
+      {/* 1. Transfer Modal (Unallocated) */}
+      <InternalTransferModal 
+        isOpen={isTransferModalOpen}
+        onClose={() => { setIsTransferModalOpen(false); setTransferProps({}); }}
+        onSuccess={fetchDashboardData}
+        initialFromWalletId={transferProps.fromId}
+        initialAmount={transferProps.amount}
+      />
+
+      {/* 2. Edit Rule Modal (Low Savings) */}
+      <Dialog open={isEditRuleOpen} onOpenChange={(open) => { setIsEditRuleOpen(open); if(!open) setRuleToEdit(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Optimize Savings Rule</DialogTitle></DialogHeader>
+          {ruleToEdit && (
+            <EditRuleForm 
+              rule={ruleToEdit} 
+              onSuccess={() => { setIsEditRuleOpen(false); fetchDashboardData(); }} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 3. Create Rule Modal (New Subscription) */}
+      <Dialog open={isCreateRuleOpen} onOpenChange={(open) => { setIsCreateRuleOpen(open); if(!open) setCreateRuleDefaults({}); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Automate New Bill</DialogTitle></DialogHeader>
+          <CreateRuleForm 
+            defaults={createRuleDefaults}
+            onSuccess={() => { setIsCreateRuleOpen(false); fetchDashboardData(); }} 
+          />
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

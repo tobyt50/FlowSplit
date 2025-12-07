@@ -8,9 +8,10 @@ import { AIInsight } from '../../../../types/index';
 
 interface InsightCardProps {
   insight: AIInsight | null;
+  onActionClick?: () => void;
 }
 
-export function InsightCard({ insight }: InsightCardProps) {
+export function InsightCard({ insight, onActionClick }: InsightCardProps) {
   const router = useRouter();
 
   if (!insight || insight.insightCode === 'DEFAULT_GREETING') {
@@ -47,6 +48,13 @@ export function InsightCard({ insight }: InsightCardProps) {
   }
 
   const handleAction = () => {
+    // Prioritize the parent action handler (e.g. opening a modal)
+    if (onActionClick) {
+      onActionClick();
+      return;
+    }
+
+    // Fallback to default routing
     switch (insight.insightCode) {
       case 'UNALLOCATED_FUNDS':
         router.push('/dashboard/wallets'); 

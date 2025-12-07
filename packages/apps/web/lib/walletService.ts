@@ -1,5 +1,5 @@
 import api from './api'; // Our configured, authenticated axios instance
-import { Wallet } from '../types/index';
+import { UpdateWalletData, Wallet } from '../types/index';
 import { WalletType } from '../lib/enums';
 import { API_URLS } from './config';
 
@@ -90,5 +90,21 @@ export const deleteWallet = async (id: string, targetWalletId?: string): Promise
   } catch (error: any) {
     console.error(`Failed to delete wallet ${id}:`, error);
     throw new Error(error.response?.data?.message || 'Could not delete wallet.');
+  }
+};
+
+/**
+ * Updates a wallet's details.
+ */
+export const updateWallet = async (walletId: string, data: UpdateWalletData): Promise<Wallet> => {
+  try {
+    const response = await api.patch<Wallet>(
+      `${API_URLS.MONOLITH}/wallets/${walletId}`,
+      data
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error(`Failed to update wallet ${walletId}:`, error);
+    throw new Error(error.response?.data?.message || 'Could not update wallet.');
   }
 };

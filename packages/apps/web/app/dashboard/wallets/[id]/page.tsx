@@ -4,16 +4,21 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Wallet, Transaction } from '../../../../types/index';
 import { WalletType } from '../../../../lib/enums';
-import { getWallets } from '../../../../lib/walletService';
+import { getWalletById, formatCurrency } from '../../../../lib/walletService';
 import { getTransactions } from '../../../../lib/transactionService';
-import { formatCurrency } from '../../../../lib/walletService';
 import { Button } from '../../../../components/ui/Button';
 import { Card } from '../../../../components/ui/Card';
 import { Badge } from '../../../../components/ui/Badge';
+import { Progress } from '../../../../components/ui/Progress';
 import { DeleteWalletModal } from '../_components/DeleteWalletModal';
+import { WithdrawFundsModal } from '../_components/WithdrawFundsModal';
+import { EditWalletModal } from '../_components/EditWalletModal';
+import { InternalTransferModal } from '../../overview/_components/InternalTransferModal';
+import { AddFundsModal } from '../../overview/_components/AddFundsModal';
+import { toast } from 'sonner';
 import { 
   ArrowLeft, 
-  Pencil, 
+  Settings, 
   Trash2, 
   TrendingUp, 
   TrendingDown, 
@@ -23,7 +28,9 @@ import {
   History,
   ArrowDownLeft,
   ArrowUpRight,
-  ArrowRightLeft
+  ArrowRightLeft,
+  PlusCircle,
+  Banknote
 } from 'lucide-react';
 import { cn } from '../../../../lib/utils';
 
@@ -35,7 +42,6 @@ const getWalletTheme = (type: WalletType) => {
         color: "text-amber-500",
         bg: "bg-amber-500/10",
         border: "border-amber-500/20",
-        gradient: "from-amber-500/20 to-transparent",
         icon: PiggyBank
       };
     case 'BILL':
@@ -43,7 +49,6 @@ const getWalletTheme = (type: WalletType) => {
         color: "text-blue-500",
         bg: "bg-blue-500/10",
         border: "border-blue-500/20",
-        gradient: "from-blue-500/20 to-transparent",
         icon: ShieldCheck
       };
     default:
@@ -51,7 +56,6 @@ const getWalletTheme = (type: WalletType) => {
         color: "text-primary",
         bg: "bg-primary/10",
         border: "border-primary/20",
-        gradient: "from-primary/20 to-transparent",
         icon: Landmark
       };
   }
@@ -62,31 +66,29 @@ export default function WalletDetailsPage({ params }: { params: { id: string } }
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Modal States
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [isTransferOpen, setIsTransferOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isAddFundsOpen, setIsAddFundsOpen] = useState(false);
 
   // Fetch Wallet & Transactions
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. Fetch Wallet (Simulating getById by fetching all and filtering, replace with direct API if available)
-      const allWallets = await getWallets();
-      const foundWallet = allWallets.find(w => w.id === params.id);
-      
-      if (!foundWallet) {
-        router.push('/dashboard/wallets');
-        return;
-      }
-      setWallet(foundWallet);
+      // 1. Fetch specific wallet by ID
+      const walletData = await getWalletById(params.id);
+      setWallet(walletData);
 
-      // 2. Fetch Transactions (Simulating filter by wallet ID)
-      // In a real app, you'd pass ?walletId=... to the API
-      const allTx = await getTransactions();
-      const walletTx = allTx.filter(() => true 
-      ).slice(0, 10); // Limit to 10
-      setTransactions(walletTx);
+      // 2. Fetch Transactions filtered for this wallet
+      const allTx = await getTransactions(params.id);
+      setTransactions(allTx.slice(0, 10)); // Limit to 10 recent
 
     } catch (error) {
-      console.error(error);
+      toast.error('Could not load wallet details.');
+      router.push('/dashboard/wallets');
     } finally {
       setIsLoading(false);
     }
@@ -107,6 +109,12 @@ export default function WalletDetailsPage({ params }: { params: { id: string } }
   const theme = getWalletTheme(wallet.type);
   const Icon = theme.icon;
 
+  // Goal / Budget Calculations
+  const balance = Number(wallet.balance);
+  const target = Number(wallet.targetAmount || 0);
+  const progress = target > 0 ? Math.min(100, (balance / target) * 100) : 0;
+  const targetLabel = wallet.type === 'SAVINGS' ? 'Savings Goal' : 'Monthly Budget';
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-24 md:pb-10">
       
@@ -121,11 +129,16 @@ export default function WalletDetailsPage({ params }: { params: { id: string } }
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h2 className="text-lg font-semibold text-foreground">Wallet Details</h2>
+          <h2 className="text-lg font-semibold text-foreground">{wallet.name}</h2>
         </div>
         <div className="flex gap-2">
-            <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl border-border bg-background hover:bg-muted">
-                <Pencil className="h-4 w-4 text-muted-foreground" />
+            <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => setIsEditOpen(true)}
+                className="h-9 w-9 rounded-xl border-border bg-background hover:bg-muted"
+            >
+                <Settings className="h-4 w-4 text-muted-foreground" />
             </Button>
             <Button 
                 variant="outline" 
@@ -140,7 +153,7 @@ export default function WalletDetailsPage({ params }: { params: { id: string } }
 
       {/* --- HERO CARD --- */}
       <div className={cn(
-          "relative overflow-hidden rounded-3xl border p-6 md:p-8 flex flex-col justify-between min-h-[200px] shadow-sm transition-all",
+          "relative overflow-hidden rounded-3xl border p-6 md:p-8 flex flex-col justify-between min-h-[240px] shadow-sm transition-all",
           "bg-card",
           theme.border
       )}>
@@ -156,37 +169,43 @@ export default function WalletDetailsPage({ params }: { params: { id: string } }
             </Badge>
          </div>
 
-         <div className="relative z-10 mt-6">
-            <p className="text-sm font-medium text-muted-foreground mb-1">Total Balance</p>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-                {formatCurrency(wallet.balance, wallet.currency)}
-            </h1>
-            <p className="text-xs text-muted-foreground mt-2 opacity-80">
-                {wallet.name} • {wallet.currency}
-            </p>
+         <div className="relative z-10 mt-6 space-y-4">
+            <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Total Balance</p>
+                <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+                    {formatCurrency(wallet.balance, wallet.currency)}
+                </h1>
+            </div>
+
+            {/* Goal Progress Bar */}
+            <div className="space-y-2 max-w-md">
+                <div className="flex justify-between text-xs font-medium text-muted-foreground">
+                    <span>{targetLabel}: {target > 0 ? formatCurrency(wallet.targetAmount) : 'Not Set'}</span>
+                    <span>{progress.toFixed(0)}%</span>
+                </div>
+                <Progress value={progress} className="h-2" />
+            </div>
          </div>
       </div>
 
-      {/* --- STATS GRID --- */}
-      <div className="grid grid-cols-2 gap-4">
-         <Card className="bg-card/50 border-border shadow-sm p-4 flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <div className="p-1.5 rounded-full bg-green-500/10 text-green-500">
-                    <TrendingUp className="h-3 w-3" />
-                </div>
-                Total In
-            </div>
-            <p className="text-xl font-semibold text-foreground">{formatCurrency(BigInt(50000))}</p>
-         </Card>
-         <Card className="bg-card/50 border-border shadow-sm p-4 flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <div className="p-1.5 rounded-full bg-red-500/10 text-red-500">
-                    <TrendingDown className="h-3 w-3" />
-                </div>
-                Total Out
-            </div>
-            <p className="text-xl font-semibold text-foreground">{formatCurrency(BigInt(12000))}</p>
-         </Card>
+      {/* --- QUICK ACTIONS GRID --- */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+         <Button onClick={() => setIsAddFundsOpen(true)} variant="outline" className="h-20 flex-col gap-2 rounded-2xl border-dashed border-2 hover:border-primary hover:bg-primary/5">
+            <PlusCircle className="h-6 w-6 text-primary" />
+            <span className="text-xs font-medium">Add Funds</span>
+         </Button>
+         <Button onClick={() => setIsTransferOpen(true)} variant="outline" className="h-20 flex-col gap-2 rounded-2xl hover:bg-muted">
+            <ArrowRightLeft className="h-6 w-6 text-muted-foreground" />
+            <span className="text-xs font-medium">Transfer</span>
+         </Button>
+         <Button onClick={() => setIsWithdrawOpen(true)} variant="outline" className="h-20 flex-col gap-2 rounded-2xl hover:bg-muted">
+            <Banknote className="h-6 w-6 text-muted-foreground" />
+            <span className="text-xs font-medium">Withdraw</span>
+         </Button>
+         <Button onClick={() => setIsEditOpen(true)} variant="outline" className="h-20 flex-col gap-2 rounded-2xl hover:bg-muted">
+            <Settings className="h-6 w-6 text-muted-foreground" />
+            <span className="text-xs font-medium">Edit Goal</span>
+         </Button>
       </div>
 
       {/* --- TRANSACTIONS LIST --- */}
@@ -199,8 +218,9 @@ export default function WalletDetailsPage({ params }: { params: { id: string } }
 
         <div className="rounded-2xl border border-border bg-card overflow-hidden">
             {transactions.length === 0 ? (
-                <div className="p-8 text-center text-sm text-muted-foreground">
-                    No transactions found for this wallet.
+                <div className="p-12 text-center flex flex-col items-center justify-center gap-2">
+                    <History className="h-8 w-8 text-muted-foreground/30" />
+                    <p className="text-sm text-muted-foreground">No transactions yet.</p>
                 </div>
             ) : (
                 <div className="divide-y divide-border/40">
@@ -238,10 +258,33 @@ export default function WalletDetailsPage({ params }: { params: { id: string } }
         </div>
       </div>
 
+      {/* --- MODALS --- */}
       <DeleteWalletModal 
         isOpen={isDeleteOpen} 
         onClose={() => setIsDeleteOpen(false)} 
         walletToDelete={wallet}
+      />
+      <WithdrawFundsModal 
+        isOpen={isWithdrawOpen} 
+        onClose={() => setIsWithdrawOpen(false)} 
+        wallet={wallet} 
+        onSuccess={fetchData} 
+      />
+      <InternalTransferModal 
+        isOpen={isTransferOpen} 
+        onClose={() => setIsTransferOpen(false)} 
+        initialFromWalletId={wallet.id}
+        onSuccess={fetchData}
+      />
+      <EditWalletModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        wallet={wallet}
+        onSuccess={fetchData}
+      />
+      <AddFundsModal 
+        isOpen={isAddFundsOpen} 
+        onClose={() => setIsAddFundsOpen(false)} 
       />
     </div>
   );

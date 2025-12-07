@@ -37,6 +37,12 @@ export interface Wallet {
   createdAt: string;
   updatedAt: string;
   userId?: string | null;
+  targetAmount: string;
+}
+
+export interface UpdateWalletData {
+  name?: string;
+  targetAmount?: number; // kobo
 }
 
 export interface Account {
@@ -185,6 +191,8 @@ export interface InsightPayload {
   currentRate?: number;
   name?: string;
   walletName?: string;
+  ruleId?: string;
+  walletId?: string;
 }
 
 export interface AIInsight {

@@ -9,6 +9,7 @@ import { CreateWalletDto } from './dto/create-wallet.dto';
 import { Prisma, PrismaService, WalletType } from '@flowsplit/prisma';
 import { LedgerService } from '../ledger/ledger.service';
 import { createId } from '@paralleldrive/cuid2';
+import { UpdateWalletDto } from './dto/update-wallet.dto';
 
 type PrismaTransactionClient = Prisma.TransactionClient;
 
@@ -57,7 +58,7 @@ export class WalletsService {
   async findAllForUser(userId: string) {
     this.logger.log(`Fetching all wallets for user ${userId}`);
     return this.prisma.wallet.findMany({
-      where: { userId },
+      where: { userId, deletedAt: null },
       orderBy: { createdAt: 'asc' },
     });
   }
@@ -65,7 +66,7 @@ export class WalletsService {
   async findUserWalletById(userId: string, walletId: string) {
     this.logger.log(`Fetching wallet ${walletId} for user ${userId}`);
     const wallet = await this.prisma.wallet.findFirst({
-      where: { id: walletId, userId: userId },
+      where: { id: walletId, userId: userId, deletedAt: null },
     });
 
     if (!wallet) {
@@ -111,32 +112,32 @@ export class WalletsService {
 
   /**
    * Performs a "Sweep and Close" operation.
-   * 1. Checks balance.
-   * 2. If balance > 0, transfers ALL funds to a target wallet via Ledger.
-   * 3. Disables all split rules pointing to this wallet.
-   * 4. Deletes the wallet.
    */
   async deleteWallet(userId: string, walletId: string, targetWalletId?: string) {
     return this.prisma.$transaction(async (tx) => {
       // 1. Validate Ownership
-      const walletToDelete = await tx.wallet.findFirst({ where: { id: walletId, userId } });
-      if (!walletToDelete) throw new NotFoundException('Wallet to delete not found.');
+      const walletToDelete = await tx.wallet.findFirst({ 
+        where: { id: walletId, userId, deletedAt: null } 
+      });
+      if (!walletToDelete) throw new NotFoundException('Wallet not found or already deleted.');
 
-      if (walletToDelete.type === 'PERSONAL') {
-        throw new BadRequestException('Cannot delete your Primary Personal wallet.');
+      if (walletToDelete.type === 'SOURCE') {
+         throw new BadRequestException('Cannot delete the System Source wallet.');
+      }
+      if (walletToDelete.name === 'Primary') {
+        throw new BadRequestException('Cannot delete your Primary default wallet.');
       }
 
-      // 2. Handle Funds Transfer (Sweep)
+      // 2. Handle Funds Transfer (Sweep) - UNCHANGED
       if (walletToDelete.balance > 0n) {
         if (!targetWalletId) {
           throw new BadRequestException('This wallet has funds. You must specify a target wallet to transfer them to.');
         }
         
-        const targetWallet = await tx.wallet.findFirst({ where: { id: targetWalletId, userId } });
+        const targetWallet = await tx.wallet.findFirst({ where: { id: targetWalletId, userId, deletedAt: null } });
         if (!targetWallet) throw new NotFoundException('Target wallet not found.');
         if (targetWallet.id === walletToDelete.id) throw new BadRequestException('Target wallet cannot be the same as the deleted wallet.');
 
-        // Create Ledger Transaction for the Sweep
         await this.ledgerService.createTransaction(
           tx,
           { walletId: walletToDelete.id, amount: walletToDelete.balance },
@@ -144,25 +145,100 @@ export class WalletsService {
           `Wallet Closure: Sweep funds from ${walletToDelete.name} to ${targetWallet.name}`
         );
 
-        // Update Target Balance
         await tx.wallet.update({
           where: { id: targetWallet.id },
           data: { balance: { increment: walletToDelete.balance } },
         });
+        
+        // Zero out the deleted wallet's balance for clarity
+        await tx.wallet.update({
+            where: { id: walletToDelete.id },
+            data: { balance: 0n }
+        });
       }
 
-      // 3. Disable associated Split Rules
-      // We do not delete them, we disable them so the user sees their total % drop and can reallocate manually.
-      // Deleting/Recalculating automatically is dangerous assumptions.
+      // 3. Disable associated Split Rules - UNCHANGED
       await tx.splitRule.updateMany({
         where: { destinationWalletId: walletId },
-        data: { isActive: false, destinationWalletId: null }, // Detach the rule
+        data: { isActive: false, destinationWalletId: null },
       });
 
-      // 4. Delete the Wallet
-      await tx.wallet.delete({ where: { id: walletId } });
+      // 4. Soft Delete the Wallet - THE FIX
+      // Instead of .delete(), we update the deletedAt timestamp.
+      await tx.wallet.update({
+        where: { id: walletId },
+        data: { deletedAt: new Date() },
+      });
 
-      this.logger.log(`Wallet ${walletId} deleted by user ${userId}. Funds swept to ${targetWalletId || 'N/A'}.`);
+      this.logger.log(`Wallet ${walletId} closed (soft deleted) by user ${userId}.`);
+    });
+  }
+
+  /**
+   * Transfers funds between two wallets owned by the same user.
+   * Atomic and Ledger-backed.
+   */
+  async transferFunds(userId: string, fromWalletId: string, toWalletId: string, amount: bigint) {
+    if (fromWalletId === toWalletId) {
+      throw new BadRequestException('Source and destination wallets cannot be the same.');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Verify Ownership & Balances
+      const [source, destination] = await Promise.all([
+        tx.wallet.findFirst({ where: { id: fromWalletId, userId } }),
+        tx.wallet.findFirst({ where: { id: toWalletId, userId } }),
+      ]);
+
+      if (!source) throw new NotFoundException('Source wallet not found.');
+      if (!destination) throw new NotFoundException('Destination wallet not found.');
+      if (source.balance < amount) throw new BadRequestException('Insufficient funds.');
+
+      // 2. Create Ledger Record
+      await this.ledgerService.createTransaction(
+        tx,
+        { walletId: source.id, amount },
+        [{ walletId: destination.id, amount }],
+        `Internal Transfer: ${source.name} -> ${destination.name}`
+      );
+
+      // 3. Update Cached Balances
+      await tx.wallet.update({
+        where: { id: source.id },
+        data: { balance: { decrement: amount } },
+      });
+      await tx.wallet.update({
+        where: { id: destination.id },
+        data: { balance: { increment: amount } },
+      });
+
+      this.logger.log(`Transferred ${amount} from ${source.id} to ${destination.id}`);
+      return { success: true, from: source.name, to: destination.name, amount: amount.toString() };
+    });
+  }
+
+  /**
+   * Updates a wallet's metadata (Name, Target Amount).
+   */
+  async update(userId: string, walletId: string, data: UpdateWalletDto) {
+    const wallet = await this.prisma.wallet.findFirst({
+      where: { id: walletId, userId },
+    });
+
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found or you do not have permission to edit it.');
+    }
+
+    // Convert number to BigInt if provided
+    const updateData: any = {};
+    if (data.name) updateData.name = data.name;
+    if (data.targetAmount !== undefined) updateData.targetAmount = BigInt(data.targetAmount);
+
+    this.logger.log(`Updating wallet ${walletId} for user ${userId}`);
+    
+    return this.prisma.wallet.update({
+      where: { id: walletId },
+      data: updateData,
     });
   }
 }

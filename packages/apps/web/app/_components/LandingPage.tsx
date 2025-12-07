@@ -5,7 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Button } from '../../components/ui/Button';
-import { ArrowRight, CheckCircle2, Shield, Zap, Smartphone, PieChart } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Shield, Zap, Smartphone, PieChart, Play, Check } from 'lucide-react';
+import { HeroVisual } from './HeroVisual';
 
 // --- ANIMATION VARIANTS ---
 const containerVariants = {
@@ -27,6 +28,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
             <div className="relative h-7 w-7 overflow-hidden rounded-[8px] shadow-sm">
+              {/* Ensure this image exists in public/images/logo.jpg */}
               <Image 
                 src="/images/logo.jpg" 
                 alt="FlowSplit" 
@@ -36,7 +38,7 @@ export default function LandingPage() {
             </div>
             <span>
               <span className="text-foreground">Flow</span>
-              <span className="text-teal">Split</span>
+              <span className="text-teal-500">Split</span>
             </span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
@@ -89,11 +91,12 @@ export default function LandingPage() {
                   Start Splitting Free <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="#demo">
+              {/* Links to the #demo section below */}
+              <a href="#demo">
                 <Button size="lg" variant="outline" className="h-12 px-8 text-base">
                   View Demo
                 </Button>
-              </Link>
+              </a>
             </motion.div>
           </motion.div>
 
@@ -114,31 +117,7 @@ export default function LandingPage() {
                   </div>
                </div>
                {/* Mock Content */}
-               <div className="p-8 grid md:grid-cols-3 gap-6">
-                  <div className="col-span-2 space-y-4">
-                    <div className="h-32 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center flex-col">
-                        <span className="text-3xl font-bold text-primary">₦1,500,000</span>
-                        <span className="text-sm text-muted-foreground">Income Processed</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="h-24 rounded-lg bg-muted/50 border"></div>
-                        <div className="h-24 rounded-lg bg-muted/50 border"></div>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="h-10 rounded bg-muted/30 w-full"></div>
-                    <div className="h-10 rounded bg-muted/30 w-3/4"></div>
-                    <div className="h-10 rounded bg-muted/30 w-5/6"></div>
-                    <div className="h-40 rounded-lg bg-secondary/20 border border-secondary/20 p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Zap className="h-4 w-4 text-amber-500" />
-                            <span className="text-sm font-semibold">AI Insight</span>
-                        </div>
-                        <div className="h-2 bg-muted/20 rounded w-full mb-2"></div>
-                        <div className="h-2 bg-muted/20 rounded w-2/3"></div>
-                    </div>
-                  </div>
-               </div>
+               <HeroVisual />
             </div>
           </motion.div>
         </div>
@@ -158,7 +137,7 @@ export default function LandingPage() {
       </div>
 
       {/* --- BENTO GRID FEATURES --- */}
-      <section id="features" className="py-24 bg-background">
+      <section id="features" className="py-24 bg-background scroll-mt-16">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Financial superpowers included.</h2>
@@ -226,7 +205,7 @@ export default function LandingPage() {
       </section>
 
       {/* --- HOW IT WORKS --- */}
-      <section id="how-it-works" className="py-24">
+      <section id="how-it-works" className="py-24 scroll-mt-16">
         <div className="container mx-auto px-6">
             <h2 className="text-3xl font-bold text-center mb-16">Three steps to financial freedom</h2>
             <div className="grid md:grid-cols-3 gap-8">
@@ -244,6 +223,96 @@ export default function LandingPage() {
                     </div>
                 ))}
             </div>
+        </div>
+      </section>
+
+      {/* --- DEMO SECTION (New) --- */}
+      <section id="demo" className="py-24 bg-muted/20 scroll-mt-16">
+        <div className="container mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <h2 className="text-3xl font-bold mb-4">See it in action</h2>
+            <p className="text-muted-foreground">Watch how FlowSplit automates a monthly salary deposit in real-time.</p>
+          </div>
+          
+          <div className="relative max-w-4xl mx-auto aspect-video rounded-2xl overflow-hidden shadow-2xl border bg-background group cursor-pointer">
+            {/* Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/5 group-hover:bg-black/10 transition-colors">
+              <div className="h-20 w-20 bg-background/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                <Play className="h-8 w-8 text-primary ml-1" fill="currentColor" />
+              </div>
+            </div>
+            {/* Thumbnail Placeholder - In production use a real image or video tag */}
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
+                <div className="text-center opacity-30">
+                    <PieChart className="h-32 w-32 mx-auto mb-4" />
+                    <p className="text-2xl font-bold">Interactive Demo Preview</p>
+                </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* --- PRICING SECTION (New) --- */}
+      <section id="pricing" className="py-24 bg-background scroll-mt-16">
+        <div className="container mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl font-bold mb-4">Simple, transparent pricing</h2>
+            <p className="text-muted-foreground">Start for free, scale as your wealth grows. No hidden fees.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Free Tier */}
+            <div className="rounded-2xl border bg-card p-8 shadow-sm hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-bold">Starter</h3>
+                <div className="mt-4 flex items-baseline">
+                    <span className="text-4xl font-extrabold tracking-tight">₦0</span>
+                    <span className="ml-1 text-muted-foreground">/month</span>
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground">Perfect for getting started with automation.</p>
+                <Link href="/register">
+                    <Button className="w-full mt-6" variant="outline">Get Started</Button>
+                </Link>
+                <ul className="mt-8 space-y-3 text-sm">
+                    {['Up to 3 Split Rules', 'Basic Analytics', 'Manual Withdrawals', 'Email Support'].map(feat => (
+                        <li key={feat} className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> {feat}</li>
+                    ))}
+                </ul>
+            </div>
+
+            {/* Pro Tier - Highlighted */}
+            <div className="rounded-2xl border border-primary bg-primary/5 p-8 shadow-lg relative">
+                <div className="absolute top-0 right-0 -mt-3 mr-3 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full uppercase">Most Popular</div>
+                <h3 className="text-xl font-bold">Pro</h3>
+                <div className="mt-4 flex items-baseline">
+                    <span className="text-4xl font-extrabold tracking-tight">₦2,500</span>
+                    <span className="ml-1 text-muted-foreground">/month</span>
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground">For power users who want full control.</p>
+                <Link href="/register">
+                    <Button className="w-full mt-6">Upgrade to Pro</Button>
+                </Link>
+                <ul className="mt-8 space-y-3 text-sm">
+                    {['Unlimited Split Rules', 'AI Insights & Forecasting', 'Priority Withdrawals', 'Multiple Bank Accounts', 'Shared Wallets (Coming Soon)'].map(feat => (
+                        <li key={feat} className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> {feat}</li>
+                    ))}
+                </ul>
+            </div>
+
+            {/* Business Tier */}
+            <div className="rounded-2xl border bg-card p-8 shadow-sm hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-bold">Business</h3>
+                <div className="mt-4 flex items-baseline">
+                    <span className="text-4xl font-extrabold tracking-tight">Custom</span>
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground">For organizations managing payroll splits.</p>
+                <Button className="w-full mt-6" variant="outline">Contact Sales</Button>
+                <ul className="mt-8 space-y-3 text-sm">
+                    {['Bulk Payouts', 'API Access', 'Dedicated Account Manager', 'Custom Contracts', 'Audit Logs'].map(feat => (
+                        <li key={feat} className="flex items-center"><Check className="h-4 w-4 text-green-500 mr-2" /> {feat}</li>
+                    ))}
+                </ul>
+            </div>
+          </div>
         </div>
       </section>
 

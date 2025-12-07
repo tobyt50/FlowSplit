@@ -17,6 +17,8 @@ class InsightPayload(BaseModel):
     name: Optional[str] = None
     # For HIGH_SPENDING_VELOCITY
     walletName: Optional[str] = None
+    ruleId: Optional[str] = None
+    walletId: Optional[str] = None
 
 class AIInsight(BaseModel):
     insightCode: str

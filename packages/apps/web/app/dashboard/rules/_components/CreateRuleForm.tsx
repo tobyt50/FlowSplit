@@ -48,9 +48,15 @@ type FormData = z.infer<typeof formSchema>;
 
 interface CreateRuleFormProps {
   onSuccess: () => void;
+
+  defaults?: {
+    name?: string;
+    value?: number; // In Naira
+    isBill?: boolean;
+  }
 }
 
-export function CreateRuleForm({ onSuccess }: CreateRuleFormProps) {
+export function CreateRuleForm({ onSuccess, defaults }: CreateRuleFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [wallets, setWallets] = useState<Wallet[]>([]);
@@ -77,9 +83,11 @@ export function CreateRuleForm({ onSuccess }: CreateRuleFormProps) {
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: SplitTypes.PERCENTAGE,
+      name: defaults?.name || '',
+      type: defaults?.value ? SplitTypes.FIXED : SplitTypes.PERCENTAGE,
+      value: defaults?.value || undefined,
       priority: 10,
-      isBill: false,
+      isBill: defaults?.isBill || false,
     },
   });
 
