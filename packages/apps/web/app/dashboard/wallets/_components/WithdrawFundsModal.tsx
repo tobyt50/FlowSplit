@@ -13,7 +13,6 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { ChevronDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../../../lib/walletService';
-import { createId } from '@paralleldrive/cuid2';
 
 interface WithdrawModalProps {
   isOpen: boolean;
@@ -24,19 +23,15 @@ interface WithdrawModalProps {
 
 const formSchema = z.object({
   destinationBankId: z.string().min(1, 'Select a bank account'),
-  // z.coerce allows string inputs to be validated as numbers
   amount: z.coerce.number().min(100, 'Minimum withdrawal is ₦1.00'),
 });
 
-// We still infer the type for usage elsewhere if needed
 type FormData = z.infer<typeof formSchema>;
 
 export function WithdrawFundsModal({ isOpen, onClose, wallet, onSuccess }: WithdrawModalProps) {
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // FIX: Removed <FormData> generic.
-  // This allows RHF to correctly handle the string-to-number coercion without type errors.
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -68,7 +63,7 @@ export function WithdrawFundsModal({ isOpen, onClose, wallet, onSuccess }: Withd
         sourceWalletId: wallet.id,
         destinationBankId: data.destinationBankId,
         amount: Math.round(data.amount * 100),
-        reference: `wd-${createId()}`,
+        reference: `wd-${crypto.randomUUID()}`,
       });
       toast.success('Withdrawal Initiated', { description: 'Funds are on the way to your bank.' });
       onSuccess();
