@@ -11,17 +11,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../../../../components/ui/DropdownMenu';
-import { ArrowRight, ChevronDown, Loader2, Wallet as WalletIcon } from 'lucide-react';
+import { ArrowRight, ChevronDown, Loader2, Wallet as WalletIcon, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { API_URLS } from '../../../../lib/config';
 
-// Props allow pre-filling the modal
 interface InternalTransferModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  initialFromWalletId?: string; // Pre-fill "Unallocated Funds"
-  initialAmount?: string;       // Pre-fill AI suggestion
+  initialFromWalletId?: string;
+  initialAmount?: string;
 }
 
 const formSchema = z.object({
@@ -91,70 +90,70 @@ export function InternalTransferModal({ isOpen, onClose, onSuccess, initialFromW
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-2">
           
-          {/* Visual Transfer Card */}
-          <div className="rounded-2xl border border-border/50 bg-muted/20 p-4 space-y-4">
-            <div className="flex items-center gap-2 md:gap-4">
-              {/* FROM WALLET */}
-              <div className="flex-1 space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">From</label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between truncate bg-background border-border/50 h-10 rounded-xl px-3 font-normal hover:bg-muted/50">
-                      <span className="truncate">{getWalletName(fromId)}</span>
-                      <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[180px] bg-popover border-border">
-                    {wallets.map(w => (
-                      <DropdownMenuItem 
-                        key={w.id} 
-                        onSelect={() => setValue('fromWalletId', w.id, { shouldValidate: true })} 
-                        disabled={w.id === toId}
-                        className="cursor-pointer"
-                      >
-                        <div className="flex flex-col items-start w-full">
-                          <span className="font-medium">{w.name}</span>
-                          <span className="text-[10px] text-muted-foreground">{formatCurrency(w.balance, w.currency)}</span>
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                {errors.fromWalletId && <p className="text-destructive text-[10px] pl-1">{errors.fromWalletId.message}</p>}
-              </div>
-
-              {/* Arrow Indicator */}
-              <div className="flex items-center justify-center pt-5 text-muted-foreground/50">
-                 <div className="p-1.5 rounded-full bg-primary/10 text-primary">
-                    <ArrowRight className="h-4 w-4" />
-                 </div>
-              </div>
-
-              {/* TO WALLET */}
-              <div className="flex-1 space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">To</label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between truncate bg-background border-border/50 h-10 rounded-xl px-3 font-normal hover:bg-muted/50">
-                      <span className="truncate">{getWalletName(toId)}</span> 
-                      <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[180px] bg-popover border-border">
-                    {wallets.map(w => (
-                      <DropdownMenuItem 
-                        key={w.id} 
-                        onSelect={() => setValue('toWalletId', w.id, { shouldValidate: true })} 
-                        disabled={w.id === fromId}
-                        className="cursor-pointer"
-                      >
+          {/* Visual Transfer Card: Stacked on Mobile, Row on Desktop */}
+          <div className="rounded-2xl border border-border/50 bg-muted/20 p-4 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
+            
+            {/* FROM WALLET */}
+            <div className="flex-1 space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">From</label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between truncate bg-background border-border/50 h-11 rounded-xl px-3 font-normal hover:bg-muted/50">
+                    <span className="truncate">{getWalletName(fromId)}</span>
+                    <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[200px] bg-popover border-border max-h-[200px] overflow-y-auto rounded-xl">
+                  {wallets.map(w => (
+                    <DropdownMenuItem 
+                      key={w.id} 
+                      onSelect={() => setValue('fromWalletId', w.id, { shouldValidate: true })} 
+                      disabled={w.id === toId}
+                      className="cursor-pointer py-2"
+                    >
+                      <div className="flex flex-col items-start w-full">
                         <span className="font-medium">{w.name}</span>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                {errors.toWalletId && <p className="text-destructive text-[10px] pl-1">{errors.toWalletId.message}</p>}
-              </div>
+                        <span className="text-[10px] text-muted-foreground">{formatCurrency(w.balance, w.currency)}</span>
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {errors.fromWalletId && <p className="text-destructive text-[10px] pl-1">{errors.fromWalletId.message}</p>}
+            </div>
+
+            {/* Arrow Indicator: Down on Mobile, Right on Desktop */}
+            <div className="flex items-center justify-center py-1 md:py-0 md:pt-5 text-muted-foreground/50">
+               <div className="p-1.5 rounded-full bg-primary/10 text-primary">
+                  <ArrowDown className="h-4 w-4 md:hidden" />
+                  <ArrowRight className="h-4 w-4 hidden md:block" />
+               </div>
+            </div>
+
+            {/* TO WALLET */}
+            <div className="flex-1 space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">To</label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between truncate bg-background border-border/50 h-11 rounded-xl px-3 font-normal hover:bg-muted/50">
+                    <span className="truncate">{getWalletName(toId)}</span> 
+                    <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[200px] bg-popover border-border max-h-[200px] overflow-y-auto rounded-xl">
+                  {wallets.map(w => (
+                    <DropdownMenuItem 
+                      key={w.id} 
+                      onSelect={() => setValue('toWalletId', w.id, { shouldValidate: true })} 
+                      disabled={w.id === fromId}
+                      className="cursor-pointer py-2"
+                    >
+                      <span className="font-medium">{w.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {errors.toWalletId && <p className="text-destructive text-[10px] pl-1">{errors.toWalletId.message}</p>}
             </div>
           </div>
 

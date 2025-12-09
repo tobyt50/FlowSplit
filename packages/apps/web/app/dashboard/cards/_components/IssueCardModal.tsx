@@ -76,8 +76,9 @@ export function IssueCardModal({ isOpen, onClose, onSuccess }: IssueCardModalPro
             <CreditCard className="h-5 w-5 text-primary" /> Issue Virtual Card
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Create a card tied to a specific wallet. Spending is limited to the wallet's balance.
-          </DialogDescription>
+  Create a card tied to a specific wallet. Spending is limited to the wallet&#39;s balance.
+</DialogDescription>
+
         </DialogHeader>
 
         {kycError ? (
