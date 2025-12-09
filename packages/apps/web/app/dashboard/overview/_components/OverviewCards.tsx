@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Wallet, SplitRule, Transaction } from '../../../../types/index';
+import { Wallet, SplitRule, UnifiedTransaction } from '../../../../types/index';
 import { ArrowUpRight, Wallet as WalletIcon, PiggyBank, Eye, EyeOff } from 'lucide-react';
 import { Card } from '../../../../components/ui/Card';
 import { Button } from '../../../../components/ui/Button';
@@ -12,7 +12,7 @@ interface OverviewCardsProps {
   data: {
     wallets: Wallet[];
     rules: SplitRule[];
-    transactions: Transaction[];
+    transactions: UnifiedTransaction[]; // Updated Type
   };
   children?: React.ReactNode; 
 }

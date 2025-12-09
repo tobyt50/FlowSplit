@@ -3,31 +3,35 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Transaction } from '../../../../types/index';
-import { TransactionType } from '../../../../lib/enums';
+import { UnifiedTransaction } from '../../../../types/index';
 import { formatCurrency } from '../../../../lib/walletService';
-import { ArrowDownLeft, ArrowUpRight, ArrowRightLeft, History, ArrowRight } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, ArrowRightLeft, History, ArrowRight, CreditCard } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../../../../components/ui/Card';
 import { Button } from '../../../../components/ui/Button';
 import { ScrollArea } from '../../../../components/ui/ScrollArea';
 
 interface RecentTransactionsProps {
-  transactions: Transaction[];
+  transactions: UnifiedTransaction[];
 }
 
 export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   const router = useRouter();
 
-  const getIcon = (type: TransactionType) => {
-    switch (type) {
+  const getIcon = (tx: UnifiedTransaction) => {
+    // 1. Handle Card Source
+    if (tx.source === 'CARD') return <CreditCard className="h-4 w-4 text-purple-500" />;
+    
+    // 2. Handle Direction
+    switch (tx.type) {
       case 'CREDIT': return <ArrowDownLeft className="h-4 w-4 text-green-500" />;
       case 'DEBIT': return <ArrowUpRight className="h-4 w-4 text-red-500" />;
       default: return <ArrowRightLeft className="h-4 w-4 text-blue-500" />;
     }
   };
 
-  const getBgColor = (type: TransactionType) => {
-    switch (type) {
+  const getBgColor = (tx: UnifiedTransaction) => {
+    if (tx.source === 'CARD') return 'bg-purple-500/10 border-purple-500/20';
+    switch (tx.type) {
         case 'CREDIT': return 'bg-green-500/10 border-green-500/20';
         case 'DEBIT': return 'bg-red-500/10 border-red-500/20';
         default: return 'bg-blue-500/10 border-blue-500/20';
@@ -60,30 +64,29 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                   key={tx.id} 
                   className="block group"
                 >
-                    {/* 
-                       Using CSS Grid instead of Flexbox here.
-                       grid-cols-[1fr_auto]: Left side takes available space, Right side takes what it needs.
-                       items-center: Ensures vertical centering.
-                    */}
                     <div className="grid grid-cols-[1fr_auto] items-center gap-4 p-2.5 rounded-xl transition-all hover:bg-muted/40 border border-transparent hover:border-border/50">
                         
-                        {/* LEFT: Icon + Text (Truncates if too long) */}
+                        {/* LEFT: Icon + Text */}
                         <div className="flex items-center gap-3 min-w-0 overflow-hidden">
-                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${getBgColor(tx.type)}`}>
-                                {getIcon(tx.type)}
+                            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${getBgColor(tx)}`}>
+                                {getIcon(tx)}
                             </div>
                             
                             <div className="flex flex-col justify-center overflow-hidden">
                                 <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                                    {tx.description || (tx.type === 'CREDIT' ? 'Incoming Deposit' : 'Outgoing Payment')}
+                                    {/* Mapped 'title' from UnifiedTransaction */}
+                                    {tx.title}
                                 </p>
                                 <p className="text-xs text-muted-foreground truncate">
-                                    {new Date(tx.initiatedAt).toLocaleDateString()}
+                                    {/* Mapped 'date' from UnifiedTransaction */}
+                                    {new Date(tx.date).toLocaleDateString()}
+                                    {/* Optional: Show Card Last4 if available */}
+                                    {tx.subtitle && <span className="ml-1 opacity-70">• {tx.subtitle}</span>}
                                 </p>
                             </div>
                         </div>
 
-                        {/* RIGHT: Amount + Status (Always visible, aligned right) */}
+                        {/* RIGHT: Amount + Status */}
                         <div className="text-right whitespace-nowrap">
                             <div className={`text-sm font-bold ${tx.type === 'DEBIT' ? 'text-foreground' : 'text-green-500'}`}>
                                 {tx.type === 'DEBIT' ? '-' : '+'}{formatCurrency(tx.amount, tx.currency)}

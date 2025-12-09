@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wallet, SplitRule, Transaction, AIInsight } from '../../../types/index';
+import { Wallet, SplitRule, AIInsight } from '../../../types/index';
 import { toast } from 'sonner';
 
 // Components
@@ -25,8 +25,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../compo
 // Services
 import { getWallets } from '../../../lib/walletService';
 import { getRules } from '../../../lib/ruleService';
-import { getTransactions } from '../../../lib/transactionService';
+import { getTransactions } from '../../../lib/transactionService'; // Updated Import
 import { getAIInsight } from '../../../lib/aiService';
+import { UnifiedTransaction } from '../../../types/index'
 import {
   getUpcomingBills,
   getCashFlow,
@@ -38,7 +39,7 @@ import {
 interface FullDashboardData {
   wallets: Wallet[];
   rules: SplitRule[];
-  transactions: Transaction[];
+  transactions: UnifiedTransaction[]; // Updated Type
   upcomingBills: UpcomingBill[];
   cashFlow: CashFlowDataPoint[];
   lastSplit: LastSplitBreakdownData | null;
@@ -191,7 +192,6 @@ export default function OverviewPage() {
           </div>
 
           {/* 2. Insight & Last Split Row */}
-          {/* This grid allows them to sit side-by-side without pushing content down */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
                {dashboardData.aiInsight && (
@@ -202,7 +202,6 @@ export default function OverviewPage() {
                )}
             </div>
             <div className="lg:col-span-1">
-               {/* This component has a fixed height of 250px internally */}
                <LastSplitBreakdown data={dashboardData.lastSplit} />
             </div>
           </div>
