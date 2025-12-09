@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { Wallet, SplitRule, Transaction } from '../../../../types/index';
-import { ArrowUpRight, Wallet as WalletIcon, PiggyBank, Zap, Eye, EyeOff } from 'lucide-react';
+import { ArrowUpRight, Wallet as WalletIcon, PiggyBank, Eye, EyeOff } from 'lucide-react';
 import { Card } from '../../../../components/ui/Card';
 import { Button } from '../../../../components/ui/Button';
 import { cn } from '../../../../lib/utils';
@@ -17,16 +17,48 @@ interface OverviewCardsProps {
   children?: React.ReactNode; 
 }
 
-// --- SMART FORMATTER ---
-const formatSmartNumber = (amount: bigint) => {
-  const nairaAmount = Number(amount) / 100;
-  if (nairaAmount >= 100_000_000) {
-    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', notation: 'compact', maximumFractionDigits: 1 }).format(nairaAmount);
+// --- SMART FORMATTER COMPONENT ---
+// Renders: <Small Symbol> <Large Integer> <Small Kobo/Suffix>
+const SmartCurrency = ({ amount, visible }: { amount: bigint; visible: boolean }) => {
+  if (!visible) return <span className="text-muted-foreground/50 tracking-widest text-lg">₦∗∗∗∗∗</span>;
+
+  const numericAmount = Number(amount) / 100;
+  
+  let mainPart = '';
+  let secondaryPart = '';
+  
+  if (numericAmount >= 1_000_000_000) {
+    // Billions: 1.5 B
+    mainPart = (numericAmount / 1_000_000_000).toFixed(1);
+    secondaryPart = 'B';
+  } else if (numericAmount >= 1_000_000) {
+    // Millions: 1.5 M
+    mainPart = (numericAmount / 1_000_000).toFixed(1);
+    secondaryPart = 'M';
+  } else {
+     // Standard: 1,234 .56
+     const formattedTotal = new Intl.NumberFormat('en-US', { 
+       minimumFractionDigits: 2, 
+       maximumFractionDigits: 2 
+     }).format(numericAmount);
+     
+     const parts = formattedTotal.split('.');
+     mainPart = parts[0];
+     secondaryPart = `.${parts[1]}`;
   }
-  if (nairaAmount >= 1_000_000) {
-    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(nairaAmount);
-  }
-  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 2 }).format(nairaAmount);
+
+  return (
+    <span className="inline-flex items-baseline font-mono">
+      {/* Symbol: Smaller & Muted */}
+      <span className="text-lg md:text-2xl font-semibold text-muted-foreground/70 mr-1">₦</span>
+
+      {/* Main Integer: Inherits Large Size from Parent */}
+      <span className="text-foreground tracking-tight">{mainPart}</span>
+
+      {/* Kobo/Suffix: Smaller & Muted (Same as Symbol) */}
+      <span className="text-lg md:text-2xl font-semibold text-muted-foreground/70 ml-0.5">{secondaryPart}</span>
+    </span>
+  );
 };
 
 export function OverviewCards({ data, children }: OverviewCardsProps) {
@@ -43,7 +75,7 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
     return { totalBalance, totalSaved, activeRules, totalWallets: wallets.length };
   }, [wallets, rules]);
 
-  // --- REUSABLE STAT CARD COMPONENT (Updated) ---
+  // --- REUSABLE STAT CARD COMPONENT ---
   const StatCard = ({ title, value, subValue, subtitle, icon: Icon, theme, href, isFullWidth, showButton }: any) => (
     <div className={cn("group", isFullWidth && "col-span-2")}>
       <div 
@@ -86,11 +118,15 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
           <div className="relative z-10 mt-1 md:mt-2">
             <p className="hidden md:block text-xs text-muted-foreground mb-1">Current Metric</p>
             <div className="flex items-end gap-2">
+               {/* 
+                  The font-size here applies to the INTEGER part of SmartCurrency.
+                  The SmartCurrency component internally sets smaller sizes for Symbol/Kobo.
+               */}
                <h3 className={cn(
                   "font-bold text-foreground tracking-tighter transform scale-y-110 origin-bottom-left md:transform-none md:tracking-tight truncate max-w-full",
-                  isFullWidth ? "text-3xl md:text-4xl" : "text-xl md:text-2xl" // INCREASE FONT SIZE
+                  isFullWidth ? "text-3xl md:text-4xl" : "text-2xl md:text-3xl"
                )}>
-                  {value}
+                  <SmartCurrency amount={value} visible={showBalances} />
                </h3>
             </div>
             <div className="mt-2 flex items-center justify-between">
@@ -139,7 +175,7 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
       <StatCard 
         title="Total Balance" 
         subtitle="Available Liquidity"
-        value={showBalances ? formatSmartNumber(metrics.totalBalance) : '₦∗∗∗∗∗'}  
+        value={metrics.totalBalance} // Pass BigInt directly
         subValue="Across all wallets"
         icon={WalletIcon}
         href="/dashboard/wallets"
@@ -160,7 +196,7 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
         <StatCard 
           title="Total Saved" 
           subtitle="Reserves"
-          value={showBalances ? formatSmartNumber(metrics.totalSaved) : '₦∗∗∗∗∗'} 
+          value={metrics.totalSaved} // Pass BigInt directly
           subValue="In savings"
           icon={PiggyBank}
           href="/dashboard/wallets"
@@ -186,12 +222,12 @@ export function OverviewCards({ data, children }: OverviewCardsProps) {
         )}
       </div>
 
-      {/* --- DESKTOP LAYOUT: Saved + ActiveRules --- */}
+      {/* --- DESKTOP LAYOUT: Saved --- */}
       <div className="hidden lg:block">
         <StatCard 
           title="Total Saved" 
           subtitle="Secure Reserves"
-          value={showBalances ? formatSmartNumber(metrics.totalSaved) : '₦∗∗∗∗∗'} 
+          value={metrics.totalSaved} // Pass BigInt directly
           subValue="In savings buckets"
           icon={PiggyBank}
           href="/dashboard/wallets"

@@ -1,18 +1,18 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
-import { Transaction, TransactionType } from '../../../types/index';
+import { useRouter } from 'next/navigation';
 import { getTransactions } from '../../../lib/transactionService';
 import { formatCurrency } from '../../../lib/walletService';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/Table';
 import { Badge } from '../../../components/ui/Badge';
 import { EmptyState } from '../_components/EmptyState';
-import { History, ArrowDownLeft, ArrowUpRight, ArrowRightLeft } from 'lucide-react';
+import { History, ArrowDownLeft, ArrowUpRight, CreditCard } from 'lucide-react';
+import { UnifiedTransaction } from '../../../types';
 
 export default function TransactionsPage() {
-  const router = useRouter(); // Initialize router
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const router = useRouter();
+  const [transactions, setTransactions] = useState<UnifiedTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,11 +32,19 @@ export default function TransactionsPage() {
     fetchData();
   }, [fetchData]);
 
-  const renderTypeBadge = (type: TransactionType) => {
-    switch (type) {
+  const renderTypeBadge = (tx: UnifiedTransaction) => {
+    if (tx.source === 'CARD') {
+      return (
+        <Badge variant="secondary" className="gap-1 pl-1.5 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800">
+          <CreditCard className="h-3 w-3" /> Card
+        </Badge>
+      );
+    }
+
+    switch (tx.type) {
       case 'CREDIT':
         return (
-          <Badge variant="success" className="gap-1 pl-1.5">
+          <Badge variant="outline" className="gap-1 pl-1.5 border-green-200 bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
             <ArrowDownLeft className="h-3 w-3" /> Credit
           </Badge>
         );
@@ -46,14 +54,8 @@ export default function TransactionsPage() {
             <ArrowUpRight className="h-3 w-3" /> Debit
           </Badge>
         );
-      case 'TRANSFER':
-        return (
-          <Badge variant="secondary" className="gap-1 pl-1.5">
-             <ArrowRightLeft className="h-3 w-3" /> Transfer
-          </Badge>
-        );
       default:
-        return <Badge variant="outline">{type}</Badge>;
+        return <Badge variant="outline">{tx.type}</Badge>;
     }
   };
 
@@ -79,7 +81,7 @@ export default function TransactionsPage() {
         <EmptyState
           icon={History}
           title="No Transactions Yet"
-          description="Your transaction history will appear here once you receive your first deposit."
+          description="Your transaction history will appear here once you receive your first deposit or make a spend."
           actionText="View Wallets"
           onActionClick={() => window.location.href = '/dashboard/wallets'}
         />
@@ -101,21 +103,26 @@ export default function TransactionsPage() {
             {transactions.map((tx) => (
               <TableRow 
                 key={tx.id} 
-                // ADD CLICK HANDLER HERE
-                className="border-border/40 hover:bg-muted/30 cursor-pointer"
+                className="border-border/40 hover:bg-muted/30 cursor-pointer transition-colors"
+                // --- UPDATED: Allow clicking on ALL transactions ---
                 onClick={() => router.push(`/dashboard/transactions/${tx.id}`)}
               >
                 <TableCell className="text-muted-foreground text-xs md:text-sm whitespace-nowrap">
-                  {new Date(tx.initiatedAt).toLocaleDateString()}
+                  {new Date(tx.date).toLocaleDateString()}
                   <span className="hidden md:inline ml-1 text-muted-foreground/50">
-                    {new Date(tx.initiatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </TableCell>
                 <TableCell className="font-medium text-foreground text-xs md:text-sm">
-                  {tx.description || 'N/A'}
+                  {tx.title}
+                  {tx.subtitle && (
+                      <span className="block text-[10px] text-muted-foreground font-normal">
+                          {tx.subtitle}
+                      </span>
+                  )}
                 </TableCell>
                 <TableCell>
-                  {renderTypeBadge(tx.type)}
+                  {renderTypeBadge(tx)}
                 </TableCell>
                 <TableCell className={`text-right font-mono text-xs md:text-sm font-medium ${
                     tx.type === 'CREDIT' ? 'text-green-500' : 'text-foreground'
@@ -140,7 +147,7 @@ export default function TransactionsPage() {
             </Badge>
         </div>
         <p className="text-xs text-muted-foreground">
-          A complete record of all your financial activities.
+          A unified timeline of all deposits, transfers, and card spending.
         </p>
       </div>
 

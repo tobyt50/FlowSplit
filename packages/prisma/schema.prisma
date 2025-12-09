@@ -41,6 +41,7 @@ enum WalletType {
   BILL
   INVESTMENT
   SOURCE
+  LIABILITY
 }
 
 enum PayoutStatus {
@@ -85,6 +86,25 @@ enum UserStatus {
   DEACTIVATED
 }
 
+enum CardStatus {
+  ACTIVE
+  INACTIVE
+  FROZEN
+  CANCELED
+}
+
+enum CardProvider {
+  STRIPE
+  BRIDGE_CARD // Example of another provider
+}
+
+enum CardTransactionStatus {
+  PENDING   // Authorization hold active
+  CLEARED   // Settlement complete
+  DECLINED  // Failed/Rejected
+  REVERSED  // Auth released (voided)
+}
+
 // --------------------- MODELS ---------------------------
 
 model User {
@@ -94,10 +114,17 @@ model User {
   phone           String?         @unique
   password  String?
   avatarUrl String?
+  dateOfBirth        DateTime?
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   status          UserStatus      @default(ACTIVE)
+  addressLine1       String?
+  city               String?
+  state              String?
+  postalCode         String?
+  country            String   @default("NG") // Default to Nigeria
+  stripeCardholderId String?  @unique
 
   // Relations
   accounts      Account[]
@@ -109,7 +136,7 @@ model User {
   provider   Provider?
   providerId String?   @unique
   virtualAccount VirtualAccount?
-
+  virtualCards    VirtualCard[]
   bankAccounts BankAccount[]
   payouts      Payout[]
 }
@@ -169,6 +196,7 @@ model Wallet {
   destinationForRules SplitRule[]
   ledgerEntries       LedgerEntry[]
   payoutsFrom Payout[]
+  virtualCards    VirtualCard[]
 }
 
 model Account {
@@ -317,4 +345,54 @@ model WebhookEvent {
   payload    Json
   receivedAt DateTime @default(now())
   processed  Boolean  @default(false)
+}
+
+model VirtualCard {
+  id              String       @id // CUID
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
+  walletId        String
+  wallet          Wallet       @relation(fields: [walletId], references: [id])
+  
+  nameOnCard      String
+  last4           String       // We only store the last 4 digits
+  brand           String       // Visa, Mastercard
+  expiryMonth     Int
+  expiryYear      Int
+  
+  status          CardStatus   @default(ACTIVE)
+  currency        Currency     @default(NGN)
+  
+  // Provider details (Tokenized data)
+  provider        CardProvider
+  providerCardId  String       @unique // The ID from Stripe/Bridgecard
+  
+  // Security controls
+  spendingLimit   BigInt?      // Optional monthly limit in kobo
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  transactions    CardTransaction[]
+}
+
+model CardTransaction {
+  id                 String                @id
+  cardId             String
+  card               VirtualCard           @relation(fields: [cardId], references: [id])
+  
+  amount             BigInt
+  currency           Currency
+  merchantName       String
+  merchantCategory   String?               // MCC Code
+  
+  status             CardTransactionStatus
+  providerAuthId     String                @unique // Stripe Authorization ID
+  providerTxId       String?               // Stripe Transaction ID (on settlement)
+  
+  // Link to the ledger
+  ledgerTransactionId String?              @unique
+  
+  occurredAt         DateTime              @default(now())
+  settledAt          DateTime?
 }

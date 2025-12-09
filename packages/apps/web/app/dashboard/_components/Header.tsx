@@ -25,7 +25,6 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../../lib/authStore';
 import { logoutUser } from '../../../lib/authService';
-import { ThemeToggle } from './ThemeToggle';
 import { NotificationsBell } from './NotificationsBell';
 
 export function Header() {
@@ -47,8 +46,8 @@ export function Header() {
              <Image src="/images/logo.jpg" alt="FlowSplit" fill className="object-cover" />
         </div>
         <span className="text-lg tracking-wide font-bold transition-colors">
-                    <span className="text-foreground">Flow</span>
-                    <span className="text-teal">Split</span>
+            <span className="text-foreground">Flow</span>
+            <span className="text-teal-500">Split</span>
         </span>
       </div>
 
@@ -81,7 +80,19 @@ export function Header() {
 
         <div className="flex items-center gap-1">
           <NotificationsBell />
-          <ThemeToggle />
+          
+          {/* Cards Page Link (Replaces Theme Toggle) */}
+          <Button
+            variant="outline"
+            size="icon"
+            asChild
+            className="rounded-xl border-border bg-background/50 backdrop-blur-md hover:bg-muted hover:text-foreground"
+          >
+            <Link href="/dashboard/cards" title="Virtual Cards">
+              <CreditCard className="h-5 w-5 text-foreground" />
+              <span className="sr-only">Virtual Cards</span>
+            </Link>
+          </Button>
         </div>
 
         <div className="h-8 w-px bg-border/50 mx-1 hidden md:block"></div>

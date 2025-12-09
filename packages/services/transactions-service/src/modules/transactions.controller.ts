@@ -17,11 +17,15 @@ export class TransactionsController {
   /**
    * GET /api/transactions
    * Retrieves transaction history for the logged-in user.
-   * Can be filtered by walletId.
+   * - If no walletId is provided: Returns the Unified History (Cards + Wallets).
+   * - If walletId is provided: Returns transactions specific to that wallet.
    */
   @Get()
   findAll(@CurrentUser() user: User, @Query('walletId') walletId?: string) {
-    return this.transactionsService.findAllForUser(user.id, walletId);
+    if (walletId) {
+      return this.transactionsService.findAllForUser(user.id, walletId);
+    }
+    return this.transactionsService.getUnifiedHistory(user.id);
   }
 
   /**

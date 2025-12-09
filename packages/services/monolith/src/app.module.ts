@@ -7,6 +7,7 @@ import { PrismaModule } from '@flowsplit/prisma';
 import { AuthModule } from '../../auth/src/auth/auth.module';
 import { UsersModule } from '../../user-service/src/modules/users.module';
 import { WalletsModule } from '../../wallet-service/src/modules/wallets.module';
+import { CardServiceModule } from '../../card-service/src/card-service.module';
 import { TransactionsModule } from '../../transactions-service/src/modules/transactions.module';
 import { RulesModule } from '../../rule-service/src/modules/rules.module';
 import { PayoutsModule } from '../../payout-service/src/modules/payouts/payouts.module';
@@ -45,6 +46,7 @@ import { HealthController } from './health.controller';
     AuthModule,
     UsersModule,
     WalletsModule,
+    CardServiceModule,
     TransactionsModule,
     RulesModule,
     PayoutsModule,

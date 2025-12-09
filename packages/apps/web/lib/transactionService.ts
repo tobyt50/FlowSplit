@@ -1,27 +1,32 @@
 import api from './api';
-import { LedgerEntry, Transaction } from '../types/index';
 import { API_URLS } from './config';
+import { 
+  Transaction, 
+  UnifiedTransaction, 
+  LedgerEntry
+} from '../types/index';
 
+// Helper type for the deep detail view
 export type TransactionWithLedger = Transaction & { 
   ledgerTransaction?: {
-    entries: ({
+    entries: (LedgerEntry & {
       wallet: { name: string };
-    } & LedgerEntry)[];
+    })[];
   };
 };
 
 /**
  * Fetches all transactions for the currently authenticated user.
- * The JWT is automatically attached by the axios interceptor.
- * @returns A promise that resolves to an array of the user's transactions, sorted by date.
+ * Now returns UnifiedTransaction objects for the Activity Feed.
+ * @returns A promise that resolves to an array of unified transactions.
  */
-export const getTransactions = async (walletId?: string): Promise<Transaction[]> => {
+export const getTransactions = async (walletId?: string): Promise<UnifiedTransaction[]> => {
   try {
     const url = walletId 
       ? `${API_URLS.MONOLITH}/transactions?walletId=${walletId}`
       : `${API_URLS.MONOLITH}/transactions`;
       
-    const response = await api.get<Transaction[]>(url);
+    const response = await api.get<UnifiedTransaction[]>(url);
     return response.data;
   } catch (error: any) {
     console.error('Failed to fetch transactions:', error);

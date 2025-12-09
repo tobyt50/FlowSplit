@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Monitor } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '../../../components/ui/Button';
 import {
@@ -12,36 +12,30 @@ import {
 } from '../../../components/ui/DropdownMenu';
 
 export function ThemeToggle() {
-  const { setTheme } = useTheme();
+  const { setTheme, theme } = useTheme();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-  variant="outline"
-  size="icon"
-  className="
-    rounded-xl border-border bg-background/50 backdrop-blur-md 
-    hover:bg-muted hover:text-foreground
-    !ring-0 !ring-offset-0 !outline-none
-    focus:outline-none focus-visible:outline-none 
-    focus:ring-0 focus-visible:ring-0
-  "
->
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
-          <span className="sr-only">Toggle theme</span>
+        <Button variant="outline" className="w-full justify-between font-normal bg-background border-input rounded-xl">
+          <span className="flex items-center gap-2">
+             {theme === 'dark' ? <Moon className="h-4 w-4 text-blue-400" /> : 
+              theme === 'light' ? <Sun className="h-4 w-4 text-amber-500" /> : 
+              <Monitor className="h-4 w-4 text-muted-foreground" />}
+             <span className="capitalize">{theme === 'system' ? 'System' : theme}</span>
+          </span>
+          <span className="text-xs text-muted-foreground">Change</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="w-[200px]">
         <DropdownMenuItem onClick={() => setTheme('light')}>
-          Light
+          <Sun className="mr-2 h-4 w-4 text-amber-500" /> Light
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('dark')}>
-          Dark
+          <Moon className="mr-2 h-4 w-4 text-blue-400" /> Dark
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('system')}>
-          System
+          <Monitor className="mr-2 h-4 w-4 text-muted-foreground" /> System
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

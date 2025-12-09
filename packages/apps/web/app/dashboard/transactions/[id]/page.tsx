@@ -8,11 +8,14 @@ import { formatCurrency } from '../../../../lib/walletService';
 import { Badge } from '../../../../components/ui/Badge';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../components/ui/Card';
-import { ArrowLeft, ArrowDown, Wallet, Hash, Calendar, CheckCircle2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { ArrowLeft, ArrowDown, Wallet, Hash, Calendar, CheckCircle2, ArrowUpRight, ArrowDownLeft, CreditCard, Store } from 'lucide-react';
 import { cn } from '../../../../lib/utils';
 
-// Extend the Transaction type to include ledger entries for the frontend
-type TransactionWithLedger = Transaction & {
+// Extended type to handle both Wallet and Card shapes
+type ExtendedTransaction = Transaction & {
+  source?: 'WALLET' | 'CARD';
+  card?: { last4: string; brand: string }; // For card txns
+  merchantName?: string; // For card txns
   ledgerTransaction?: {
     entries: (LedgerEntry & { wallet: { name: string } })[];
   };
@@ -20,14 +23,14 @@ type TransactionWithLedger = Transaction & {
 
 export default function TransactionDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [transaction, setTransaction] = useState<TransactionWithLedger | null>(null);
+  const [transaction, setTransaction] = useState<ExtendedTransaction | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchTx = async () => {
       try {
         const txData = await getTransactionById(params.id);
-        setTransaction(txData);
+        setTransaction(txData as ExtendedTransaction);
       } catch (error) {
         router.push('/dashboard/transactions');
       } finally {
@@ -47,13 +50,19 @@ export default function TransactionDetailPage({ params }: { params: { id: string
 
   const creditEntries = transaction.ledgerTransaction?.entries.filter(e => e.type === 'CREDIT') || [];
   const debitEntry = transaction.ledgerTransaction?.entries.find(e => e.type === 'DEBIT');
+  const isCard = transaction.source === 'CARD';
 
   // Helper to render status badge
   const renderStatusBadge = (status: string) => {
     return (
-        <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 gap-1.5 px-2 py-0.5">
-            <CheckCircle2 className="h-3 w-3" />
-            <span className="uppercase tracking-wider text-[10px] font-bold">{status}</span>
+        <Badge variant="outline" className={cn(
+            "gap-1.5 px-2 py-0.5 uppercase tracking-wider text-[10px] font-bold",
+            status === 'SUCCESS' || status === 'CLEARED' ? "bg-green-500/10 text-green-500 border-green-500/20" : 
+            status === 'PENDING' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
+            "bg-red-500/10 text-red-500 border-red-500/20"
+        )}>
+            {status === 'SUCCESS' || status === 'CLEARED' ? <CheckCircle2 className="h-3 w-3" /> : null}
+            <span>{status}</span>
         </Badge>
     );
   };
@@ -71,25 +80,29 @@ export default function TransactionDetailPage({ params }: { params: { id: string
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-lg font-semibold text-foreground">Transaction Details</h2>
+        <h2 className="text-lg font-semibold text-foreground">
+            {isCard ? 'Card Transaction' : 'Transaction Details'}
+        </h2>
       </div>
       
       {/* Main Card */}
       <Card className="overflow-hidden border-border bg-card">
-        {/* Top Section: Amount & Description */}
+        {/* Top Section */}
         <CardHeader className="bg-muted/30 pb-6 pt-6 border-b border-border/50">
            <div className="flex flex-col items-center text-center gap-1">
               <div className={cn(
                   "h-12 w-12 rounded-2xl flex items-center justify-center mb-2 shadow-inner",
+                  isCard ? "bg-purple-500/10 text-purple-500" :
                   transaction.type === 'CREDIT' ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"
               )}>
-                  {transaction.type === 'CREDIT' ? <ArrowDownLeft className="h-6 w-6" /> : <ArrowUpRight className="h-6 w-6" />}
+                  {isCard ? <Store className="h-6 w-6" /> : 
+                   transaction.type === 'CREDIT' ? <ArrowDownLeft className="h-6 w-6" /> : <ArrowUpRight className="h-6 w-6" />}
               </div>
               <CardTitle className="text-3xl font-bold tracking-tight text-foreground">
-                 {formatCurrency(transaction.amount, transaction.currency)}
+                 {isCard ? '-' : transaction.type === 'DEBIT' ? '-' : '+'}{formatCurrency(transaction.amount, transaction.currency)}
               </CardTitle>
               <CardDescription className="text-base font-medium text-muted-foreground">
-                  {transaction.description || 'System Transaction'}
+                  {transaction.description || transaction.merchantName || 'System Transaction'}
               </CardDescription>
               <div className="mt-2">
                  {renderStatusBadge(transaction.status)}
@@ -104,7 +117,7 @@ export default function TransactionDetailPage({ params }: { params: { id: string
                   <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                      <Hash className="h-3 w-3" /> Reference
                   </span>
-                  <span className="text-sm font-mono text-foreground break-all">{transaction.reference}</span>
+                  <span className="text-xs font-mono text-foreground break-all">{transaction.reference || transaction.id}</span>
               </div>
               <div className="bg-card p-4 flex flex-col gap-1">
                   <span className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -112,6 +125,26 @@ export default function TransactionDetailPage({ params }: { params: { id: string
                   </span>
                   <span className="text-sm text-foreground">{new Date(transaction.initiatedAt).toLocaleString()}</span>
               </div>
+              
+              {/* Extra Info for Cards */}
+              {isCard && transaction.card && (
+                <>
+                    <div className="bg-card p-4 flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <CreditCard className="h-3 w-3" /> Card Used
+                        </span>
+                        <span className="text-sm text-foreground capitalize">
+                            {transaction.card.brand} •••• {transaction.card.last4}
+                        </span>
+                    </div>
+                    <div className="bg-card p-4 flex flex-col gap-1">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <Store className="h-3 w-3" /> Merchant
+                        </span>
+                        <span className="text-sm text-foreground">{transaction.merchantName}</span>
+                    </div>
+                </>
+              )}
            </div>
 
            {/* Ledger Flow Visualization */}
@@ -139,13 +172,6 @@ export default function TransactionDetailPage({ params }: { params: { id: string
                       </div>
                   )}
 
-                  {/* Flow Arrow (Visual only) */}
-                  {debitEntry && creditEntries.length > 0 && (
-                      <div className="pl-4">
-                          <ArrowDown className="h-4 w-4 text-muted-foreground/30" />
-                      </div>
-                  )}
-
                   {/* Destinations (Credits) */}
                   <div className="space-y-3"> 
                       {creditEntries.map((entry, idx) => (
@@ -156,7 +182,10 @@ export default function TransactionDetailPage({ params }: { params: { id: string
                                     <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-0.5">
                                         Destination {creditEntries.length > 1 ? `#${idx + 1}` : ''}
                                     </p>
-                                    <p className="text-sm font-semibold text-foreground">{entry.wallet?.name || 'Unknown Destination'}</p>
+                                    <p className="text-sm font-semibold text-foreground">
+                                        {/* For Card Txns, the destination is often the "Hold" wallet */}
+                                        {entry.wallet?.name === 'Card Authorizations (Liability)' ? 'Reserved (Merchant Hold)' : entry.wallet?.name}
+                                    </p>
                                 </div>
                                 <span className="font-mono text-sm font-medium text-green-500">
                                     +{formatCurrency(entry.amount)}
@@ -164,12 +193,6 @@ export default function TransactionDetailPage({ params }: { params: { id: string
                             </div>
                         </div>
                       ))}
-                      
-                      {creditEntries.length === 0 && (
-                          <div className="text-sm text-muted-foreground italic pl-2">
-                              No allocation breakdown available.
-                          </div>
-                      )}
                   </div>
               </div>
            </div>

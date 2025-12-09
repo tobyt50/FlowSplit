@@ -2,10 +2,15 @@ import api from './api';
 import { User } from '../types/index';
 import { API_URLS } from './config';
 
-interface UpdateUserData {
+export interface UpdateUserData {
   fullName?: string;
   phone?: string;
-  // We could add other fields like avatarUrl here in the future.
+  dateOfBirth?: string;
+  addressLine1?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
 }
 
 /**

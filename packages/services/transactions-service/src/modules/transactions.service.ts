@@ -19,6 +19,20 @@ import { LedgerService } from '../ledger/ledger.service';
 import { PAYSTACK_INGRESS_WALLET_ID } from '../system/system-wallets.service';
 import { createId } from '@paralleldrive/cuid2';
 
+export interface UnifiedTransaction {
+  id: string;
+  type: 'DEBIT' | 'CREDIT';
+  amount: bigint;
+  currency: string;
+  date: Date;
+  status: string;
+  title: string;
+  subtitle: string;
+  source: 'WALLET' | 'CARD';
+  reference?: string;
+  metadata?: any;
+}
+
 @Injectable()
 export class TransactionsService {
   private readonly logger = new Logger(TransactionsService.name);
@@ -29,6 +43,66 @@ export class TransactionsService {
     @Inject('RULE_ENGINE_SERVICE') private readonly ruleEngineClient: ClientProxy,
     @Inject('NOTIFICATION_SERVICE') private readonly notificationClient: ClientProxy,
   ) {}
+
+  /**
+   * Fetches and merges all financial activity for a user (Wallet Txs + Card Txs).
+   * Returns a unified, sorted timeline for the Dashboard.
+   */
+  async getUnifiedHistory(userId: string): Promise<UnifiedTransaction[]> {
+    this.logger.log(`Fetching unified history for user ${userId}`);
+
+    const standardTxsPromise = this.prisma.transaction.findMany({
+      where: { userId },
+      orderBy: { initiatedAt: 'desc' },
+      take: 50,
+    });
+
+    const cardTxsPromise = this.prisma.cardTransaction.findMany({
+      where: {
+        card: { userId },
+      },
+      orderBy: { occurredAt: 'desc' },
+      take: 50,
+      include: { card: true },
+    });
+
+    const [standardTxs, cardTxs] = await Promise.all([
+      standardTxsPromise,
+      cardTxsPromise,
+    ]);
+
+    const mappedStandard: UnifiedTransaction[] = standardTxs.map((tx) => ({
+      id: tx.id,
+      type: tx.type === 'CREDIT' ? 'CREDIT' : 'DEBIT',
+      amount: tx.amount,
+      currency: tx.currency,
+      date: tx.initiatedAt,
+      status: tx.status,
+      title: tx.description || 'Transaction',
+      subtitle: tx.type === 'CREDIT' ? 'Deposit' : 'Withdrawal',
+      source: 'WALLET',
+      reference: tx.reference,
+    }));
+
+    const mappedCards: UnifiedTransaction[] = cardTxs.map((tx) => ({
+      id: tx.id,
+      type: 'DEBIT', // Card spends are always debits for the user
+      amount: tx.amount,
+      currency: tx.currency,
+      date: tx.occurredAt,
+      status: tx.status,
+      title: tx.merchantName,
+      subtitle: `Card •••• ${tx.card.last4}`,
+      source: 'CARD',
+      reference: tx.providerAuthId,
+    }));
+
+    const unifiedHistory = [...mappedStandard, ...mappedCards].sort(
+      (a, b) => b.date.getTime() - a.date.getTime(),
+    );
+
+    return unifiedHistory;
+  }
 
   async processPaystackDeposit(payload: PaystackChargeSuccessDto): Promise<void> {
     if (!payload || !payload.data) {
@@ -154,13 +228,13 @@ export class TransactionsService {
   async findOneById(userId: string, transactionId: string) {
     this.logger.log(`Admin/User ${userId} attempting to find transaction ${transactionId}`);
 
+    // 1. Try Standard Transaction
     const transaction = await this.prisma.transaction.findFirst({
       where: {
         id: transactionId,
         userId: userId, // Strict ownership check
       },
       include: {
-        // We must include the full ledger breakdown for the detail page.
         ledgerTransaction: {
           include: {
             entries: {
@@ -169,8 +243,8 @@ export class TransactionsService {
                   select: { name: true },
                 },
               },
-              orderBy: { // Ensure credits are always shown after debits
-                  type: 'asc', 
+              orderBy: { 
+                  type: 'asc', // Debits first, then Credits
               }
             },
           },
@@ -178,11 +252,49 @@ export class TransactionsService {
       },
     });
 
-    if (!transaction) {
-      this.logger.warn(`Transaction with ID ${transactionId} not found for user ${userId}.`);
-      throw new NotFoundException('Transaction not found or you do not have permission to view it.');
+    if (transaction) {
+      return { ...transaction, source: 'WALLET' };
     }
 
-    return transaction;
+    // 2. Try Card Transaction
+    const cardTransaction = await this.prisma.cardTransaction.findFirst({
+      where: {
+        id: transactionId,
+        card: { userId: userId }, // Strict ownership check via Card relation
+      },
+      include: {
+        card: true,
+      },
+    });
+
+    if (cardTransaction) {
+      // Fetch associated ledger history if linked
+      let ledgerTransaction = null;
+      if (cardTransaction.ledgerTransactionId) {
+        ledgerTransaction = await this.prisma.ledgerTransaction.findUnique({
+          where: { id: cardTransaction.ledgerTransactionId },
+          include: {
+            entries: {
+              include: {
+                wallet: { select: { name: true } },
+              },
+              orderBy: { type: 'asc' },
+            },
+          },
+        });
+      }
+
+      return {
+        ...cardTransaction,
+        source: 'CARD',
+        // Normalize fields for the frontend viewer
+        description: cardTransaction.merchantName,
+        initiatedAt: cardTransaction.occurredAt,
+        ledgerTransaction,
+      };
+    }
+
+    this.logger.warn(`Transaction with ID ${transactionId} not found for user ${userId}.`);
+    throw new NotFoundException('Transaction not found or you do not have permission to view it.');
   }
 }

@@ -4,12 +4,12 @@ export type Role = 'USER' | 'ADMIN' | 'SUPER_ADMIN';
 export type TransactionType = 'CREDIT' | 'DEBIT' | 'TRANSFER';
 export type SplitType = 'PERCENTAGE' | 'FIXED';
 export type Provider = 'PAYSTACK' | 'FLUTTERWAVE' | 'PLAID' | 'MANUAL';
-export type WalletType = 'PERSONAL' | 'SAVINGS' | 'BILL' | 'INVESTMENT' | 'SOURCE';
+export type WalletType = 'PERSONAL' | 'SAVINGS' | 'BILL' | 'INVESTMENT' | 'SOURCE' | 'LIABILITY';
 export type LedgerEntryType = 'DEBIT' | 'CREDIT';
 export type UserStatus = 'ACTIVE' | 'SUSPENDED' | 'DEACTIVATED';
 export type PayoutStatus = 'PENDING' | 'PROCESSING' | 'SUCCESS' | 'FAILED';
 export type AccountType = 'SAVINGS' | 'CURRENT';
-export type Currency = 'NGN'; // Add others as needed
+export type Currency = 'NGN' | 'USD';
 
 // --- MODELS ---
 
@@ -85,9 +85,20 @@ export interface Transaction {
   userId: string;
   accountId: string | null;
   walletId: string | null;
-  
-  // Optional relations often included in API responses
   ledgerTransaction?: LedgerTransaction; 
+}
+
+export interface UnifiedTransaction {
+  id: string;
+  type: 'DEBIT' | 'CREDIT';
+  amount: string; // BigInt serialized as string
+  currency: string;
+  date: string;   // ISO Date string
+  status: string;
+  title: string;
+  subtitle: string;
+  source: 'WALLET' | 'CARD';
+  reference?: string;
 }
 
 export interface Analytics {
@@ -201,4 +212,23 @@ export interface AIInsight {
   description: string;
   actionText: string | null;
   payload: InsightPayload;
+}
+
+export interface VirtualCard {
+  id: string;
+  nameOnCard: string;
+  last4: string;
+  brand: string; // 'Visa' | 'Mastercard'
+  expiryMonth: number;
+  expiryYear: number;
+  status: 'ACTIVE' | 'INACTIVE' | 'FROZEN' | 'CANCELED';
+  currency: string;
+  walletId: string;
+  wallet?: Wallet; // Optional relation
+  createdAt: string;
+}
+
+export interface CreateCardData {
+  walletId: string;
+  nameOnCard: string;
 }
