@@ -2,12 +2,10 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wallet, Transaction } from '../../../../types/index';
-import { WalletType } from '../../../../lib/enums';
+import { Wallet, UnifiedTransaction, WalletType  } from '../../../../types/index';
 import { getWalletById, formatCurrency } from '../../../../lib/walletService';
 import { getTransactions } from '../../../../lib/transactionService';
 import { Button } from '../../../../components/ui/Button';
-import { Card } from '../../../../components/ui/Card';
 import { Badge } from '../../../../components/ui/Badge';
 import { Progress } from '../../../../components/ui/Progress';
 import { DeleteWalletModal } from '../_components/DeleteWalletModal';
@@ -20,8 +18,6 @@ import {
   ArrowLeft, 
   Settings, 
   Trash2, 
-  TrendingUp, 
-  TrendingDown, 
   PiggyBank, 
   ShieldCheck, 
   Landmark, 
@@ -30,7 +26,8 @@ import {
   ArrowUpRight,
   ArrowRightLeft,
   PlusCircle,
-  Banknote
+  Banknote,
+  CreditCard
 } from 'lucide-react';
 import { cn } from '../../../../lib/utils';
 
@@ -64,7 +61,9 @@ const getWalletTheme = (type: WalletType) => {
 export default function WalletDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [wallet, setWallet] = useState<Wallet | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  
+  // FIX: Update state type to UnifiedTransaction[]
+  const [transactions, setTransactions] = useState<UnifiedTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Modal States
@@ -83,7 +82,8 @@ export default function WalletDetailsPage({ params }: { params: { id: string } }
       setWallet(walletData);
 
       // 2. Fetch Transactions filtered for this wallet
-      const allTx = await getTransactions(params.id);
+      // Ensure your getTransactions function supports the walletId filter
+      const allTx = await getTransactions(params.id); 
       setTransactions(allTx.slice(0, 10)); // Limit to 10 recent
 
     } catch (error) {
@@ -225,21 +225,21 @@ export default function WalletDetailsPage({ params }: { params: { id: string } }
             ) : (
                 <div className="divide-y divide-border/40">
                     {transactions.map((tx) => (
-                        <div key={tx.id} className="group flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                        <div key={tx.id} className="group flex items-center justify-between p-4 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => router.push(`/dashboard/transactions/${tx.id}`)}>
                             <div className="flex items-center gap-4">
                                 <div className={cn(
                                     "flex h-10 w-10 items-center justify-center rounded-xl border",
+                                    tx.source === 'CARD' ? "bg-purple-500/10 border-purple-500/20 text-purple-500" :
                                     tx.type === 'CREDIT' ? "bg-green-500/10 border-green-500/20 text-green-500" : 
-                                    tx.type === 'DEBIT' ? "bg-red-500/10 border-red-500/20 text-red-500" :
-                                    "bg-blue-500/10 border-blue-500/20 text-blue-500"
+                                    "bg-red-500/10 border-red-500/20 text-red-500"
                                 )}>
-                                    {tx.type === 'CREDIT' ? <ArrowDownLeft className="h-5 w-5" /> : 
-                                     tx.type === 'DEBIT' ? <ArrowUpRight className="h-5 w-5" /> :
-                                     <ArrowRightLeft className="h-5 w-5" />}
+                                    {tx.source === 'CARD' ? <CreditCard className="h-5 w-5" /> :
+                                     tx.type === 'CREDIT' ? <ArrowDownLeft className="h-5 w-5" /> : 
+                                     <ArrowUpRight className="h-5 w-5" />}
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-foreground">{tx.description || 'Transfer'}</p>
-                                    <p className="text-xs text-muted-foreground">{new Date(tx.initiatedAt).toLocaleDateString()}</p>
+                                    <p className="text-sm font-medium text-foreground">{tx.title}</p>
+                                    <p className="text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</p>
                                 </div>
                             </div>
                             <div className="text-right">
