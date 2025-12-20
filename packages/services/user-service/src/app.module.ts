@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '@flowsplit/prisma';
 import { UsersModule } from './modules/users.module';
+import { KycModule } from './modules/kyc/kyc.module';
 import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from 'nestjs-pino';
 import { HealthController } from './health.controller';
+import { StorageModule } from '@flowsplit/storage';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { HealthController } from './health.controller';
     PrismaModule,
     UsersModule,
     AuthModule,
+    KycModule,
+    StorageModule,
   ],
   controllers: [
     HealthController

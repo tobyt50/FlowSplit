@@ -11,6 +11,7 @@ export interface UpdateUserData {
   state?: string;
   postalCode?: string;
   country?: string;
+  depositOverrideWalletId?: string | null;
 }
 
 /**

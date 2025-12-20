@@ -14,6 +14,7 @@ import { PrismaService } from '@flowsplit/prisma';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
+    rawBody: true,
   });
 
   // --- Observability & Logging ---
@@ -22,9 +23,9 @@ async function bootstrap() {
 
   // --- Security & CORS ---
   const configService = app.get(ConfigService);
-  const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
+  const frontendUrl = configService.get<string>('FRONTEND_URL');
   if (!frontendUrl) {
-    pinoLogger.warn('FRONTEND_ORIGIN_URL is not defined; CORS will not be configured.');
+    pinoLogger.warn('FRONTEND_URL is not defined; CORS will not be configured.');
   } else {
     app.enableCors({
       origin: frontendUrl,

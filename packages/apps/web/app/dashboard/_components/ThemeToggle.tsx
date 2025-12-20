@@ -17,14 +17,13 @@ export function ThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full justify-between font-normal bg-background border-input rounded-xl">
+        <Button variant="outline" className="w-auto justify-between font-normal bg-background border-input rounded-xl">
           <span className="flex items-center gap-2">
              {theme === 'dark' ? <Moon className="h-4 w-4 text-blue-400" /> : 
               theme === 'light' ? <Sun className="h-4 w-4 text-amber-500" /> : 
               <Monitor className="h-4 w-4 text-muted-foreground" />}
              <span className="capitalize">{theme === 'system' ? 'System' : theme}</span>
           </span>
-          <span className="text-xs text-muted-foreground">Change</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px]">

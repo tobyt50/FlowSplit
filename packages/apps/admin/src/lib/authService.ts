@@ -2,10 +2,12 @@ import api from './api';
 import { useAdminAuthStore, AdminUser } from './authStore';
 import { decodeAndValidateAdminJwt } from './jwt';
 
+const ADMIN_API_BASE_URL = process.env.NEXT_PUBLIC_ADMIN_SERVICE_URL || 'http://localhost:4000/api';
+
 export const loginAdmin = async (data: { email: string, password: string }): Promise<void> => {
   try {
     const response = await api.post<{ accessToken: string }>(
-      'http://localhost:3100/api/auth/login',
+      `${ADMIN_API_BASE_URL}/auth/login`,
       data
     );
     const { accessToken } = response.data;

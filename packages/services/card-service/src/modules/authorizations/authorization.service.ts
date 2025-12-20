@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService, WalletType, LedgerEntryType, CardStatus } from '@flowsplit/prisma';
 import { LedgerService } from '../../ledger/ledger.service';
 import { FUNDS_ON_HOLD_WALLET_ID } from '../../system/system-wallets.service';
+import { LimitService } from '@flowsplit/limits';
 
 @Injectable()
 export class AuthorizationService {
@@ -10,6 +11,7 @@ export class AuthorizationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly ledgerService: LedgerService,
+    private readonly limitService: LimitService,
   ) {}
 
   /**
@@ -24,7 +26,7 @@ export class AuthorizationService {
   ): Promise<{ approved: boolean; reason?: string }> {
     
     // --- ATOMIC TRANSACTION START ---
-    // We must lock the wallet balance to prevent race conditions (double spend)
+    // We lock the wallet via the transaction to prevent race conditions
     return this.prisma.$transaction(async (tx) => {
       // 1. Find the FlowSplit Card and Linked Wallet
       const card = await tx.virtualCard.findUnique({
@@ -48,34 +50,57 @@ export class AuthorizationService {
         return { approved: false, reason: 'insufficient_funds' };
       }
 
-      // 3. APPROVE: Create a "HOLD" in the Ledger
-      // We DO NOT debit the user yet (expense). We debit their wallet and credit a "Liability/Hold" wallet.
-      // This reserves the funds so they can't be spent elsewhere.
-      await this.ledgerService.createTransaction(
-        tx,
-        { walletId: card.walletId, amount: amount }, // Debit User Wallet
-        [{ walletId: FUNDS_ON_HOLD_WALLET_ID, amount: amount }], // Credit System Hold Wallet
-        `Card Auth Hold: ${merchantName}`
-      );
+      // 3. SOTA: Check & Reserve Limits
+      // We check this BEFORE writing to the ledger. If this fails, we return a decline immediately.
+      // This increments Redis counters.
+      try {
+        await this.limitService.checkAndRecordLimit(card.userId, amount, 'CARD_SPEND');
+      } catch (limitError) {
+        this.logger.warn(`Declined auth ${stripeAuthId}: Limit Exceeded for user ${card.userId}`);
+        return { approved: false, reason: 'spending_limit_exceeded' };
+      }
 
-      // 4. Create Pending Transaction Record
-      await tx.cardTransaction.create({
-        data: {
-          id: stripeAuthId, // Use Stripe Auth ID as our ID for easy lookup
-          cardId: card.id,
-          amount,
-          currency: card.currency,
-          merchantName,
-          status: 'PENDING',
-          providerAuthId: stripeAuthId,
-        },
-      });
+      // 4. Execute Ledger Operations (Wrapped to handle rollback)
+      try {
+        // A. APPROVE: Create a "HOLD" in the Ledger
+        // We DO NOT debit the user yet (expense). We debit their wallet and credit a "Liability/Hold" wallet.
+        // This reserves the funds so they can't be spent elsewhere.
+        await this.ledgerService.createTransaction(
+          tx,
+          { walletId: card.walletId, amount: amount }, // Debit User Wallet
+          [{ walletId: FUNDS_ON_HOLD_WALLET_ID, amount: amount }], // Credit System Hold Wallet
+          `Card Auth Hold: ${merchantName}`
+        );
 
-      // 5. Update Cached Balance
-      await tx.wallet.update({
-        where: { id: card.walletId },
-        data: { balance: { decrement: amount } },
-      });
+        // B. Create Pending Transaction Record
+        await tx.cardTransaction.create({
+          data: {
+            id: stripeAuthId, // Use Stripe Auth ID as our ID for easy lookup
+            cardId: card.id,
+            amount,
+            currency: card.currency,
+            merchantName,
+            status: 'PENDING',
+            providerAuthId: stripeAuthId,
+          },
+        });
+
+        // C. Update Cached Balance
+        await tx.wallet.update({
+          where: { id: card.walletId },
+          data: { balance: { decrement: amount } },
+        });
+
+      } catch (dbError) {
+        // --- COMPENSATION LOGIC ---
+        // If the database write failed (e.g. constraint violation, connection issue),
+        // we MUST roll back the Limit usage we reserved in Step 3, or the user will lose quota.
+        this.logger.error(`Database error during auth ${stripeAuthId}. Rolling back limit usage.`);
+        await this.limitService.rollbackUsage(card.userId, amount);
+        
+        // Re-throw to ensure the Prisma transaction rolls back
+        throw dbError;
+      }
 
       this.logger.log(`Approved auth ${stripeAuthId} for ${merchantName}`);
       return { approved: true };

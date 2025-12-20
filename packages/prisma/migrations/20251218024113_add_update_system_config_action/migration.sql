@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "AdminActionType" ADD VALUE 'UPDATE_SYSTEM_CONFIG';

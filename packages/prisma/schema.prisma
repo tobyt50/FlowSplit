@@ -23,6 +23,12 @@ enum TransactionType {
   TRANSFER
 }
 
+enum TransactionCategory {
+  PAYOUT
+  INTERNAL_TRANSFER
+  CARD_SPEND
+}
+
 enum SplitType {
   PERCENTAGE
   FIXED
@@ -72,6 +78,7 @@ enum AdminActionType {
   FLAG_TRANSACTION
   SUSPEND_USER
   UNSUSPEND_USER
+  UPDATE_SYSTEM_CONFIG
 }
 
 enum AuditLogLevel {
@@ -105,6 +112,26 @@ enum CardTransactionStatus {
   REVERSED  // Auth released (voided)
 }
 
+enum KycStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  FAILED
+}
+
+enum KycTier {
+  TIER_0 // Basic Sign up
+  TIER_1 // BVN Verified (Higher limits)
+  TIER_2 // ID Document (Highest limits)
+}
+
+enum IdType {
+  NIN_SLIP
+  DRIVERS_LICENSE
+  VOTERS_CARD
+  INTERNATIONAL_PASSPORT
+}
+
 // --------------------- MODELS ---------------------------
 
 model User {
@@ -125,6 +152,14 @@ model User {
   postalCode         String?
   country            String   @default("NG") // Default to Nigeria
   stripeCardholderId String?  @unique
+  kycStatus       KycStatus   @default(UNVERIFIED)
+  kycTier         KycTier     @default(TIER_0)
+  bvn             String?
+  kycRejectionReason String?
+  idType          IdType?
+  idNumber        String?
+  idImageKey    String?   // Store S3 Key (e.g., "documents/abc-123")
+  selfieKey     String?   // Store S3 Key
 
   // Relations
   accounts      Account[]
@@ -135,10 +170,15 @@ model User {
   analytics     Analytics?
   provider   Provider?
   providerId String?   @unique
+  isTwoFactorEnabled     Boolean   @default(false)
+  twoFactorSecret        String?   
+  twoFactorRecoveryCodes String[]
   virtualAccount VirtualAccount?
   virtualCards    VirtualCard[]
   bankAccounts BankAccount[]
   payouts      Payout[]
+  depositOverrideWalletId String?
+  depositOverrideWallet   Wallet? @relation("UserDepositOverride", fields: [depositOverrideWalletId], references: [id])
 }
 
 model AdminAuditLog {
@@ -197,6 +237,7 @@ model Wallet {
   ledgerEntries       LedgerEntry[]
   payoutsFrom Payout[]
   virtualCards    VirtualCard[]
+  usersUsingAsOverride User[] @relation("UserDepositOverride")
 }
 
 model Account {
@@ -395,4 +436,17 @@ model CardTransaction {
   
   occurredAt         DateTime              @default(now())
   settledAt          DateTime?
+}
+
+model TierLimit {
+  id                  String              @id @default(cuid())
+  tier                KycTier             @unique // TIER_0, TIER_1, TIER_2
+  currency            Currency            @default(NGN)
+  
+  maxPerTransaction   BigInt              // e.g. 50,000 for Tier 0
+  maxDaily            BigInt              // e.g. 100,000 for Tier 0
+  maxMonthly          BigInt              // e.g. 500,000 for Tier 0
+  
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 }

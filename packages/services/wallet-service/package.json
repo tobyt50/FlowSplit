@@ -10,6 +10,7 @@
     },
     "dependencies": {
         "@flowsplit/auth": "workspace:^",
+        "@flowsplit/limits": "workspace:^",
         "@flowsplit/prisma": "workspace:*",
         "@nestjs/common": "^10.0.0",
         "@nestjs/config": "^3.2.2",

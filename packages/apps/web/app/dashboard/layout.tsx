@@ -4,6 +4,7 @@ import React from 'react';
 import { Sidebar } from './_components/Sidebar';
 import { Header } from './_components/Header';
 import withAuth from '../../components/auth/withAuth';
+import { AIInsightManager } from './_components/AIInsightManager';
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
@@ -25,6 +26,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           */}
           <main className="flex-1 px-4 py-4 sm:px-6 md:px-8 pb-24 md:pb-8 overflow-x-hidden">
             {children}
+            <AIInsightManager />
           </main>
         </div>
       </div>

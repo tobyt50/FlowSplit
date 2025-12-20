@@ -10,6 +10,7 @@ import { Prisma, PrismaService, WalletType } from '@flowsplit/prisma';
 import { LedgerService } from '../ledger/ledger.service';
 import { createId } from '@paralleldrive/cuid2';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
+import { LimitService } from '@flowsplit/limits';
 
 type PrismaTransactionClient = Prisma.TransactionClient;
 
@@ -20,6 +21,7 @@ export class WalletsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly ledgerService: LedgerService,
+    private readonly limitService: LimitService,
   ) {}
 
   async create(userId: string, createWalletDto: CreateWalletDto) {
@@ -128,7 +130,7 @@ export class WalletsService {
         throw new BadRequestException('Cannot delete your Primary default wallet.');
       }
 
-      // 2. Handle Funds Transfer (Sweep) - UNCHANGED
+      // 2. Handle Funds Transfer (Sweep)
       if (walletToDelete.balance > 0n) {
         if (!targetWalletId) {
           throw new BadRequestException('This wallet has funds. You must specify a target wallet to transfer them to.');
@@ -178,43 +180,64 @@ export class WalletsService {
    * Transfers funds between two wallets owned by the same user.
    * Atomic and Ledger-backed.
    */
+  /**
+   * Transfers funds between two wallets owned by the same user.
+   * Atomic, Ledger-backed, and Limit-enforced.
+   */
   async transferFunds(userId: string, fromWalletId: string, toWalletId: string, amount: bigint) {
     if (fromWalletId === toWalletId) {
       throw new BadRequestException('Source and destination wallets cannot be the same.');
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      // 1. Verify Ownership & Balances
-      const [source, destination] = await Promise.all([
-        tx.wallet.findFirst({ where: { id: fromWalletId, userId } }),
-        tx.wallet.findFirst({ where: { id: toWalletId, userId } }),
-      ]);
+    // 1. LIMIT CHECK & RESERVATION (SOTA Pattern)
+    // We check and increment the limit in Redis BEFORE starting the database transaction.
+    // This allows for high-performance gating without locking database rows.
+    await this.limitService.checkAndRecordLimit(userId, amount, 'INTERNAL_TRANSFER');
 
-      if (!source) throw new NotFoundException('Source wallet not found.');
-      if (!destination) throw new NotFoundException('Destination wallet not found.');
-      if (source.balance < amount) throw new BadRequestException('Insufficient funds.');
+    try {
+      // 2. EXECUTE ATOMIC TRANSACTION
+      return await this.prisma.$transaction(async (tx) => {
+        // A. Verify Ownership & Balances
+        const [source, destination] = await Promise.all([
+          tx.wallet.findFirst({ where: { id: fromWalletId, userId } }),
+          tx.wallet.findFirst({ where: { id: toWalletId, userId } }),
+        ]);
 
-      // 2. Create Ledger Record
-      await this.ledgerService.createTransaction(
-        tx,
-        { walletId: source.id, amount },
-        [{ walletId: destination.id, amount }],
-        `Internal Transfer: ${source.name} -> ${destination.name}`
-      );
+        if (!source) throw new NotFoundException('Source wallet not found.');
+        if (!destination) throw new NotFoundException('Destination wallet not found.');
+        if (source.balance < amount) throw new BadRequestException('Insufficient funds.');
 
-      // 3. Update Cached Balances
-      await tx.wallet.update({
-        where: { id: source.id },
-        data: { balance: { decrement: amount } },
+        // B. Create Ledger Record (The Source of Truth)
+        await this.ledgerService.createTransaction(
+          tx,
+          { walletId: source.id, amount },
+          [{ walletId: destination.id, amount }],
+          `Internal Transfer: ${source.name} -> ${destination.name}`
+        );
+
+        // C. Update Cached Balances (For Read Performance)
+        await tx.wallet.update({
+          where: { id: source.id },
+          data: { balance: { decrement: amount } },
+        });
+        await tx.wallet.update({
+          where: { id: destination.id },
+          data: { balance: { increment: amount } },
+        });
+
+        this.logger.log(`Transferred ${amount} from ${source.id} to ${destination.id}`);
+        return { success: true, from: source.name, to: destination.name, amount: amount.toString() };
       });
-      await tx.wallet.update({
-        where: { id: destination.id },
-        data: { balance: { increment: amount } },
-      });
 
-      this.logger.log(`Transferred ${amount} from ${source.id} to ${destination.id}`);
-      return { success: true, from: source.name, to: destination.name, amount: amount.toString() };
-    });
+    } catch (error) {
+      // 3. COMPENSATION (Rollback Limit)
+      // If the DB transaction failed (e.g. concurrency, insufficient funds race condition),
+      // we must release the limit reservation so the user isn't penalized.
+      this.logger.warn(`Transfer failed for user ${userId}. Rolling back limit usage.`);
+      await this.limitService.rollbackUsage(userId, amount);
+      
+      throw error; // Re-throw the error to the client
+    }
   }
 
   /**

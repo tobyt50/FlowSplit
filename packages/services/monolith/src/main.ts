@@ -75,7 +75,7 @@ async function bootstrap() {
       },
     });
 
-    await app.startAllMicroservices();
+    // await app.startAllMicroservices();
     logger.log(`🐰 RabbitMQ Microservices connected and listening`);
   } else {
     logger.warn(`⚠️ RABBITMQ_URL not found. Event-driven features will NOT work.`);

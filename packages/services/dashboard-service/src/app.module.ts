@@ -5,6 +5,8 @@ import { PrismaModule } from '@flowsplit/prisma';
 import { AuthModule } from './auth/auth.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HealthController } from './health.controller';
+import { LimitModule } from '@flowsplit/limits';
+import { AppLimitsModule } from './modules/limits/limits.module';
 
 @Module({
   imports: [
@@ -17,9 +19,11 @@ import { HealthController } from './health.controller';
     PrismaModule,
     AuthModule,
     DashboardModule,
+    LimitModule,
+    AppLimitsModule,
   ],
   controllers: [
-    HealthController
+    HealthController,
   ]
 })
 export class AppModule {}

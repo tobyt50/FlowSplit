@@ -5,9 +5,10 @@ import { AuthorizationService } from '../authorizations/authorization.service';
 import { SettlementService } from '../settlement/settlement.service';
 import { LedgerModule } from '../../ledger/ledger.module';
 import { SystemModule } from '../../system/system.module';
+import { LimitModule } from '@flowsplit/limits';
 
 @Module({
-  imports: [ConfigModule, LedgerModule, SystemModule],
+  imports: [ConfigModule, LedgerModule, SystemModule, LimitModule],
   controllers: [WebhookController],
   providers: [AuthorizationService, SettlementService],
 })

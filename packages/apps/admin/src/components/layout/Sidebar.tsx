@@ -3,11 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '../../lib/utils';
-import { Users, FileText, Shield } from 'lucide-react';
+import { Users, FileText, Shield, FileCheck, ShieldAlert } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Users', icon: Users },
+  { href: '/kyc', label: 'KYC Reviews', icon: FileCheck },
   { href: '/logs', label: 'Audit Logs', icon: FileText },
+  { href: '/limits', label: 'Risk & Limits', icon: ShieldAlert },
 ];
 
 export function Sidebar() {

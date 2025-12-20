@@ -5,11 +5,13 @@ import { PaystackModule } from '../../paystack/paystack.module';
 import { LedgerModule } from '../../ledger/ledger.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { LimitModule } from '@flowsplit/limits';
 
 @Module({
   imports: [
     PaystackModule,
     LedgerModule,
+    LimitModule,
     ClientsModule.registerAsync([
       {
         name: 'NOTIFICATION_SERVICE',

@@ -28,9 +28,9 @@ async function bootstrap() {
   const logger = app.get(Logger);
   app.useLogger(logger);
 
-  const frontendUrl = configService.get<string>('ADMIN_FRONTEND_ORIGIN_URL');
+  const frontendUrl = configService.get<string>('ADMIN_FRONTEND_URL');
   if (!frontendUrl) {
-    logger.warn('ADMIN_FRONTEND_ORIGIN_URL is not defined; CORS will not be configured.');
+    logger.warn('ADMIN_FRONTEND_URL is not defined; CORS will not be configured.');
   } else {
     app.enableCors({
       origin: frontendUrl,

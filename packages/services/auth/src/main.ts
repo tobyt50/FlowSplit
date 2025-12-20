@@ -23,8 +23,8 @@ async function bootstrap() {
 
   // --- Security & CORS ---
   const configService = app.get(ConfigService);
-  const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
-  const adminFrontendUrl = configService.get<string>('ADMIN_FRONTEND_ORIGIN_URL');
+  const frontendUrl = configService.get<string>('FRONTEND_URL');
+  const adminFrontendUrl = configService.get<string>('ADMIN_FRONTEND_URL');
 
   const allowedOrigins = [frontendUrl, adminFrontendUrl].filter(Boolean);
 

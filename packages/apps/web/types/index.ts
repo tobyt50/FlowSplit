@@ -10,6 +10,8 @@ export type UserStatus = 'ACTIVE' | 'SUSPENDED' | 'DEACTIVATED';
 export type PayoutStatus = 'PENDING' | 'PROCESSING' | 'SUCCESS' | 'FAILED';
 export type AccountType = 'SAVINGS' | 'CURRENT';
 export type Currency = 'NGN' | 'USD';
+export type KycStatus = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'FAILED';
+export type KycTier = 'TIER_0' | 'TIER_1' | 'TIER_2';
 
 // --- MODELS ---
 
@@ -18,12 +20,35 @@ export interface User {
   fullName: string;
   email: string;
   phone: string | null;
-  password?: string; // Usually excluded by API
+  password?: string;
+  isTwoFactorEnabled: boolean;
   avatarUrl: string | null;
+  
   role: Role;
   status: UserStatus;
+  
+  // --- KYC & Billing Details ---
+  addressLine1: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  country: string; // Defaults to "NG" in schema
+  dateOfBirth: string | null; // ISO Date String
+  
+  // --- Verification Status ---
+  kycStatus: KycStatus;
+  kycTier: KycTier;
+  kycRejectionReason: string | null;
+  
+  // --- Integrations ---
   provider: Provider | null;
-  providerId: string | null;
+  providerId: string | null; // e.g. Paystack Customer Code
+  stripeCardholderId: string | null; // Linked Stripe Identity
+  
+  // --- Automation Settings ---
+  depositOverrideWalletId: string | null; // "Pause Automation" target
+  
+  // --- Timestamps ---
   createdAt: string;
   updatedAt: string;
 }

@@ -18,7 +18,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: { sub: string; email: string }) {
+  async validate(payload: { sub: string; email: string; is2faPending?: boolean }) {
+    if (payload.is2faPending) {
+      throw new UnauthorizedException('2FA verification required. Access denied.');
+    }
+
     const user = await this.usersService.findOneById(payload.sub);
     if (!user) {
       throw new UnauthorizedException('User not found.');

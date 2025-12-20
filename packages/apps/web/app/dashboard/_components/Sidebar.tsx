@@ -64,7 +64,7 @@ export function Sidebar() {
 
   return (
     <>
-      {/* --- DESKTOP SIDEBAR (Unchanged) --- */}
+      {/* --- DESKTOP SIDEBAR --- */}
       <div className="hidden md:block sticky top-4 h-[calc(100vh-2rem)] ml-4 rounded-3xl bg-background/95 backdrop-blur-xl overflow-hidden z-40 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.2)] dark:shadow-[0_30px_60px_-12px_rgba(0,0,0,0.8)] ring-1 ring-black/5 dark:ring-white/10">
         <div className="flex h-full flex-col gap-4">
           <div className="flex h-[80px] items-center px-6">

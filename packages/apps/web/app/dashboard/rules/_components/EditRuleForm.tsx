@@ -41,6 +41,13 @@ interface EditRuleFormProps {
   onSuccess: () => void;
 }
 
+const PRIORITY_OPTIONS = [
+  { value: 1, label: 'Essential (First)' },
+  { value: 5, label: 'High' },
+  { value: 10, label: 'Standard' },
+  { value: 20, label: 'Low (Last)' },
+];
+
 export function EditRuleForm({ rule, onSuccess }: EditRuleFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,6 +76,7 @@ export function EditRuleForm({ rule, onSuccess }: EditRuleFormProps) {
   const ruleType = watch('type');
   const destinationWalletId = watch('destinationWalletId');
   const isBill = watch('isBill');
+  const priority = watch('priority');
   const selectedWallet = wallets.find(w => w.id === destinationWalletId);
 
   useEffect(() => {
@@ -101,9 +109,24 @@ export function EditRuleForm({ rule, onSuccess }: EditRuleFormProps) {
           {errors.name && <p className="text-destructive text-xs">{errors.name.message}</p>}
         </div>
         <div className="space-y-2">
-          <label htmlFor="priority" className="text-sm font-medium text-foreground">Priority</label>
-          <Input id="priority" type="number" {...register('priority', { valueAsNumber: true })} disabled={isLoading} className="bg-muted border-input" />
-          {errors.priority && <p className="text-destructive text-xs">{errors.priority.message}</p>}
+            <label htmlFor="priority" className="text-sm font-medium text-foreground">Priority</label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild disabled={isLoading}>
+                <Button variant="outline" className="w-full justify-between bg-muted border-input font-normal">
+                  {PRIORITY_OPTIONS.find(p => p.value === priority)?.label || priority}
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[180px]">
+                {PRIORITY_OPTIONS.map((opt) => (
+                  <DropdownMenuItem key={opt.value} onSelect={() => setValue('priority', opt.value, { shouldValidate: true })} className="cursor-pointer">
+                    <span className={opt.value === 1 ? 'font-semibold text-amber-600' : ''}>{opt.label}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <input type="hidden" {...register('priority', { valueAsNumber: true })} />
+            {errors.priority && <p className="text-destructive text-xs">{errors.priority.message}</p>}
         </div>
       </div>
 

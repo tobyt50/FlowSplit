@@ -24,9 +24,9 @@ async function bootstrap() {
 
   // --- CORS Setup ---
   const configService = app.get(ConfigService);
-  const frontendUrl = configService.get<string>('FRONTEND_ORIGIN_URL');
+  const frontendUrl = configService.get<string>('FRONTEND_URL');
   if (!frontendUrl) {
-    logger.warn('FRONTEND_ORIGIN_URL is not defined; CORS will not be configured.');
+    logger.warn('FRONTEND_URL is not defined; CORS will not be configured.');
   } else {
     app.enableCors({
       origin: frontendUrl,

@@ -2,15 +2,24 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@flowsplit/prisma';
 import { EmailService } from '../email/email.service';
 import { formatCurrency } from '../../utils/currency-formatter';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
+  private readonly frontendUrl: string;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {const url = this.configService.get<string>('FRONTEND_URL');
+    if (!url) {
+      this.logger.warn('FRONTEND_URL is not defined. Email links may be broken.');
+    }
+    // Remove trailing slash if present to ensure clean URL construction
+    this.frontendUrl = url?.replace(/\/$/, '') || 'http://localhost:3000';
+  }
 
   /**
    * Handles the 'deposit.received' event from the event bus.
@@ -41,7 +50,7 @@ export class NotificationsService {
       title: `Incoming Deposit: ${formattedAmount}`,
       body: `Your funds have landed safely. FlowSplit is currently distributing them according to your active rules. Click the button below to see the full breakdown.`,
       actionText: 'View Transaction',
-      actionUrl: `http://localhost:3000/dashboard/transactions/${payload.transactionId}`,
+      actionUrl: `${this.frontendUrl}/dashboard/transactions/${payload.transactionId}`,
     });
   }
 
@@ -73,7 +82,7 @@ export class NotificationsService {
       title: 'Withdrawal Successful',
       body: `The ${formattedAmount} you sent to your ${payload.bankName} account has been successfully processed.`,
       actionText: 'View Payouts',
-      actionUrl: `http://localhost:3000/dashboard/bank-accounts`,
+      actionUrl: `${this.frontendUrl}/dashboard/bank-accounts`,
     });
   }
   
@@ -105,7 +114,7 @@ export class NotificationsService {
         title: 'Withdrawal Failed',
         body: `We were unable to process your withdrawal of ${formattedAmount}. The funds have been returned to your wallet. <br/><br/><strong>Reason:</strong> ${payload.reason}`,
         actionText: 'Check Bank Accounts',
-        actionUrl: `http://localhost:3000/dashboard/bank-accounts`,
+        actionUrl: `${this.frontendUrl}/dashboard/bank-accounts`,
       });
   }
 
@@ -127,5 +136,55 @@ export class NotificationsService {
       throw new NotFoundException('Notification not found or you do not have permission to update it.');
     }
     return { status: 'success' };
+  }
+
+  async handleKycResult(payload: { userId: string; tier?: string; reason?: string }, success: boolean) {
+    const user = await this.prisma.user.findUnique({ where: { id: payload.userId } });
+    if (!user) return;
+
+    if (success) {
+      // 1. In-App Notification
+      await this.prisma.notification.create({
+        data: {
+          userId: user.id,
+          type: 'SUCCESS',
+          title: 'Identity Verified',
+          message: `Congratulations! Your identity has been verified. You have been upgraded to ${payload.tier}.`,
+          actionUrl: '/dashboard/settings', // Link back to settings
+        },
+      });
+
+      // 2. Email Notification
+      await this.emailService.sendHtmlEmail({
+        to: user.email,
+        subject: 'You are Verified! 🎉',
+        title: 'Verification Complete',
+        body: `Your identity verification was successful. You now have access to higher transaction limits and all features of FlowSplit.`,
+        actionText: 'View Profile',
+        actionUrl: `${this.frontendUrl}/dashboard/settings`,
+      });
+
+    } else {
+      // 1. In-App Notification
+      await this.prisma.notification.create({
+        data: {
+          userId: user.id,
+          type: 'ERROR',
+          title: 'Verification Failed',
+          message: `Your identity verification failed. Reason: ${payload.reason}`,
+          actionUrl: '/dashboard/settings',
+        },
+      });
+
+      // 2. Email Notification
+      await this.emailService.sendHtmlEmail({
+        to: user.email,
+        subject: 'Action Required: Verification Failed',
+        title: 'Verification Could Not Be Completed',
+        body: `We were unable to verify your identity details. The provider returned the following reason: "${payload.reason}". Please check your details and try again.`,
+        actionText: 'Retry Verification',
+        actionUrl: `${this.frontendUrl}/dashboard/settings`,
+      });
+    }
   }
 }

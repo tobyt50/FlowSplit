@@ -52,7 +52,7 @@ services:
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672
       - JWT_SECRET=${JWT_SECRET}
       - PAYSTACK_SECRET_KEY=${PAYSTACK_SECRET_KEY}
-      - FRONTEND_ORIGIN_URL=${FRONTEND_ORIGIN_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
       - PORT=4000
     depends_on:
       postgres: { condition: service_healthy }

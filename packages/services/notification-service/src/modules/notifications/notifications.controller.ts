@@ -54,6 +54,30 @@ export class NotificationsController {
     );
   }
 
+  @EventPattern('kyc.success')
+  async handleKycSuccess(@Payload() data: any, @Ctx() context: RmqContext) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    try {
+      await this.notificationsService.handleKycResult(data, true);
+      channel.ack(originalMsg);
+    } catch (error) {
+      channel.nack(originalMsg, false, false);
+    }
+  }
+
+  @EventPattern('kyc.failed')
+  async handleKycFailed(@Payload() data: any, @Ctx() context: RmqContext) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    try {
+      await this.notificationsService.handleKycResult(data, false);
+      channel.ack(originalMsg);
+    } catch (error) {
+      channel.nack(originalMsg, false, false);
+    }
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard)
   getUserNotifications(@CurrentUser() user: User) {

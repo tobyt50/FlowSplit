@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { Wallet, SplitRule, AIInsight } from '../../../types/index';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Wallet, SplitRule } from '../../../types/index';
 import { toast } from 'sonner';
 
 // Components
@@ -11,7 +11,6 @@ import { WalletBreakdown } from './_components/WalletBreakdown';
 import { RecentTransactions } from './_components/RecentTransactions';
 import { UpcomingBills, UpcomingBill } from './_components/UpcomingBills';
 import { ActiveRules } from './_components/ActiveRules';
-import { InsightCard } from './_components/InsightCard';
 import { CashFlowChart } from './_components/CashFlowChart';
 import { LastSplitBreakdown } from './_components/LastSplitBreakdown';
 import { AddFundsModal } from './_components/AddFundsModal';
@@ -25,7 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../compo
 // Services
 import { getWallets } from '../../../lib/walletService';
 import { getRules } from '../../../lib/ruleService';
-import { getTransactions } from '../../../lib/transactionService'; // Updated Import
+import { getTransactions } from '../../../lib/transactionService';
 import { getAIInsight } from '../../../lib/aiService';
 import { UnifiedTransaction } from '../../../types/index'
 import {
@@ -35,19 +34,20 @@ import {
   getLastSplitBreakdown,
   LastSplitBreakdown as LastSplitBreakdownData,
 } from '../../../lib/dashboardService';
+import { LimitsCard } from './_components/LimitsCard';
 
 interface FullDashboardData {
   wallets: Wallet[];
   rules: SplitRule[];
-  transactions: UnifiedTransaction[]; // Updated Type
+  transactions: UnifiedTransaction[];
   upcomingBills: UpcomingBill[];
   cashFlow: CashFlowDataPoint[];
   lastSplit: LastSplitBreakdownData | null;
-  aiInsight: AIInsight | null;
 }
 
 export default function OverviewPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [dashboardData, setDashboardData] = useState<FullDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +89,6 @@ export default function OverviewPage() {
         upcomingBills,
         cashFlow,
         lastSplit,
-        aiInsight,
       });
     } catch (err: any) {
       setError(err.message);
@@ -109,46 +108,24 @@ export default function OverviewPage() {
     return () => document.removeEventListener('open-add-funds-modal', openModalHandler);
   }, []);
 
-  const handleAIAction = (insight: AIInsight) => {
-    switch (insight.insightCode) {
-      case 'UNALLOCATED_FUNDS': {
-        const sourceWallet = dashboardData?.wallets.find(w => w.type === 'SOURCE');
-        setTransferProps({
-          fromId: sourceWallet?.id,
-          amount: insight.payload.amount,
-        });
-        setIsTransferModalOpen(true);
-        break;
-      }
-      case 'LOW_SAVINGS_RATE': {
-        const ruleId = insight.payload.ruleId;
-        if (ruleId && dashboardData) {
-          const rule = dashboardData.rules.find(r => r.id === ruleId);
-          if (rule) {
-            setRuleToEdit(rule);
-            setIsEditRuleOpen(true);
-          }
-        }
-        break;
-      }
-      case 'NEW_SUBSCRIPTION_DETECTED': {
-        setCreateRuleDefaults({
-          name: insight.payload.name,
-          value: insight.payload.amount ? Number(insight.payload.amount) / 100 : undefined,
-          isBill: true,
-        });
-        setIsCreateRuleOpen(true);
-        break;
-      }
-      case 'HIGH_SPENDING_VELOCITY': {
-        const walletId = insight.payload.walletId;
-        if (walletId) {
-          router.push(`/dashboard/wallets/${walletId}`);
-        }
-        break;
+  useEffect(() => {
+    const action = searchParams.get('action');
+    
+    if (action === 'transfer_unallocated' && dashboardData?.wallets) {
+      const sourceWallet = dashboardData.wallets.find(w => w.type === 'SOURCE');
+      // We assume the amount is the full balance of the source wallet
+      if (sourceWallet && BigInt(sourceWallet.balance) > 0n) {
+          setTransferProps({
+            fromId: sourceWallet.id,
+            amount: sourceWallet.balance.toString(),
+          });
+          setIsTransferModalOpen(true);
+          
+          // Clean up URL without reloading
+          router.replace('/dashboard/overview', { scroll: false });
       }
     }
-  };
+  }, [searchParams, dashboardData, router]);
 
   if (isLoading) {
     return (
@@ -191,31 +168,24 @@ export default function OverviewPage() {
             </OverviewCards>
           </div>
 
-          {/* 2. Insight & Last Split Row */}
+          {/* 2. Cash Flow & Last Split Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-               {dashboardData.aiInsight && (
-                  <InsightCard 
-                    insight={dashboardData.aiInsight} 
-                    onActionClick={() => handleAIAction(dashboardData.aiInsight!)}
-                  />
-               )}
+               <div className="hidden lg:block bg-card border border-border rounded-2xl p-6 shadow-sm overflow-hidden">
+            <h3 className="text-foreground font-medium mb-4">Cash Flow Analytics</h3>
+            <CashFlowChart data={dashboardData.cashFlow} />
+          </div>
             </div>
             <div className="lg:col-span-1">
                <LastSplitBreakdown data={dashboardData.lastSplit} />
             </div>
-          </div>
-
-          {/* 3. Cash Flow Chart (Full Width in Left Col) */}
-          <div className="hidden lg:block bg-card border border-border rounded-2xl p-6 shadow-sm overflow-hidden">
-            <h3 className="text-foreground font-medium mb-4">Cash Flow Analytics</h3>
-            <CashFlowChart data={dashboardData.cashFlow} />
-          </div>
+          </div>          
         </div>
 
         {/* Right Column (Sidebar Widgets) - Spans 4 cols */}
         <div className="col-span-1 lg:col-span-4 flex flex-col gap-6">
           <WalletBreakdown wallets={dashboardData.wallets} rules={dashboardData.rules} />
+          <LimitsCard />
           {/* Transaction History now lives in the sidebar for better density */}
           <div className="flex-1 min-h-[300px]">
             <RecentTransactions transactions={dashboardData.transactions} />

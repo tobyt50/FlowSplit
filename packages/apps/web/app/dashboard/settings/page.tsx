@@ -1,342 +1,139 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useAuthStore } from '../../../lib/authStore';
-import { updateUserProfile } from '../../../lib/userService';
-import { Button } from '../../../components/ui/Button';
-import { Input } from '../../../components/ui/Input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../../components/ui/Card';
-import { toast } from 'sonner';
-import { User, Mail, Loader2, Save, MapPin, Phone, Globe, Pencil, X, Calendar } from 'lucide-react';
-import { Separator } from '../../../components/ui/Separator';
-import { ThemeToggle } from '../_components/ThemeToggle'; // Adjust import path as needed
+import { Shield, Lock, Sliders, User, Palette } from 'lucide-react';
+import { ThemeToggle } from '../_components/ThemeToggle';
+import { ChangePasswordForm } from './_components/ChangePasswordForm';
+import { AutomationPreferences } from './_components/AutomationPreferences';
+import { UserProfileForm } from './_components/UserProfileForm';
+import { TwoFactorSetup } from './_components/TwoFactorSetup';
+import { KycVerification } from './_components/KycVerification';
+import { useEffect } from 'react';
+import { refreshProfile } from '../../../lib/authService';
 
-// Extended Validation Schema to cover new KYC fields including Date of Birth
-const formSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters').max(100),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Enter a valid phone number (e.g. +234...)').optional().or(z.literal('')),
-  dateOfBirth: z.string().min(1, 'Date of birth is required for card issuance.').optional().or(z.literal('')),
-  addressLine1: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  postalCode: z.string().optional(),
-  country: z.string().max(2, 'Use 2-letter ISO code').optional(),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
-// Helper function to format Date object to "YYYY-MM-DD" for the input
-const formatDateForInput = (date: Date | string | null | undefined): string => {
-  if (!date) return '';
-  try {
-    return new Date(date).toISOString().split('T')[0];
-  } catch (error) {
-    return '';
-  }
-};
-
-// --- Sub-Component: User Profile Form ---
-function UserProfileForm() {
-  const { user, setUser } = useAuthStore();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-
-  const safeUser = user as any;
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      fullName: safeUser?.fullName || '',
-      phone: safeUser?.phone || '',
-      dateOfBirth: formatDateForInput(safeUser?.dateOfBirth),
-      addressLine1: safeUser?.addressLine1 || '',
-      city: safeUser?.city || '',
-      state: safeUser?.state || '',
-      postalCode: safeUser?.postalCode || '',
-      country: safeUser?.country || 'NG',
-    },
-  });
+export default function SettingsPage() {
 
   useEffect(() => {
-    if (!isEditing) {
-      reset({
-        fullName: safeUser?.fullName || '',
-        phone: safeUser?.phone || '',
-        dateOfBirth: formatDateForInput(safeUser?.dateOfBirth),
-        addressLine1: safeUser?.addressLine1 || '',
-        city: safeUser?.city || '',
-        state: safeUser?.state || '',
-        postalCode: safeUser?.postalCode || '',
-        country: safeUser?.country || 'NG',
-      });
-    }
-  }, [safeUser, reset, isEditing]);
+    refreshProfile();
+  }, []);
 
-  const onCancel = () => {
-    setIsEditing(false);
-    reset();
-  };
-
-  const onSubmit: SubmitHandler<FormData> = async (data) => {
-    setIsLoading(true);
-    try {
-      const payload: any = { ...data };
-      if (data.dateOfBirth) {
-        payload.dateOfBirth = new Date(data.dateOfBirth);
-      }
-
-      const updatedUser = await updateUserProfile(payload);
-      setUser(updatedUser);
-      toast.success('Profile updated successfully!');
-      setIsEditing(false);
-    } catch (err: any) {
-      toast.error('Update Failed', { description: err.message });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const inputClass = `transition-all duration-200 ${
-    isEditing 
-      ? 'bg-background border-input' 
-      : 'bg-muted/30 border-transparent cursor-default focus-visible:ring-0 px-0 shadow-none'
-  }`;
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Personal Details</h3>
-        {!isEditing ? (
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setIsEditing(true)}
-            className="text-primary hover:text-primary hover:bg-primary/10"
-          >
-            <Pencil className="h-3.5 w-3.5 mr-2" /> Edit Profile
-          </Button>
-        ) : (
-          <div className="flex gap-2">
-            <Button 
-                type="button" 
-                variant="ghost" 
-                size="sm" 
-                onClick={onCancel}
-                disabled={isLoading}
-            >
-                <X className="h-3.5 w-3.5 mr-2" /> Cancel
-            </Button>
-            <Button 
-                type="submit" 
-                size="sm" 
-                disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : <Save className="h-3.5 w-3.5 mr-2" />}
-              Save
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-            <label htmlFor="fullName" className="text-sm font-medium text-foreground flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" /> Full Name
-            </label>
-            <Input 
-                id="fullName" 
-                {...register('fullName')} 
-                disabled={!isEditing || isLoading} 
-                className={inputClass}
-            />
-            {errors.fullName && <p className="text-destructive text-xs">{errors.fullName.message}</p>}
-        </div>
-
-        <div className="space-y-2">
-            <label htmlFor="dateOfBirth" className="text-sm font-medium text-foreground flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" /> Date of Birth
-            </label>
-            <Input 
-                id="dateOfBirth"
-                type="date"
-                {...register('dateOfBirth')} 
-                disabled={!isEditing || isLoading} 
-                className={inputClass}
-            />
-            {errors.dateOfBirth && <p className="text-destructive text-xs">{errors.dateOfBirth.message}</p>}
-        </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-            <label htmlFor="phone" className="text-sm font-medium text-foreground flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" /> Phone Number
-            </label>
-            <Input 
-                id="phone" 
-                placeholder="+234..."
-                {...register('phone')} 
-                disabled={!isEditing || isLoading} 
-                className={inputClass}
-            />
-            {errors.phone && <p className="text-destructive text-xs">{errors.phone.message}</p>}
-        </div>
-
-        <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" /> Email Address
-            </label>
-            <Input 
-                id="email" 
-                value={safeUser?.email || ''} 
-                disabled 
-                className="bg-muted/50 border-dashed border-border text-muted-foreground cursor-not-allowed" 
-            />
-        </div>
-      </div>
-
-
-      <Separator className="my-6" />
-
-      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">Billing Address</h3>
-
-      <div className="space-y-2">
-        <label htmlFor="addressLine1" className="text-sm font-medium text-foreground flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground" /> Street Address
-        </label>
-        <Input 
-            id="addressLine1" 
-            {...register('addressLine1')} 
-            disabled={!isEditing || isLoading} 
-            className={inputClass}
-        />
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-            <label htmlFor="city" className="text-sm font-medium text-foreground">City</label>
-            <Input 
-                id="city" 
-                {...register('city')} 
-                disabled={!isEditing || isLoading} 
-                className={inputClass}
-            />
-        </div>
-
-        <div className="space-y-2">
-            <label htmlFor="state" className="text-sm font-medium text-foreground">State / Province</label>
-            <Input 
-                id="state" 
-                {...register('state')} 
-                disabled={!isEditing || isLoading} 
-                className={inputClass}
-            />
-        </div>
-
-        <div className="space-y-2">
-            <label htmlFor="postalCode" className="text-sm font-medium text-foreground">Postal Code</label>
-            <Input 
-                id="postalCode" 
-                {...register('postalCode')} 
-                disabled={!isEditing || isLoading} 
-                className={inputClass}
-            />
-        </div>
-
-        <div className="space-y-2">
-            <label htmlFor="country" className="text-sm font-medium text-foreground flex items-center gap-2">
-                <Globe className="h-4 w-4 text-muted-foreground" /> Country (ISO Code)
-            </label>
-            <Input 
-                id="country" 
-                placeholder="NG"
-                maxLength={2}
-                {...register('country')} 
-                disabled={!isEditing || isLoading} 
-                className={inputClass}
-            />
-        </div>
-      </div>
-    </form>
-  );
-}
-
-// --- Main Settings Page ---
-export default function SettingsPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-24 md:pb-10">
       
       {/* Page Header */}
       <div className="flex flex-col gap-1 px-1">
         <h2 className="text-lg font-semibold text-foreground">Settings</h2>
-        <p className="text-xs text-muted-foreground max-w-md">
-          Manage your account preferences, contact info, and billing address.
-        </p>
       </div>
-      
-      {/* Main Content Area */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+
+      <Tabs defaultValue="profile" className="w-full space-y-6">
         
-        {/* Profile Card */}
-        <div className="lg:col-span-2">
-            <Card className="border-border bg-card shadow-sm">
+        {/* Navigation Tabs */}
+        <div className="overflow-x-auto pb-2 md:pb-0 -mx-4 px-2 md:mx-0 md:px-0">
+          <TabsList className="w-full justify-start md:w-auto inline-flex h-11 items-center rounded-xl bg-muted/50 p-1 text-muted-foreground">
+            <TabsTrigger value="profile" className="rounded-lg px-4 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <User className="mr-1 h-4 w-4" /> Profile
+            </TabsTrigger>
+            <TabsTrigger value="security" className="rounded-lg px-4 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <Lock className="mr-1 h-4 w-4" /> Security
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="rounded-lg px-4 text-sm data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <Sliders className="mr-1 h-4 w-4" /> Preferences
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        {/* --- TAB 1: PROFILE --- */}
+        <TabsContent value="profile" className="space-y-6 focus-visible:outline-none">
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <Card className="border-border bg-card shadow-sm">
                 <CardHeader className="pb-4 border-b border-border/40">
-                    <CardTitle className="text-base">Profile & KYC</CardTitle>
-                    <CardDescription className="text-xs">
-                        Keep your details up to date for verification and card issuance.
-                    </CardDescription>
+                  <CardTitle className="text-base">Profile</CardTitle>
+                  <CardDescription className="text-xs">
+                    Keep your details up to date for verification and card issuance.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
-                    <UserProfileForm />
+                  <UserProfileForm />
                 </CardContent>
-            </Card>
-        </div>
-
-        {/* Sidebar Settings */}
-        <div className="lg:col-span-1 space-y-6">
+              </Card>
+            </div>
             
-            {/* Appearance Card - NOW ACTIVE */}
-            <Card className="border-border bg-card/50">
-                <CardHeader className="pb-4">
-                    <CardTitle className="text-base text-foreground">Appearance</CardTitle>
-                    <CardDescription className="text-xs">
-                        Customize your interface theme.
-                    </CardDescription>
+            {/* KYC SECTION */}
+            <div className="lg:col-span-1 space-y-6">
+                 <KycVerification />
+
+                 <Card className="bg-primary/5 border-dashed border-primary/20">
+                    <CardHeader className="p-5">
+                        <CardTitle className="text-sm flex items-center gap-2 text-primary">
+                            <Shield className="h-4 w-4" /> Why this matters
+                        </CardTitle>
+                        <CardDescription className="text-xs leading-relaxed mt-2 text-muted-foreground/80">
+                            Financial regulations require us to verify the identity of all users before processing withdrawals or issuing virtual cards. Your data is encrypted and stored securely using bank-grade standards.
+                        </CardDescription>
+                    </CardHeader>
+                 </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* --- TAB 2: SECURITY --- */}
+        <TabsContent value="security" className="space-y-6 focus-visible:outline-none">
+            {/* Section 1: Password Management */}
+            <Card className="border-border bg-card shadow-sm">
+                <CardHeader className="pb-4 border-b border-border/40">
+                    <CardTitle className="text-base">Password</CardTitle>
+                    <CardDescription className="text-xs">Update your login credentials.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="space-y-3">
-                        <label className="text-sm font-medium text-muted-foreground">Interface Theme</label>
-                        <ThemeToggle />
-                    </div>
+                <CardContent className="pt-6">
+                    <ChangePasswordForm />
                 </CardContent>
             </Card>
 
-            <Card className="border-border bg-card/50">
-                <CardHeader className="pb-4">
-                    <CardTitle className="text-base text-muted-foreground">Security</CardTitle>
-                    <CardDescription className="text-xs">
-                        Password and authentication settings.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Button variant="outline" className="w-full text-xs" disabled>
-                        Change Password (Coming Soon)
-                    </Button>
-                </CardContent>
-            </Card>
-        </div>
+            {/* Section 2: Two-Factor Authentication */}
+            <div className="space-y-4">
+                <TwoFactorSetup />
+            </div>
+        </TabsContent>
 
-      </div>
+        {/* --- TAB 3: PREFERENCES --- */}
+        <TabsContent value="preferences" className="space-y-6 focus-visible:outline-none">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+                
+                {/* Theme Settings */}
+                <Card className="border-border bg-card shadow-sm h-full flex flex-col">
+                    <CardHeader className="pb-4 border-b border-border/40">
+                        <CardTitle className="text-base">Appearance</CardTitle>
+                        <CardDescription className="text-xs">Customize your dashboard experience.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                                    <Palette className="h-4 w-4 text-muted-foreground" />
+                                    Interface Theme
+                                </label>
+                                <p className="text-xs text-muted-foreground">Toggle between Light, Dark, or System.</p>
+                            </div>
+                            <ThemeToggle />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Automation Preferences */}
+                <Card className="border-border bg-card shadow-sm h-full flex flex-col">
+                    <CardHeader className="pb-4 border-b border-border/40">
+                        <CardTitle className="text-base">Automation</CardTitle>
+                        <CardDescription className="text-xs">Configure global rules for your incoming deposits.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                        <AutomationPreferences />
+                    </CardContent>
+                </Card>
+            </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

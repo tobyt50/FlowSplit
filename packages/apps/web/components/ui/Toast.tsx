@@ -9,7 +9,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme="system"
-      position="top-right" // Changed to top-right which is standard for dashboards
+      position="top-right"
       className="toaster group"
       toastOptions={{
         classNames: {

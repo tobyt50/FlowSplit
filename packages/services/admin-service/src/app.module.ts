@@ -9,6 +9,9 @@ import { AdminUsersModule } from './modules/users/admin-users.module';
 import { AdminLogsModule } from './modules/logs/admin-logs.module';
 import { AdminMetricsModule } from './modules/metrics/admin-metrics.module';
 import { HealthController } from './health.controller';
+import { AdminKycModule } from './modules/kyc/admin-kyc.module';
+import { StorageModule } from '@flowsplit/storage';
+import { AdminLimitsModule } from './modules/limits/admin-limits.module';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { HealthController } from './health.controller';
     AdminUsersModule,
     AdminLogsModule,
     AdminMetricsModule,
+    AdminKycModule,
+    StorageModule,
+    AdminLimitsModule,
   ],
     controllers: [
       HealthController

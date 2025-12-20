@@ -7,6 +7,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy, USERS_SERVICE_TOKEN } from '@flowsplit/auth';
 import { UsersService } from '../users/users.service';
 import { UsersModule } from '../users/users.module'; 
+import { TwoFactorAuthService } from '../modules/two-factor-auth.service';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { UsersModule } from '../users/users.module';
   controllers: [AuthController],
   providers: [
     AuthService,
+    TwoFactorAuthService,
     JwtStrategy,
     {
       provide: USERS_SERVICE_TOKEN,

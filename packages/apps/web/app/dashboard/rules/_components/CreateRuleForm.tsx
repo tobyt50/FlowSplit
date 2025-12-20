@@ -48,13 +48,20 @@ type FormData = z.infer<typeof formSchema>;
 
 interface CreateRuleFormProps {
   onSuccess: () => void;
-
   defaults?: {
     name?: string;
     value?: number; // In Naira
     isBill?: boolean;
   }
 }
+
+// Semantic priority options for clearer UX
+const PRIORITY_OPTIONS = [
+  { value: 1, label: 'Essential (First)' },
+  { value: 5, label: 'High' },
+  { value: 10, label: 'Standard' },
+  { value: 20, label: 'Low (Last)' },
+];
 
 export function CreateRuleForm({ onSuccess, defaults }: CreateRuleFormProps) {
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +86,7 @@ export function CreateRuleForm({ onSuccess, defaults }: CreateRuleFormProps) {
     setValue,
     control,
     watch,
-    formState: { errors },
+    formState: { errors, dirtyFields },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -94,7 +101,17 @@ export function CreateRuleForm({ onSuccess, defaults }: CreateRuleFormProps) {
   const ruleType = watch('type');
   const destinationWalletId = watch('destinationWalletId');
   const isBill = watch('isBill');
+  const priority = watch('priority');
   const selectedWallet = wallets.find(w => w.id === destinationWalletId);
+
+  // --- AUTO-FILL LOGIC ---
+  useEffect(() => {
+    // If a wallet is selected AND the user hasn't manually typed a name...
+    if (selectedWallet && !dirtyFields.name && !defaults?.name) {
+      setValue('name', `${selectedWallet.name} Allocation`);
+    }
+  }, [selectedWallet, dirtyFields.name, setValue, defaults?.name]);
+  // -----------------------
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsLoading(true);
@@ -126,7 +143,22 @@ export function CreateRuleForm({ onSuccess, defaults }: CreateRuleFormProps) {
         </div>
         <div className="space-y-2">
             <label htmlFor="priority" className="text-sm font-medium text-foreground">Priority</label>
-            <Input id="priority" type="number" placeholder="1" {...register('priority', { valueAsNumber: true })} disabled={isLoading} className="bg-muted border-input" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild disabled={isLoading}>
+                <Button variant="outline" className="w-full justify-between bg-muted border-input font-normal">
+                  {PRIORITY_OPTIONS.find(p => p.value === priority)?.label || priority}
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[180px]">
+                {PRIORITY_OPTIONS.map((opt) => (
+                  <DropdownMenuItem key={opt.value} onSelect={() => setValue('priority', opt.value, { shouldValidate: true })} className="cursor-pointer">
+                    <span className={opt.value === 1 ? 'font-semibold text-amber-600' : ''}>{opt.label}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <input type="hidden" {...register('priority', { valueAsNumber: true })} />
             {errors.priority && <p className="text-destructive text-xs">{errors.priority.message}</p>}
         </div>
       </div>
