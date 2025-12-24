@@ -12,7 +12,7 @@ import { DeleteWalletModal } from '../_components/DeleteWalletModal';
 import { WithdrawFundsModal } from '../_components/WithdrawFundsModal';
 import { EditWalletModal } from '../_components/EditWalletModal';
 import { InternalTransferModal } from '../../overview/_components/InternalTransferModal';
-import { AddFundsModal } from '../../overview/_components/AddFundsModal';
+import { AddFundsModal } from '../../_components/AddFundsModal';
 import { toast } from 'sonner';
 import { 
   ArrowLeft, 

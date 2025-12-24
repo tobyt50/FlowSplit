@@ -52,7 +52,10 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   return (
     <Card className="h-[430px] flex flex-col overflow-hidden bg-card border-border min-h-[400px]">
       <CardHeader className="flex flex-row items-center justify-between pb-2 pt-5 px-5 shrink-0">
-        <CardTitle className="text-lg">Recent Transactions</CardTitle>
+        <div className="flex items-start gap-2">
+        <History className="h-5 w-5 text-primary mt-0.5" />
+        <CardTitle className="text-md">Recent Transactions</CardTitle>
+        </div>
       </CardHeader>
 
       <div className="flex-1 min-h-0 relative">

@@ -5,7 +5,6 @@ import { JwtAuthGuard, CurrentUser } from '@flowsplit/auth';
 import { PrismaService, User } from '@flowsplit/prisma';
 import { IsString, IsNotEmpty } from 'class-validator';
 
-// A DTO for our internal test endpoint
 class CreateTestNotificationDto {
   @IsString() @IsNotEmpty() title!: string;
   @IsString() @IsNotEmpty() message!: string;
@@ -77,6 +76,16 @@ export class NotificationsController {
       channel.nack(originalMsg, false, false);
     }
   }
+
+  @EventPattern('auth.forgot_password')
+async handleForgotPassword(@Payload() data: any, @Ctx() context: RmqContext) {
+  const channel = context.getChannelRef();
+  const originalMsg = context.getMessage();
+  try {
+      await this.notificationsService.sendPasswordResetEmail(data);
+      channel.ack(originalMsg);
+  } catch (e) { channel.nack(originalMsg, false, false); }
+}
 
   @Get()
   @UseGuards(JwtAuthGuard)

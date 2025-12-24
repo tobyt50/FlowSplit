@@ -6,6 +6,14 @@ import { AuthenticatedRequest } from '@flowsplit/shared';
 import { JwtAuthGuard } from '@flowsplit/auth';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { TwoFactorLoginDto } from './dto/two-factor.dto';
+import { IsEmail, IsString, MinLength } from 'class-validator';
+
+class RequestResetDto { @IsEmail() email!: string; }
+class ResetPasswordDto { 
+    @IsString() userId!: string; 
+    @IsString() token!: string; 
+    @IsString() @MinLength(8) newPassword!: string; 
+}
 
 @Controller('auth')
 export class AuthController {
@@ -66,5 +74,19 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async loginWith2fa(@Body() body: TwoFactorLoginDto) {
     return this.authService.loginWith2fa(body.tempToken, body.code);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() body: RequestResetDto) {
+    await this.authService.requestPasswordReset(body.email);
+    return { message: 'If an account exists, a reset link has been sent.' };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() body: ResetPasswordDto) {
+    await this.authService.resetPassword(body.userId, body.token, body.newPassword);
+    return { message: 'Password updated successfully.' };
   }
 }

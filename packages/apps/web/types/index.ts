@@ -17,7 +17,8 @@ export type KycTier = 'TIER_0' | 'TIER_1' | 'TIER_2';
 
 export interface User {
   id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string | null;
   password?: string;

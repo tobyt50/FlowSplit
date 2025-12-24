@@ -27,7 +27,8 @@ import {
 import { Separator } from '../../../../components/ui/Separator';
 
 const formSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters').max(100),
+  firstName: z.string().min(2, 'First name is required').max(50),
+  lastName: z.string().min(2, 'Last name is required').max(50),
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Enter a valid phone number (e.g. +234...)').optional().or(z.literal('')),
   dateOfBirth: z.string().min(1, 'Date of birth is required for card issuance.').optional().or(z.literal('')),
   addressLine1: z.string().optional(),
@@ -63,7 +64,8 @@ export function UserProfileForm() {
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: safeUser?.fullName || '',
+      firstName: safeUser?.firstName || '',
+      lastName: safeUser?.lastName || '',
       phone: safeUser?.phone || '',
       dateOfBirth: formatDateForInput(safeUser?.dateOfBirth),
       addressLine1: safeUser?.addressLine1 || '',
@@ -77,7 +79,8 @@ export function UserProfileForm() {
   useEffect(() => {
     if (!isEditing) {
       reset({
-        fullName: safeUser?.fullName || '',
+        firstName: safeUser?.firstName || '',
+        lastName: safeUser?.lastName || '',
         phone: safeUser?.phone || '',
         dateOfBirth: formatDateForInput(safeUser?.dateOfBirth),
         addressLine1: safeUser?.addressLine1 || '',
@@ -159,18 +162,33 @@ export function UserProfileForm() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
-            <label htmlFor="fullName" className="text-sm font-medium text-foreground flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" /> Full Name
+            <label htmlFor="firstName" className="text-sm font-medium text-foreground flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" /> First Name
             </label>
             <Input 
-                id="fullName" 
-                {...register('fullName')} 
+                id="firstName" 
+                {...register('firstName')} 
                 disabled={!isEditing || isLoading} 
                 className={inputClass}
             />
-            {errors.fullName && <p className="text-destructive text-xs">{errors.fullName.message}</p>}
+            {errors.firstName && <p className="text-destructive text-xs">{errors.firstName.message}</p>}
         </div>
 
+        <div className="space-y-2">
+            <label htmlFor="lastName" className="text-sm font-medium text-foreground flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" /> Last Name
+            </label>
+            <Input 
+                id="lastName" 
+                {...register('lastName')} 
+                disabled={!isEditing || isLoading} 
+                className={inputClass}
+            />
+            {errors.lastName && <p className="text-destructive text-xs">{errors.lastName.message}</p>}
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
             <label htmlFor="dateOfBirth" className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" /> Date of Birth
@@ -184,9 +202,7 @@ export function UserProfileForm() {
             />
             {errors.dateOfBirth && <p className="text-destructive text-xs">{errors.dateOfBirth.message}</p>}
         </div>
-      </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
             <label htmlFor="phone" className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" /> Phone Number
@@ -200,18 +216,18 @@ export function UserProfileForm() {
             />
             {errors.phone && <p className="text-destructive text-xs">{errors.phone.message}</p>}
         </div>
+      </div>
 
-        <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" /> Email Address
-            </label>
-            <Input 
-                id="email" 
-                value={safeUser?.email || ''} 
-                disabled 
-                className="bg-muted/50 border-dashed border-border text-muted-foreground cursor-not-allowed" 
-            />
-        </div>
+      <div className="space-y-2">
+          <label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground" /> Email Address
+          </label>
+          <Input 
+              id="email" 
+              value={safeUser?.email || ''} 
+              disabled 
+              className="bg-muted/50 border-dashed border-border text-muted-foreground cursor-not-allowed" 
+          />
       </div>
 
       <Separator className="my-6" />

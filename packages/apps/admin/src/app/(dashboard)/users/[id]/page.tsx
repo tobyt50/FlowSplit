@@ -51,7 +51,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
             <span className="sr-only">Back to Users</span>
           </Button>
         </Link>
-        <h1 className="flex-1 text-xl font-semibold tracking-tight">{user.fullName}</h1>
+        <h1 className="flex-1 text-xl font-semibold tracking-tight">{user.firstName} {user.lastName}</h1>
         <Badge variant={user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? 'destructive' : 'outline'} className="ml-auto sm:ml-0">
           {user.role}
         </Badge>

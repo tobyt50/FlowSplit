@@ -16,8 +16,8 @@ export function InsightToast({ insight, onAction, onClose }: InsightToastProps) 
   
   let Icon = Sparkles;
   let colorClass = "text-primary";
-  let bgClass = "bg-primary/20"; // Slightly more opaque for the icon bg on dark card
-  let borderClass = "border-l-primary";
+  let bgClass = "bg-primary/20";
+  let borderClass = "border-l-red";
 
   switch (insight.insightCode) {
     case 'UNALLOCATED_FUNDS':
@@ -51,7 +51,7 @@ export function InsightToast({ insight, onAction, onClose }: InsightToastProps) 
       "dark:shadow-black/60",
       "p-5 cursor-default pointer-events-auto",
       "border-l-[6px]",
-      borderClass
+      borderClass,
     )}>
       {/* Glossy sheen overlay - Only in dark mode */}
       <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 dark:opacity-30 pointer-events-none" />

@@ -60,8 +60,8 @@ export class VirtualAccountsService {
         // Create customer on Paystack
         const custResponse = await this.paystackClient.post('/customer', {
           email: user.email,
-          first_name: user.fullName.split(' ')[0],
-          last_name: user.fullName.split(' ')[1] || '',
+          first_name: user.firstName,
+          last_name: user.lastName,
           phone: user.phone,
         });
         customerCode = custResponse.data.data.customer_code;
@@ -108,7 +108,7 @@ export class VirtualAccountsService {
                  userId,
                  bankName: 'Test Bank (Dev)',
                  accountNumber: '9900' + Math.floor(100000 + Math.random() * 900000),
-                 accountName: 'FlowSplit - ' + user.fullName, 
+                 accountName: 'FlowSplit - ' + user.firstName + ' ' + user.lastName, 
                  provider: Provider.MANUAL
              }
          });

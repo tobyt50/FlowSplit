@@ -18,6 +18,7 @@ import { PayoutsModule } from '../../payout-service/src/modules/payouts/payouts.
 import { BankAccountsModule } from '../../payout-service/src/modules/bank-accounts/bank-accounts.module';
 import { SystemModule } from '../../payout-service/src/system/system.module';
 import { AppLimitsModule } from '../../dashboard-service/src/modules/limits/limits.module';
+import { SearchModule } from '../../dashboard-service/src/modules/search/search.module';
 
 // Manual Mounts (Rule Engine & Dashboard)
 import { RuleEngineController } from '../../rule-engine/src/rule-engine.controller';
@@ -78,6 +79,7 @@ import { HealthController } from './health.controller';
     BankAccountsModule,
     SystemModule, 
     LedgerModule,
+    SearchModule,
 
     // Admin Service Modules
     AuditModule,

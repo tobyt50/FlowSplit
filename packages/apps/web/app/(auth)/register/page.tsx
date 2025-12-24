@@ -14,9 +14,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Removed fullName from schema
 const formSchema = z.object({
-  email: z.email('Please enter a valid email address'),
+  firstName: z.string().min(2, 'First name is required'),
+  lastName: z.string().min(2, 'Last name is required'),
+  email: z.string().email('Please enter a valid email address'),
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Enter a valid phone number (e.g. +234...)'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
@@ -41,10 +42,8 @@ export default function RegisterPage() {
     setError(null);
     try {
       await registerUser(data);
-      toast.success('Account created!', {
-        description: `Your account has been successfully created. Please log in.`,
-      });
-      router.push('/login?registered=true');
+      toast.success('Account created successfully!');
+      router.push('/dashboard/overview');
     } catch (err: any) {
       toast.error('Creation Failed', {
         description: err.message,
@@ -63,12 +62,12 @@ export default function RegisterPage() {
            <Image src="/images/logo.jpg" alt="FlowSplit" fill className="object-cover" />
         </div>
         <span className="text-lg tracking-wide font-bold transition-colors">
-                    <span className="text-foreground">Flow</span>
-                    <span className="text-teal">Split</span>
-                  </span>
+            <span className="text-foreground">Flow</span>
+            <span className="text-teal">Split</span>
+        </span>
       </div>
 
-      <Card className="border-border bg-card shadow-xl">
+      <Card className="border-border bg-card shadow-xl max-w-lg w-full mx-auto">
         <CardHeader className="space-y-1 text-center pb-6">
           <CardTitle className="text-2xl font-bold tracking-tight">Create an Account</CardTitle>
           <CardDescription>
@@ -83,10 +82,36 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-2 gap-4">
             
-            {/* Email */}
-            <div className="space-y-2">
+            {/* First Name (Half Width) */}
+            <div className="space-y-2 col-span-2 sm:col-span-1">
+              <label htmlFor="firstName" className="text-sm font-medium text-foreground">First Name</label>
+              <Input 
+                id="firstName" 
+                placeholder="John" 
+                {...register('firstName')} 
+                disabled={isLoading}
+                className="bg-muted/50" 
+              />
+              {errors.firstName && <p className="text-xs text-destructive">{errors.firstName.message}</p>}
+            </div>
+
+            {/* Last Name (Half Width) */}
+            <div className="space-y-2 col-span-2 sm:col-span-1">
+              <label htmlFor="lastName" className="text-sm font-medium text-foreground">Last Name</label>
+              <Input 
+                id="lastName" 
+                placeholder="Doe" 
+                {...register('lastName')} 
+                disabled={isLoading}
+                className="bg-muted/50" 
+              />
+              {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
+            </div>
+
+            {/* Email (Full Width) */}
+            <div className="space-y-2 col-span-2">
               <label htmlFor="email" className="text-sm font-medium text-foreground">Email Address</label>
               <Input 
                 id="email" 
@@ -99,8 +124,8 @@ export default function RegisterPage() {
               {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
 
-            {/* Phone Number */}
-            <div className="space-y-2">
+            {/* Phone Number (Half Width) */}
+            <div className="space-y-2 col-span-2 sm:col-span-1">
               <label htmlFor="phone" className="text-sm font-medium text-foreground">Phone Number</label>
               <Input 
                 id="phone" 
@@ -113,13 +138,13 @@ export default function RegisterPage() {
               {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
             </div>
 
-            {/* Password */}
-            <div className="space-y-2">
+            {/* Password (Half Width) */}
+            <div className="space-y-2 col-span-2 sm:col-span-1">
               <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
               <Input 
                 id="password" 
                 type="password" 
-                placeholder="Create a password" 
+                placeholder="********" 
                 {...register('password')} 
                 disabled={isLoading}
                 className="bg-muted/50" 
@@ -127,15 +152,17 @@ export default function RegisterPage() {
               {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
             </div>
 
-            <Button type="submit" className="w-full mt-2" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...
-                </>
-              ) : (
-                'Create Account'
-              )}
-            </Button>
+            <div className="col-span-2 mt-2">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                    <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...
+                    </>
+                ) : (
+                    'Create Account'
+                )}
+                </Button>
+            </div>
           </form>
         </CardContent>
 

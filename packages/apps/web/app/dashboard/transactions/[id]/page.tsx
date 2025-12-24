@@ -8,7 +8,7 @@ import { formatCurrency } from '../../../../lib/walletService';
 import { Badge } from '../../../../components/ui/Badge';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../components/ui/Card';
-import { ArrowLeft, ArrowDown, Wallet, Hash, Calendar, CheckCircle2, ArrowUpRight, ArrowDownLeft, CreditCard, Store } from 'lucide-react';
+import { ArrowLeft, Wallet, Hash, Calendar, CheckCircle2, ArrowUpRight, ArrowDownLeft, CreditCard, Store } from 'lucide-react';
 import { cn } from '../../../../lib/utils';
 
 // Extended type to handle both Wallet and Card shapes

@@ -11,14 +11,14 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter
-} from '../../../../components/ui/Dialog';
-import { Button } from '../../../../components/ui/Button';
-import { Input } from '../../../../components/ui/Input';
+} from '../../../components/ui/Dialog';
+import { Button } from '../../../components/ui/Button';
+import { Input } from '../../../components/ui/Input';
 import { Copy, CheckCircle2, Loader2, Phone, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
-import api from '../../../../lib/api';
-import { updateUserProfile } from '../../../../lib/userService';
-import { API_URLS } from '../../../../lib/config';
+import api from '../../../lib/api';
+import { updateUserProfile } from '../../../lib/userService';
+import { API_URLS } from '../../../lib/config';
 
 interface VirtualAccount {
   bankName: string;

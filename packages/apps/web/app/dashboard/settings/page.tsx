@@ -19,10 +19,10 @@ export default function SettingsPage() {
   }, []);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-24 md:pb-10">
+    <div className="space-y-6 md:space-y-0 animate-in fade-in duration-500 pb-24 md:pb-10">
       
       {/* Page Header */}
-      <div className="flex flex-col gap-1 px-1">
+      <div className="flex flex-col gap-1 px-1 md:hidden">
         <h2 className="text-lg font-semibold text-foreground">Settings</h2>
       </div>
 

@@ -5,6 +5,7 @@ import {
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
+  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService, UserStatus } from '@flowsplit/prisma';
@@ -13,6 +14,8 @@ import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcryptjs';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { TwoFactorAuthService } from './two-factor-auth.service';
+import * as crypto from 'crypto';
+import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthService {
@@ -20,10 +23,11 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly twoFactorService: TwoFactorAuthService,
+    @Inject('NOTIFICATION_SERVICE') private readonly notificationClient: ClientProxy,
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { fullName, email, phone, password } = registerDto;
+    const { firstName, lastName, email, phone, password } = registerDto;
 
     const userExists = await this.prisma.user.findFirst({
         where: { 
@@ -44,7 +48,8 @@ export class AuthService {
     try {
       const user = await this.prisma.user.create({
         data: {
-          fullName,
+          firstName,
+          lastName,
           email,
           phone,
           password: hashedPassword,
@@ -53,7 +58,16 @@ export class AuthService {
 
       // Don't return the password
       const { password, ...result } = user;
-      return result;
+
+      const payload = { sub: user.id, email: user.email, role: user.role };
+      const accessToken = this.jwtService.sign(payload);
+
+      // Return both user info and the token
+      return {
+        ...result,
+        accessToken,
+      };
+      
     } catch (error) {
       throw new InternalServerErrorException('Could not create user.');
     }
@@ -193,5 +207,80 @@ export class AuthService {
       where: { id: userId },
       data: { password: hashedPassword },
     });
+  }
+
+  /**
+   * Generates a secure token, hashes it, saves to DB, and emits email event.
+   * Always returns void/success to prevent email enumeration.
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    // Anti-Enumeration: Return success even if user doesn't exist.
+    if (!user) return;
+
+    // 1. Generate High-Entropy Token (Raw)
+    const rawToken = crypto.randomBytes(32).toString('hex');
+
+    // 2. Hash the token
+    const tokenHash = await bcrypt.hash(rawToken, 10);
+
+    // 3. Set Expiry (15 minutes)
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+    // 4. Save/Upsert to DB
+    // We use upsert to ensure only one active token exists per user
+    await this.prisma.passwordResetToken.upsert({
+      where: { userId: user.id },
+      update: { tokenHash, expiresAt },
+      create: { userId: user.id, tokenHash, expiresAt },
+    });
+
+    // 5. Emit Event
+    // We send the RAW token in the email. We do NOT save the raw token.
+    const payload = {
+        email: user.email,
+        userId: user.id,
+        rawToken: rawToken, // Only time this leaves the server memory
+        name: `${user.firstName} ${user.lastName}`,
+    };
+    
+    this.notificationClient.emit('auth.forgot_password', new RmqRecordBuilder(payload).build());
+  }
+
+  /**
+   * Verifies the token and updates the password.
+   */
+  async resetPassword(userId: string, rawToken: string, newPassword: string): Promise<void> {
+    // 1. Find the token record
+    const resetRecord = await this.prisma.passwordResetToken.findUnique({
+        where: { userId } 
+    });
+
+    if (!resetRecord) throw new BadRequestException('Invalid or expired reset link.');
+
+    // 2. Check Expiry
+    if (new Date() > resetRecord.expiresAt) {
+        // Clean up expired token
+        await this.prisma.passwordResetToken.delete({ where: { userId } });
+        throw new BadRequestException('Reset link has expired.');
+    }
+
+    // 3. Verify Token Hash
+    const isValid = await bcrypt.compare(rawToken, resetRecord.tokenHash);
+    if (!isValid) throw new BadRequestException('Invalid reset link.');
+
+    // 4. Update Password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Transaction: Update User & Delete Token
+    await this.prisma.$transaction([
+        this.prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword }
+        }),
+        this.prisma.passwordResetToken.delete({ where: { userId } })
+    ]);
   }
 }

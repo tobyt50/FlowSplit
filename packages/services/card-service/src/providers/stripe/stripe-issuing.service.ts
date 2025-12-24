@@ -147,7 +147,7 @@ export class StripeIssuingService {
       this.logger.log(`[getOrCreateCardholder] Creating new Cardholder in Stripe...`);
       
       const cardholderPayload: Stripe.Issuing.CardholderCreateParams = {
-        name: user.fullName,
+        name: `${user.firstName} ${user.lastName}`,
         email: user.email,
         phone_number: user.phone,
         status: 'active',

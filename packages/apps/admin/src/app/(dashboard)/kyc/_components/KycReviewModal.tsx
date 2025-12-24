@@ -45,7 +45,7 @@ export function KycReviewModal({ userId, onClose, onComplete }: KycReviewModalPr
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Reviewing: {data.user.fullName}</DialogTitle>
+          <DialogTitle>Reviewing: {data.user.firstName} {data.user.lastName}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-6">
@@ -53,7 +53,8 @@ export function KycReviewModal({ userId, onClose, onComplete }: KycReviewModalPr
           <div className="space-y-4">
             <h4 className="font-semibold border-b pb-2">Profile Data</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div><p className="text-muted-foreground">Full Name</p><p>{data.user.fullName}</p></div>
+              <div><p className="text-muted-foreground">First Name</p><p>{data.user.firstName}</p></div>
+              <div><p className="text-muted-foreground">Last Name</p><p>{data.user.lastName}</p></div>
               <div><p className="text-muted-foreground">Email</p><p>{data.user.email}</p></div>
               <div><p className="text-muted-foreground">DOB</p><p>{new Date(data.user.dob).toLocaleDateString()}</p></div>
               <div><p className="text-muted-foreground">ID Type</p><p>{data.documents.idType}</p></div>

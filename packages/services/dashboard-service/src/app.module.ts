@@ -7,6 +7,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HealthController } from './health.controller';
 import { LimitModule } from '@flowsplit/limits';
 import { AppLimitsModule } from './modules/limits/limits.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AppLimitsModule } from './modules/limits/limits.module';
     DashboardModule,
     LimitModule,
     AppLimitsModule,
+    SearchModule,
   ],
   controllers: [
     HealthController,

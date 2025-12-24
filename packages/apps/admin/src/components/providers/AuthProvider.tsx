@@ -1,7 +1,7 @@
 'use client'; // This component also interacts with client-side state
 
 import { useEffect, useState } from 'react';
-import { useAuthStore } from '../../lib/authStore';
+import { useAdminAuthStore } from '../../lib/authStore';
 
 /**
  * The AuthProvider is a client-side component responsible for initializing
@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Trigger the rehydration of the auth store on component mount.
   useEffect(() => {
     // This rehydrates the store from localStorage.
-    useAuthStore.persist.rehydrate();
+    useAdminAuthStore.persist.rehydrate();
     setIsHydrated(true);
   }, []);
 

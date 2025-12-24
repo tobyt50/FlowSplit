@@ -10,7 +10,7 @@ import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../../../components/ui/Card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../../../components/ui/Dialog';
-import { AlertTriangle, CheckCircle2, Copy, Loader2, QrCode, ShieldCheck, ShieldAlert, XCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Copy, Loader2, QrCode, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 
 // --- SUB-COMPONENT: DISABLE MODAL ---

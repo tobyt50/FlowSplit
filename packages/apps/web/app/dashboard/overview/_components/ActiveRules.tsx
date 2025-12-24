@@ -48,10 +48,20 @@ export function ActiveRules({ rules, wallets, onRuleToggle }: ActiveRulesProps) 
     <Card className="flex flex-col h-full bg-card border-border">
       <CardHeader className="pb-3 pt-5 px-5">
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg text-foreground">Active Rules</CardTitle>
-            <CardDescription>Rules active for next deposit.</CardDescription>
-          </div>
+          <div className="flex items-start gap-2">
+  <SlidersHorizontal className="h-5 w-5 text-primary mt-0.5" />
+
+  <div className="flex flex-col leading-tight">
+    <CardTitle className="text-md text-foreground">
+      Active Rules
+    </CardTitle>
+
+    <CardDescription className="text-xs">
+      Rules active for next deposit.
+    </CardDescription>
+  </div>
+</div>
+
           <Badge variant="outline" className="hidden md:flex bg-primary/10 text-primary border-primary/20 shrink-0">
             {activeRules.length} Active
           </Badge>

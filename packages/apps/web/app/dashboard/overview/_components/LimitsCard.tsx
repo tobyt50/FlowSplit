@@ -44,7 +44,7 @@ export function LimitsCard() {
             <div className="p-1.5 rounded-md bg-primary/10 text-primary">
                 <Activity className="h-4 w-4" />
             </div>
-            <CardTitle className="text-sm font-medium text-foreground">Transaction Limits</CardTitle>
+            <CardTitle className="text-md font-medium text-foreground">Transaction Limits</CardTitle>
         </div>
         <Badge variant="outline" className="bg-background text-[10px] uppercase tracking-wider font-bold px-2 h-5">
             {status.tier}

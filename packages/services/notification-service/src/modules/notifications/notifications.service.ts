@@ -187,4 +187,17 @@ export class NotificationsService {
       });
     }
   }
+
+  async sendPasswordResetEmail(payload: { email: string, userId: string, rawToken: string, name: string }) {
+    const resetUrl = `${this.frontendUrl}/reset-password?token=${payload.rawToken}&id=${payload.userId}`;
+    
+    await this.emailService.sendHtmlEmail({
+        to: payload.email,
+        subject: 'Reset your FlowSplit Password',
+        title: 'Password Reset Request',
+        body: `Hi ${payload.name}, we received a request to reset your password. This link expires in 15 minutes.`,
+        actionText: 'Reset Password',
+        actionUrl: resetUrl
+    });
+  }
 }

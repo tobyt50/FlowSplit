@@ -12,22 +12,29 @@ import { toast } from 'sonner';
 import { BankAccountActions } from './_components/BankAccountActions';
 import { setPrimaryBankAccount, deleteBankAccount } from '../../../lib/payoutService';
 import { cn } from '../../../lib/utils';
+import { useHeaderStore } from '../../../lib/headerStore';
 
 export default function BankAccountsPage() {
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { setHeader } = useHeaderStore();
 
   const fetchAccounts = useCallback(async () => {
-    try {
-      const data = await getBankAccounts();
-      setAccounts(data);
-    } catch (err: any) {
-      toast.error('Error', { description: err.message });
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  try {
+    const data = await getBankAccounts();
+    setAccounts(data);
+    setHeader({ 
+      title: 'Bank Accounts', 
+      count: data.length, 
+      label: 'Linked' 
+    });
+  } catch (err: any) {
+    toast.error('Error', { description: err.message });
+  } finally {
+    setIsLoading(false);
+  }
+}, [setHeader]);
 
   const handleSetPrimary = async (id: string) => {
     try {
@@ -149,8 +156,8 @@ export default function BankAccountsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
         <div>
           <div className="flex items-center gap-3">
-             <h2 className="text-lg font-semibold text-foreground">Bank Accounts</h2>
-             <Badge variant="outline" className="hidden sm:flex bg-muted text-muted-foreground border-border">
+             <h2 className="text-lg font-semibold text-foreground md:hidden">Bank Accounts</h2>
+             <Badge variant="outline" className="md:hidden sm:flex bg-muted text-muted-foreground border-border">
                 {accounts.length} Linked
              </Badge>
           </div>

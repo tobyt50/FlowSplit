@@ -9,24 +9,31 @@ import { Badge } from '../../../components/ui/Badge';
 import { EmptyState } from '../_components/EmptyState';
 import { History, ArrowDownLeft, ArrowUpRight, CreditCard } from 'lucide-react';
 import { UnifiedTransaction } from '../../../types';
+import { useHeaderStore } from '../../../lib/headerStore';
 
 export default function TransactionsPage() {
   const router = useRouter();
   const [transactions, setTransactions] = useState<UnifiedTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { setHeader } = useHeaderStore();
 
   const fetchData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const userTransactions = await getTransactions();
-      setTransactions(userTransactions);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  try {
+    setIsLoading(true);
+    const userTransactions = await getTransactions();
+    setTransactions(userTransactions);
+    setHeader({ 
+      title: 'Transaction History', 
+      count: userTransactions.length, 
+      label: 'Records' 
+    });
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setIsLoading(false);
+  }
+}, [setHeader]);
 
   useEffect(() => {
     fetchData();
@@ -141,8 +148,8 @@ export default function TransactionsPage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-24 md:pb-10">
       <div className="flex flex-col gap-1 px-1">
         <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-foreground">Transaction History</h2>
-            <Badge variant="outline" className="hidden sm:flex bg-muted text-muted-foreground border-border">
+            <h2 className="text-lg font-semibold text-foreground md:hidden">Transaction History</h2>
+            <Badge variant="outline" className="md:hidden sm:flex bg-muted text-muted-foreground border-border">
                 {transactions.length} Records
             </Badge>
         </div>

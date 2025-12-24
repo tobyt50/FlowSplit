@@ -67,7 +67,7 @@ export default function UsersListPage() {
                 <TableRow key={user.id}>
                   <TableCell>
                     <Link href={`/users/${user.id}`} className="font-medium hover:underline text-primary">
-                      {user.fullName}
+                      {user.firstName} {user.lastName}
                     </Link>
                     <div className="text-sm text-muted-foreground">{user.email}</div>
                   </TableCell>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowDown, Wallet, PiggyBank, Home, Zap, TrendingUp, Check } from 'lucide-react';
+import { ArrowDown, Wallet, PiggyBank, Home, Zap, TrendingUp } from 'lucide-react';
 
 // --- Sub-components for the simulation ---
 

@@ -4,6 +4,8 @@ import { User } from '../types/index';
 import { API_URLS } from './config';
 
 type RegisterData = {
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   password: string;
@@ -35,10 +37,18 @@ interface ChangePasswordData {
  */
 export const registerUser = async (data: RegisterData): Promise<Omit<User, 'password'>> => {
   try {
-    const response = await api.post<Omit<User, 'password'>>(
-      `${API_URLS.MONOLITH}/auth/register`, data
+    const response = await api.post<Omit<User, 'password'> & { accessToken: string }>(
+      `${API_URLS.MONOLITH}/auth/register`, 
+      data
     );
-    return response.data;
+
+    const { accessToken, ...user } = response.data;
+
+    if (accessToken) {
+      useAuthStore.getState().setToken(accessToken);
+      useAuthStore.getState().setUser(user);
+    }
+    return user;
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Registration failed');
   }

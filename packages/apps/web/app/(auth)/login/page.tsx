@@ -59,19 +59,20 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
     try {
-      // 1. Raw API call to handle the 2FA fork
-      const res = await api.post(`${API_URLS.MONOLITH}/auth/login`,
-            data);
+      const res = await api.post(`${API_URLS.MONOLITH}/auth/login`, data);
       
       if (res.data.requiresTwoFactor) {
         // --- PATH A: 2FA REQUIRED ---
+        // Store the temporary token in state (do not persist it)
         setTempToken(res.data.tempToken);
+        // Switch the UI to the 2FA input view
         setRequires2FA(true);
         toast.info('Two-Factor Authentication Required');
       } else {
         // --- PATH B: STANDARD LOGIN ---
         const { accessToken } = res.data;
         
+        // Update global store
         useAuthStore.getState().setToken(accessToken);
         
         // Fetch profile to complete session setup
@@ -94,7 +95,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
     try {
-      // 2. Verify 2FA Code
+      // 2. Verify 2FA Code using the dedicated service function
       await verify2FALogin(tempToken, data.code);
       toast.success('Welcome back!');
       router.push('/dashboard/overview');
@@ -114,7 +115,7 @@ export default function LoginPage() {
         </div>
         <span className="text-lg tracking-wide font-bold transition-colors">
             <span className="text-foreground">Flow</span>
-            <span className="text-teal">Split</span>
+            <span className="text-teal-500">Split</span>
         </span>
       </div>
 
@@ -175,6 +176,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
+                  {/* Forgot Password Link Integration */}
                   <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary transition-colors">
                     Forgot password?
                   </Link>

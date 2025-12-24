@@ -55,7 +55,6 @@ interface CreateRuleFormProps {
   }
 }
 
-// Semantic priority options for clearer UX
 const PRIORITY_OPTIONS = [
   { value: 1, label: 'Essential (First)' },
   { value: 5, label: 'High' },

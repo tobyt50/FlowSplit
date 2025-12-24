@@ -18,7 +18,8 @@ export class AdminUsersService {
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
-          fullName: true,
+          firstName: true,
+          lastName: true,
           email: true,
           phone: true,
           role: true,

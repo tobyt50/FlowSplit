@@ -16,7 +16,8 @@ export class AdminKycService {
       where: { kycStatus: KycStatus.PENDING, idImageKey: { not: null } }, // Only show Tier 2 pending
       select: {
         id: true,
-        fullName: true,
+        firstName: true,
+        lastName: true,
         email: true,
         kycTier: true,
         createdAt: true,
@@ -36,7 +37,7 @@ export class AdminKycService {
     ]);
 
     return {
-      user: { fullName: user.fullName, email: user.email, dob: user.dateOfBirth },
+      user: { firstName: user.firstName, lastName: user.lastName, email: user.email, dob: user.dateOfBirth },
       documents: { idUrl, selfieUrl, idType: user.idType, idNumber: user.idNumber } // In prod, decrypt idNumber
     };
   }

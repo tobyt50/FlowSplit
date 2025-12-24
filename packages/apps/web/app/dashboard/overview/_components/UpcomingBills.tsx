@@ -35,9 +35,9 @@ export function UpcomingBills({ bills }: UpcomingBillsProps) {
   return (
     <Card className="h-full flex flex-col overflow-hidden">
       <div className="p-5 border-b border-border bg-muted/20">
-         <h3 className="font-semibold text-foreground flex items-center gap-2">
+         <h3 className="font-semibold text-md text-foreground flex items-center gap-2">
             <CalendarClock className="h-5 w-5 text-primary" />
-            Upcoming Obligations
+            Upcoming Bills
          </h3>
       </div>
       <div className="p-5 space-y-5 flex-1 overflow-y-auto">

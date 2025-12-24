@@ -10,7 +10,8 @@ import { toast } from 'sonner';
 
 interface PendingUser {
   id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   createdAt: string;
 }
@@ -52,7 +53,7 @@ export default function KycQueuePage() {
                 {users.map(user => (
                   <TableRow key={user.id}>
                     <TableCell>
-                      <div className="font-medium">{user.fullName}</div>
+                      <div className="font-medium">{user.firstName} {user.lastName}</div>
                       <div className="text-xs text-muted-foreground">{user.email}</div>
                     </TableCell>
                     <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>

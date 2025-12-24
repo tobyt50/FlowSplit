@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { getCards } from '../../../lib/cardService';
 import { VirtualCard } from '../../../types/index';
 import { CreditCard } from '../../../components/ui/CreditCard';
@@ -11,26 +11,34 @@ import { CardActions } from './_components/CardActions';
 import { EmptyState } from '../_components/EmptyState';
 import { Plus, CreditCard as CardIcon, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
+import { useHeaderStore } from '../../../lib/headerStore';
 
 export default function CardsPage() {
   const [cards, setCards] = useState<VirtualCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isIssueOpen, setIsIssueOpen] = useState(false);
+  const { setHeader } = useHeaderStore();
 
-  const fetchCards = async () => {
-    try {
-      const data = await getCards();
-      setCards(data);
-    } catch (err: any) {
-      toast.error('Error', { description: err.message });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const fetchCards = useCallback(async () => {
+  try {
+    const data = await getCards();
+    setCards(data);
+    setHeader({ 
+      title: 'Virtual Cards', 
+      count: data.length, 
+      label: 'Issued' 
+    });
+  } catch (err: any) {
+    toast.error('Error', { description: err.message });
+  } finally {
+    setIsLoading(false);
+  }
+}, [setHeader]);
+
 
   useEffect(() => {
-    fetchCards();
-  }, []);
+  fetchCards();
+}, [fetchCards]);
 
   const activeCards = cards.filter(card => card.status !== 'CANCELED');
 
@@ -49,9 +57,9 @@ export default function CardsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
         <div>
           <div className="flex items-center gap-3">
-             <h2 className="text-lg font-semibold text-foreground">Virtual Cards</h2>
-             <Badge variant="outline" className="hidden sm:flex bg-muted text-muted-foreground border-border">
-                {activeCards.length} Active
+             <h2 className="text-lg font-semibold text-foreground md:hidden">Virtual Cards</h2>
+             <Badge variant="outline" className="md:hidden sm:flex bg-muted text-muted-foreground border-border">
+                {activeCards.length} Issued
              </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-1 max-w-md">

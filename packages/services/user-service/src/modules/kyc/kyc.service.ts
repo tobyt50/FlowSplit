@@ -61,8 +61,8 @@ export class KycService {
         country: 'NG',
         type: 'bvn',
         value: bvn,
-        first_name: user.fullName.split(' ')[0],
-        last_name: user.fullName.split(' ')[1] || '',
+        first_name: user.firstName,
+        last_name: user.lastName,
       });
 
       this.logger.log(`KYC initiated for user ${userId}`);

@@ -24,8 +24,8 @@ import { BankAccount } from '../../../../lib/payoutService';
 
 interface BankAccountActionsProps {
   account: BankAccount;
-  onSetPrimary: (id: string) => void;
-  onDelete: (id: string) => void;
+  onSetPrimary: (_id: string) => void;
+  onDelete: (_id: string) => void;
 }
 
 export function BankAccountActions({ account, onSetPrimary, onDelete }: BankAccountActionsProps) {

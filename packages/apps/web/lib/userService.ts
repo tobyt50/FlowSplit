@@ -3,7 +3,8 @@ import { User } from '../types/index';
 import { API_URLS } from './config';
 
 export interface UpdateUserData {
-  fullName?: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   dateOfBirth?: string;
   addressLine1?: string;

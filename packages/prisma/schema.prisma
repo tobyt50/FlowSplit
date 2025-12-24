@@ -3,6 +3,8 @@
 // ------------------------------------------------------
 generator client {
   provider = "prisma-client-js"
+  // Enable Full Text Search capabilities for PostgreSQL
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 datasource db {
@@ -136,7 +138,8 @@ enum IdType {
 
 model User {
   id        String   @id @default(cuid())
-  fullName  String
+  firstName       String
+  lastName        String
   email     String   @unique
   phone           String?         @unique
   password  String?
@@ -179,6 +182,7 @@ model User {
   payouts      Payout[]
   depositOverrideWalletId String?
   depositOverrideWallet   Wallet? @relation("UserDepositOverride", fields: [depositOverrideWalletId], references: [id])
+  passwordResetToken PasswordResetToken?
 }
 
 model AdminAuditLog {
@@ -238,6 +242,7 @@ model Wallet {
   payoutsFrom Payout[]
   virtualCards    VirtualCard[]
   usersUsingAsOverride User[] @relation("UserDepositOverride")
+  @@index([userId, name])
 }
 
 model Account {
@@ -311,6 +316,7 @@ model SplitRule {
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
+  @@index([userId, name])
 }
 
 // Represents a dedicated NUBAN assigned to a user for receiving deposits.
@@ -354,6 +360,8 @@ model Transaction {
 
   walletId String?
   wallet   Wallet? @relation("WalletTransactions", fields: [walletId], references: [id])
+  @@index([userId, description])
+  @@index([userId, reference])
 }
 
 model Analytics {
@@ -415,6 +423,8 @@ model VirtualCard {
   updatedAt       DateTime     @updatedAt
   
   transactions    CardTransaction[]
+  @@index([userId, nameOnCard])
+  @@index([userId, last4])
 }
 
 model CardTransaction {
@@ -449,4 +459,15 @@ model TierLimit {
   
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  tokenHash String   // Bcrypt hash of the raw token
+  expiresAt DateTime
+  
+  createdAt DateTime @default(now())
 }

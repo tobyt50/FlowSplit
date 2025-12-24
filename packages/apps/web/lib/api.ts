@@ -46,4 +46,25 @@ api.interceptors.request.use(
   }
 );
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Check if the error is a 401 Unauthorized
+    if (error.response && error.response.status === 401) {
+      
+      // Prevent redirect loops if we are already on auth pages
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+        
+        // 1. Clear the global auth state (removes token from localStorage & Cookies)
+        useAuthStore.getState().logout();
+        
+        // 2. Force a hard redirect to login
+        // We use window.location.href to ensure a full state flush
+        window.location.href = '/login?error=session_expired';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

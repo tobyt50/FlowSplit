@@ -70,7 +70,7 @@ export function CashFlowChart({ data, compact = false, className }: CashFlowChar
   };
 
   return (
-    <div className={cn("w-full", compact ? "h-full min-h-[100px]" : "h-[200px]", className)}>
+    <div className={cn("w-full", compact ? "h-full min-h-[100px]" : "h-[150px]", className)}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart 
           data={chartData} 

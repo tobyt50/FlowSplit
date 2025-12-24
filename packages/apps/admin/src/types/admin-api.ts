@@ -2,7 +2,8 @@ import { AdminActionType, AuditLogLevel, UserStatus, Role, SplitType } from '@fl
 
 export interface UserDetail {
   id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string | null;
   role: Role;
@@ -16,7 +17,8 @@ export interface UserDetail {
 
 export interface UserListItem {
     id: string;
-    fullName: string;
+    firstName: string;
+    lastName: string;
     email: string;
     phone: string | null;
     role: Role;

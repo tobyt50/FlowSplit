@@ -30,4 +30,21 @@ api.interceptors.request.use(
   }
 );
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+        
+        // 1. Clear Admin Auth State
+        useAdminAuthStore.getState().logout();
+        
+        // 2. Redirect
+        window.location.href = '/login?error=session_expired';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

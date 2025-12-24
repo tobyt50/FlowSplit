@@ -12,8 +12,8 @@ interface AuthState {
 
 // Define the actions that can be performed on the state
 interface AuthActions {
-  setToken: (token: string) => void;
-  setUser: (user: Omit<User, 'password'>) => void;
+  setToken: (_token: string) => void;
+  setUser: (_user: Omit<User, 'password'>) => void;
   logout: () => void;
 }
 

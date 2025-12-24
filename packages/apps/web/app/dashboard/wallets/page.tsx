@@ -15,24 +15,31 @@ import {
 import { CreateWalletForm } from './_components/CreateWalletForm';
 import { EmptyState } from '../_components/EmptyState';
 import { Badge } from '../../../components/ui/Badge';
+import { useHeaderStore } from '../../../lib/headerStore';
 
 export default function WalletsPage() {
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { setHeader } = useHeaderStore();
 
   const fetchWallets = useCallback(async () => {
-    try {
-      if (wallets.length === 0) setIsLoading(true);
-      const userWallets = await getWallets();
-      setWallets(userWallets);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [wallets.length]);
+  try {
+    setIsLoading(true);
+    const userWallets = await getWallets();
+    setWallets(userWallets);
+    setHeader({ 
+      title: 'My Wallets', 
+      count: userWallets.length, 
+      label: 'Active' 
+    });
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setIsLoading(false);
+  }
+}, [setHeader]);
 
   useEffect(() => {
     fetchWallets();
@@ -97,10 +104,10 @@ export default function WalletsPage() {
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 md:hidden">
              <h2 className="text-lg font-semibold text-foreground">My Wallets</h2>
-             <Badge variant="outline" className="hidden sm:flex bg-muted text-muted-foreground border-border">
-                {wallets.length} Total
+             <Badge variant="outline" className="md:hidden sm:flex bg-muted text-muted-foreground border-border">
+                {wallets.length} Active
              </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-1 max-w-md">

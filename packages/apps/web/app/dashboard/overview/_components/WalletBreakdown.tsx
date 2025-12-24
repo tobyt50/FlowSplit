@@ -57,7 +57,7 @@ export function WalletBreakdown({ wallets, rules }: WalletBreakdownProps) {
       {/* Header */}
       <CardHeader className="flex flex-row items-start justify-between pb-2 pt-6 px-6 z-10">
         <div className="space-y-1">
-          <CardTitle className="text-lg font-bold tracking-tight">Wallet Portfolio</CardTitle>
+          <CardTitle className="text-md font-bold tracking-tight">Wallet Portfolio</CardTitle>
           <p className="text-xs text-muted-foreground">
             Asset distribution across {wallets.length} wallets.
           </p>

@@ -1,9 +1,19 @@
-import { IsEmail, IsNotEmpty, IsString, Matches, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
 
 export class RegisterDto {
-  @IsNotEmpty()
-  @IsString()
-  fullName!: string;
+  @IsNotEmpty() 
+  @IsString() 
+  firstName!: string;
+  
+  @IsNotEmpty() 
+  @IsString() 
+  lastName!: string;
 
   @IsNotEmpty()
   @IsEmail()
@@ -11,7 +21,9 @@ export class RegisterDto {
 
   @IsNotEmpty()
   @IsString()
-  @Matches(/^\+?[1-9]\d{1,14}$/, { message: 'Phone number must be in a valid format (e.g., +2348012345678)' })
+  @Matches(/^\+?[1-9]\d{1,14}$/, {
+    message: 'Phone number must be in a valid format (e.g., +2348012345678)',
+  })
   phone!: string;
 
   @IsNotEmpty()
