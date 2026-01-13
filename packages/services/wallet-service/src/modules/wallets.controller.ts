@@ -5,6 +5,7 @@ import { JwtAuthGuard, CurrentUser } from '@flowsplit/auth';
 import { User } from '@flowsplit/prisma';
 import { IsString, IsNotEmpty, IsNumber, Min } from 'class-validator';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
+import { FinancialThrottlerGuard, Throttle } from '@flowsplit/security';
 
 class TransferDto {
   @IsString() @IsNotEmpty() fromWalletId!: string;
@@ -45,6 +46,8 @@ export class WalletsController {
   }
 
    @Post('transfer')
+   @UseGuards(FinancialThrottlerGuard)
+  @Throttle({ default: { limit: 20, ttl: 60000 } }) // 3. Limit: 20 transfers per minute
   transfer(@CurrentUser() user: User, @Body() body: TransferDto) {
     return this.walletsService.transferFunds(user.id, body.fromWalletId, body.toWalletId, BigInt(body.amount));
   }

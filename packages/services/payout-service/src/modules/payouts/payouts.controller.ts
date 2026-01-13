@@ -10,6 +10,7 @@ import {
   PaystackEventType,
 } from './dto/paystack-webhook.dto';
 import { PaystackGuard } from '../../common/guards/paystack.guard';
+import { FinancialThrottlerGuard, Throttle } from '@flowsplit/security';
 
 @Controller('payouts')
 export class PayoutsController {
@@ -23,6 +24,8 @@ export class PayoutsController {
    */
   @Post('initiate')
   @UseGuards(JwtAuthGuard)
+  @UseGuards(FinancialThrottlerGuard)
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 3. Limit: 10 payouts per minute
   initiatePayout(@CurrentUser() user: User, @Body() initiatePayoutDto: InitiatePayoutDto) {
     return this.payoutsService.initiate(user.id, initiatePayoutDto);
   }
