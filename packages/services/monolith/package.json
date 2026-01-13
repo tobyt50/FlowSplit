@@ -15,6 +15,7 @@
         "@flowsplit/prisma": "workspace:*",
         "@flowsplit/rule-engine": "workspace:*",
         "@flowsplit/rule-service": "workspace:*",
+        "@flowsplit/security": "workspace:^",
         "@flowsplit/transactions-service": "workspace:*",
         "@flowsplit/user-service": "workspace:*",
         "@flowsplit/wallet-service": "workspace:*",

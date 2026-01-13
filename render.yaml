@@ -5,14 +5,29 @@ services:
   - type: web
     name: flowsplit-backend
     env: docker
-    plan: free # or starter if you want it to never sleep
+    plan: free
     dockerfilePath: ./packages/services/monolith/Dockerfile
     dockerContext: .
-    healthCheckPath: /api/health # Ensure you have a health check in one of the controllers
+    healthCheckPath: /api/health
     envVars:
       - fromGroup: flowsplit-env
       - key: PORT
         value: 4000
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: flowsplit-redis
+          property: connectionString
+
+  # -----------------------------------------------------------------------------
+  # REDIS (Managed by Render)
+  # -----------------------------------------------------------------------------
+  - type: redis
+    name: flowsplit-redis
+    region: ohio
+    plan: free
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru
 
   # -----------------------------------------------------------------------------
   # AI SERVICE (Python - Must be separate)
@@ -43,10 +58,14 @@ envVarGroups:
       - key: PAYSTACK_SECRET_KEY
         sync: false
       - key: RABBITMQ_URL
-        sync: false # Use CloudAMQP URL here
+        sync: false
       - key: SMTP_HOST
+        sync: false
+      - key: STRIPE_SECRET_KEY
         sync: false
       - key: SMTP_USER
         sync: false
       - key: SMTP_PASS
         sync: false
+      - key: USE_MOCK_CARDS
+        value: "false"
