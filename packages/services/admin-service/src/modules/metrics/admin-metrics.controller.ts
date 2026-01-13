@@ -2,7 +2,7 @@ import { Controller, Get, UseGuards, Query, ParseIntPipe, DefaultValuePipe } fro
 import { AdminGuard } from '../../auth/admin.guard';
 import { AdminMetricsService } from './admin-metrics.service';
 
-@Controller('admin/metrics')
+@Controller({ path: 'admin/metrics', version: '1' })
 @UseGuards(AdminGuard)
 export class AdminMetricsController {
   constructor(private readonly metricsService: AdminMetricsService) {}

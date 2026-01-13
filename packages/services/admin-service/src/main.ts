@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from 'nestjs-pino';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { PrismaService } from '@flowsplit/prisma';
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
@@ -39,6 +39,12 @@ async function bootstrap() {
     });
     logger.log(`CORS enabled for origin: ${frontendUrl}`);
   }
+
+  // URI Versioning (e.g., /api/v1/auth/login)
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1', // Default to v1 if not specified
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

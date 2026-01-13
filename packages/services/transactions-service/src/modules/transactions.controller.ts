@@ -6,7 +6,7 @@ import { PaystackGuard } from '../common/guards/paystack.guard';
 import { JwtAuthGuard, CurrentUser } from '@flowsplit/auth';
 import { User } from '@flowsplit/prisma';
 
-@Controller('transactions')
+@Controller({ path: 'transactions', version: '1' })
 @UseGuards(JwtAuthGuard)
 export class TransactionsController {
   constructor(

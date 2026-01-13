@@ -24,7 +24,7 @@ class CreateCardDto {
   @IsString() @IsNotEmpty() nameOnCard!: string;
 }
 
-@Controller('cards')
+@Controller({ path: 'cards', version: '1' })
 @UseGuards(JwtAuthGuard)
 export class CardsController {
   constructor(

@@ -12,7 +12,7 @@ import {
 import { PaystackGuard } from '../../common/guards/paystack.guard';
 import { FinancialThrottlerGuard, Throttle } from '@flowsplit/security';
 
-@Controller('payouts')
+@Controller({ path: 'payouts', version: '1' })
 export class PayoutsController {
   private readonly logger = new Logger(PayoutsController.name);
 

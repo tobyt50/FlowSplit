@@ -16,7 +16,7 @@ import { User } from '@flowsplit/prisma';
 import { CreateRuleDto } from './dto/create-rule.dto';
 import { UpdateRuleDto } from './dto/update-rule.dto';
 
-@Controller('rules')
+@Controller({ path: 'rules', version: '1' })
 @UseGuards(JwtAuthGuard)
 export class RulesController {
   constructor(private readonly rulesService: RulesService) {}

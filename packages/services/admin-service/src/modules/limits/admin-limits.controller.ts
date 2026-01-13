@@ -11,7 +11,7 @@ class UpdateLimitDto {
   @IsNumber() @Min(-1) maxMonthly!: number;
 }
 
-@Controller('admin/limits')
+@Controller({ path: 'admin/limits', version: '1' })
 @UseGuards(AdminGuard)
 export class AdminLimitsController {
   constructor(

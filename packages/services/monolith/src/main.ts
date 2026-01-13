@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { MonolithModule } from './app.module';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { Logger as PinoLogger } from 'nestjs-pino';
@@ -39,6 +39,12 @@ async function bootstrap() {
   });
   
   logger.log(`CORS Enabled for: ${allowedOrigins.join(', ')}`);
+
+  // URI Versioning (e.g., /api/v1/auth/login)
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1', // Default to v1 if not specified
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

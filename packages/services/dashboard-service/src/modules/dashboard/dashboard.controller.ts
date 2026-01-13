@@ -3,7 +3,7 @@ import { JwtAuthGuard, CurrentUser } from '@flowsplit/auth';
 import { User } from '@flowsplit/prisma';
 import { DashboardService } from './dashboard.service';
 
-@Controller('dashboard')
+@Controller({ path: 'dashboard', version: '1' })
 @UseGuards(JwtAuthGuard)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}

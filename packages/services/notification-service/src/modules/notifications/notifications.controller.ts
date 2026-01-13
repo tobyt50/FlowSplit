@@ -10,7 +10,7 @@ class CreateTestNotificationDto {
   @IsString() @IsNotEmpty() message!: string;
 }
 
-@Controller('notifications')
+@Controller({ path: 'notifications', version: '1' })
 export class NotificationsController {
   private readonly logger = new Logger(NotificationsController.name);
 

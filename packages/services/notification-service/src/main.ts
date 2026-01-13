@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@flowsplit/prisma';
@@ -53,6 +53,12 @@ async function bootstrap() {
       queueOptions: { durable: true },
       noAck: false,
     },
+  });
+
+  // URI Versioning (e.g., /api/v1/auth/login)
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1', // Default to v1 if not specified
   });
 
   // -----------------------

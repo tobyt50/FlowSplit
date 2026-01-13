@@ -11,7 +11,7 @@ class ReviewKycDto {
   rejectionReason?: string;
 }
 
-@Controller('admin/kyc')
+@Controller({ path: 'admin/kyc', version: '1' })
 @UseGuards(AdminGuard)
 export class AdminKycController {
   constructor(

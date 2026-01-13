@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import { PrismaService } from '@flowsplit/prisma';
 import { ConfigService } from '@nestjs/config';
@@ -19,6 +19,13 @@ async function bootstrap() {
   // Logging, validation, and prefix setup
   const logger = app.get(PinoLogger);
   app.useLogger(logger);
+
+  // URI Versioning (e.g., /api/v1/auth/login)
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1', // Default to v1 if not specified
+  });
+  
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }));
   app.setGlobalPrefix('api');
 

@@ -5,7 +5,7 @@ import Stripe from 'stripe';
 import { AuthorizationService } from '../authorizations/authorization.service';
 import { SettlementService } from '../settlement/settlement.service';
 
-@Controller('cards/webhooks')
+@Controller({ path: 'cards/webhooks', version: '1' })
 export class WebhookController {
   private readonly logger = new Logger(WebhookController.name);
   private stripe: Stripe;

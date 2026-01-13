@@ -13,7 +13,7 @@ class TransferDto {
   @IsNumber() @Min(1) amount!: number; // kobo
 }
 
-@Controller('wallets')
+@Controller({ path: 'wallets', version: '1' })
 @UseGuards(JwtAuthGuard)
 export class WalletsController {
   constructor(private readonly walletsService: WalletsService) {}

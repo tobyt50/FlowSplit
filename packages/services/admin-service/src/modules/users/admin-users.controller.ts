@@ -16,7 +16,7 @@ import { AdminActionType, AuditLogLevel, User, UserStatus } from '@flowsplit/pri
 import { CurrentUser } from '@flowsplit/auth';
 import { UpdateStatusDto } from './dto/update-status.dto';
 
-@Controller('admin/users')
+@Controller({ path: 'admin/users', version: '1' })
 @UseGuards(AdminGuard)
 export class AdminUsersController {
   constructor(

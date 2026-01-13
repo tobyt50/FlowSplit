@@ -4,7 +4,7 @@ import { JwtAuthGuard, CurrentUser } from '@flowsplit/auth';
 import type { User } from '@flowsplit/prisma';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-@Controller('users')
+@Controller({ path: 'users', version: '1' })
 @UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
