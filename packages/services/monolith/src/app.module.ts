@@ -5,6 +5,7 @@ import { PrismaModule } from '@flowsplit/prisma';
 import { LimitModule, LIMIT_NOTIFIER } from '@flowsplit/limits';
 import { RabbitLimitNotifier } from './limits/limit-notifier.adapter';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { RateLimitModule } from '@flowsplit/security';
 
 // Feature Modules
 import { AuthModule } from '../../auth/src/auth/auth.module';
@@ -49,6 +50,7 @@ import { HealthController } from './health.controller';
     }),
     LoggerModule.forRoot({ pinoHttp: { transport: { target: 'pino-pretty' } } }),
     PrismaModule,
+    RateLimitModule,
 
     ClientsModule.registerAsync([
       {
