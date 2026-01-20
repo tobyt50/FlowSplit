@@ -26,7 +26,7 @@ export class AuthController {
   }
 
   @Post('login')
-  @UseGuards(AuthThrottlerGuard)
+  // @UseGuards(AuthThrottlerGuard)
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // Max 5 attempts per minute
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
